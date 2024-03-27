@@ -113,10 +113,13 @@ ScpInstrumentationRBVisitor >> visitLiteralNode: aLiteralNode [
 { #category : #visiting }
 ScpInstrumentationRBVisitor >> visitMessageNode: aMessageNode [
 
+	| arguments |
+	arguments := aMessageNode arguments.
+
 	aMessageNode
 			  receiver: (self visitNode: aMessageNode receiver);
 			  selector: (self visitNode: aMessageNode selectorNode);
-			  arguments: (aMessageNode arguments collect: [ :each | self visitNode: each ]).
+			  arguments: (arguments collect: [ :each | self visitNode: each copy ]).
 
 	aMessageNode receiver isBlock ifTrue: [ ^ aMessageNode ].
 
@@ -134,7 +137,7 @@ ScpInstrumentationRBVisitor >> visitMessageNode: aMessageNode [
 				  (RBBlockNode body: (RBSequenceNode statements: { aMessageNode })).
 				  (RBLiteralValueNode value: aMessageNode selector).
 				  aMessageNode receiver.
-				  (RBArrayNode statements: aMessageNode arguments ) }
+				  (RBArrayNode statements: arguments ) }
 ]
 
 { #category : #visiting }

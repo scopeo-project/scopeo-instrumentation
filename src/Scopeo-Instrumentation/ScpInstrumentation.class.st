@@ -57,6 +57,11 @@ ScpInstrumentation >> install [
 	self methodsToInstrument do: [ :method |
 		| ast |
 		ast := method ast copy.
+
+		Smalltalk logStdOutDuring: [:logger |
+			logger nextPutAll: method name; cr 
+		].
+
 		ast := visitor visit: ast.
 		method methodClass compile: ast formattedCode.
 
