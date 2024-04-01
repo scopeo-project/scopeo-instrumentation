@@ -23,8 +23,7 @@ ScpInstrumentationRBVisitor >> indirectionIdentifier: anIdentifier [
 				                selector: #instance)
 		               selector: #at:
 		               arguments:
-		               { (RBLiteralValueNode value:
-			                anIdentifier) }
+		               { (RBLiteralValueNode value: anIdentifier) }
 ]
 
 { #category : #API }
@@ -46,18 +45,20 @@ ScpInstrumentationRBVisitor >> visitAssignmentNode: anAssignmentNode [
 	anAssignmentNode
 		variable: (self visitNode: anAssignmentNode variable);
 		value: (self visitNode: anAssignmentNode value).
-		
-	anAssignmentNode variable isInstanceVariable ifFalse: [ ^ anAssignmentNode ].
+
+	anAssignmentNode variable isInstanceVariable ifFalse: [
+		^ anAssignmentNode ].
 
 	^ RBMessageNode
 		  receiver: indirection
-		  selector: #assignment:variable:of:value:
+		  selector: #statement:assigning:to:of:
 		  arguments: {
 				  (RBBlockNode body:
 					   (RBSequenceNode statements: { anAssignmentNode })).
+					anAssignmentNode value.
 				  (RBLiteralValueNode value: anAssignmentNode variable name).
-				  (RBVariableNode named: #self).
-				  anAssignmentNode value }
+				  (RBVariableNode named: #self)
+				   }
 ]
 
 { #category : #visiting }
@@ -123,7 +124,13 @@ ScpInstrumentationRBVisitor >> visitMessageNode: aMessageNode [
 			(aMessageNode arguments collect: [ :each | self visitNode: each ]).
 
 	receiver isBlock ifTrue: [ ^ aMessageNode ].
-	receiver isSuperVariable ifTrue: [ ^ aMessageNode ].
+	receiver isSuperVariable ifTrue: [ ^ RBMessageNode
+		  receiver: indirection
+		  selector: #superMessage:from:with:
+		  arguments: {
+				  (RBLiteralValueNode value: aMessageNode selector).
+				  RBVariableNode selfNode.
+				  (RBArrayNode statements: aMessageNode arguments) } ].
 
 	^ RBMessageNode
 		  receiver: indirection
@@ -138,30 +145,35 @@ ScpInstrumentationRBVisitor >> visitMessageNode: aMessageNode [
 { #category : #visiting }
 ScpInstrumentationRBVisitor >> visitMethodNode: aMethodNode [
 
+	| sender |
 	aMethodNode arguments:
 		(self visitArgumentNodes: aMethodNode arguments).
 	aMethodNode pragmas:
 		(aMethodNode pragmas collect: [ :each | self visitNode: each ]).
 	aMethodNode body: (self visitNode: aMethodNode body).
 
+	sender := RBMessageNode
+		          receiver: (RBMessageNode
+				           receiver: (RBVariableNode named: #thisContext)
+				           selector: #sender)
+		          selector: #receiver.
+
 	aMethodNode body addNodeFirst: (RBMessageNode
 			 receiver: indirection
 			 selector: #method:from:to:with:
 			 arguments: {
 					 (RBLiteralValueNode value: aMethodNode selector).
-					 (RBMessageNode
-						  receiver: (RBMessageNode
-								   receiver: (RBVariableNode named: #thisContext)
-								   selector: #sender)
-						  selector: #receiver).
+					 sender.
 					 RBVariableNode selfNode.
 					 (RBArrayNode statements: aMethodNode arguments) }).
 
 	aMethodNode lastIsReturn ifFalse: [
 		aMethodNode body addNodeLast: (RBReturnNode value: (RBMessageNode
 					  receiver: indirection
-					  selector: #methodReturn:
-					  arguments: { RBVariableNode selfNode })) ].
+					  selector: #methodReturn:to:
+					  arguments: {
+							  RBVariableNode selfNode.
+							  sender })) ].
 
 	^ aMethodNode
 ]
@@ -202,11 +214,14 @@ ScpInstrumentationRBVisitor >> visitPragmaNode: aPragmaNode [
 { #category : #visiting }
 ScpInstrumentationRBVisitor >> visitReturnNode: aReturnNode [
 
-	^ aReturnNode
-		  value: (RBMessageNode
-				   receiver: indirection
-				   selector: #methodReturn:
-				   arguments: { (self visitNode: aReturnNode value) })
+	^ aReturnNode value: (RBMessageNode
+			   receiver: indirection
+			   selector: #methodReturn:to:
+			   arguments: { (self visitNode: aReturnNode value) . (RBMessageNode
+						  receiver: (RBMessageNode
+								   receiver: (RBVariableNode named: #thisContext)
+								   selector: #sender)
+						  selector: #receiver) })
 ]
 
 { #category : #visiting }

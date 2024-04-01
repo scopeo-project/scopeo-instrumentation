@@ -15,3 +15,7 @@ ScpInstrumentationHandler >> onMethodCall: aMethodSelector from: aSender to: aRe
 { #category : #'as yet unclassified' }
 ScpInstrumentationHandler >> onMethodReturn: aValue [
 ]
+
+{ #category : #'as yet unclassified' }
+ScpInstrumentationHandler >> onSuperCall: aSelector from: aSender with: anArguments [
+]
