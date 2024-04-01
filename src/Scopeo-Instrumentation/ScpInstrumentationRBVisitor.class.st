@@ -2,7 +2,7 @@ Class {
 	#name : #ScpInstrumentationRBVisitor,
 	#superclass : #RBProgramNodeVisitor,
 	#instVars : [
-		'indirectionIdentifier'
+		'indirection'
 	],
 	#category : #'Scopeo-Instrumentation'
 }
@@ -14,15 +14,17 @@ ScpInstrumentationRBVisitor class >> isAbstract [
 ]
 
 { #category : #accessing }
-ScpInstrumentationRBVisitor >> indirectionIdentifier [
-
-	^ indirectionIdentifier
-]
-
-{ #category : #accessing }
 ScpInstrumentationRBVisitor >> indirectionIdentifier: anIdentifier [
 
-	indirectionIdentifier := anIdentifier
+	indirection := RBMessageNode
+		               receiver: (RBMessageNode
+				                receiver:
+				                (RBVariableNode named: #ScpInstrumentationRegistry)
+				                selector: #instance)
+		               selector: #at:
+		               arguments:
+		               { (RBLiteralValueNode value:
+			                anIdentifier) }
 ]
 
 { #category : #API }
@@ -33,8 +35,9 @@ ScpInstrumentationRBVisitor >> visit: aRBMessageNode [
 { #category : #visiting }
 ScpInstrumentationRBVisitor >> visitArrayNode: anArrayNode [
 
-	^ anArrayNode statements:
-		(anArrayNode children collect: [ :each | self visitNode: each ]);yourself
+	^ anArrayNode 
+		statements: (anArrayNode children collect: [ :each | self visitNode: each ]);
+		yourself
 ]
 
 { #category : #visiting }
@@ -47,14 +50,7 @@ ScpInstrumentationRBVisitor >> visitAssignmentNode: anAssignmentNode [
 	anAssignmentNode variable isInstanceVariable ifFalse: [ ^ anAssignmentNode ].
 
 	^ RBMessageNode
-		  receiver: (RBMessageNode
-				   receiver: (RBMessageNode
-						    receiver:
-						    (RBVariableNode named: #ScpInstrumentationRegistry)
-						    selector: #instance)
-				   selector: #at:
-				   arguments:
-				   { (RBLiteralValueNode value: self indirectionIdentifier) })
+		  receiver: indirection
 		  selector: #assignment:variable:of:value:
 		  arguments: {
 				  (RBBlockNode body:
@@ -95,13 +91,17 @@ ScpInstrumentationRBVisitor >> visitCascadeNode: aCascadeNode [
 { #category : #visiting }
 ScpInstrumentationRBVisitor >> visitEnglobingErrorNode: anEnglobingErrorNode [
 
-	^ anEnglobingErrorNode contents:  ( anEnglobingErrorNode contents collect: [ :each | self visitNode: each ]); yourself
+	^ anEnglobingErrorNode
+		  contents: (anEnglobingErrorNode contents collect: [ :each | self visitNode: each ]);
+		  yourself
 ]
 
 { #category : #visiting }
 ScpInstrumentationRBVisitor >> visitLiteralArrayNode: aRBLiteralArrayNode [
 
-	^ aRBLiteralArrayNode contents: ( aRBLiteralArrayNode contents collect: [ :each | self visitNode: each ]);yourself
+	^ aRBLiteralArrayNode 
+		contents: (aRBLiteralArrayNode contents collect: [ :each | self visitNode: each ]);
+		yourself
 ]
 
 { #category : #visiting }
@@ -113,31 +113,26 @@ ScpInstrumentationRBVisitor >> visitLiteralNode: aLiteralNode [
 { #category : #visiting }
 ScpInstrumentationRBVisitor >> visitMessageNode: aMessageNode [
 
-	| arguments |
-	arguments := aMessageNode arguments.
+	| receiver |
+	receiver := aMessageNode receiver.
 
 	aMessageNode
-			  receiver: (self visitNode: aMessageNode receiver);
-			  selector: (self visitNode: aMessageNode selectorNode);
-			  arguments: (arguments collect: [ :each | self visitNode: each copy ]).
+		receiver: (self visitNode: aMessageNode receiver copy);
+		selector: (self visitNode: aMessageNode selectorNode);
+		arguments:
+			(aMessageNode arguments collect: [ :each | self visitNode: each ]).
 
-	aMessageNode receiver isBlock ifTrue: [ ^ aMessageNode ].
+	receiver isBlock ifTrue: [ ^ aMessageNode ].
+	receiver isSuperVariable ifTrue: [ ^ aMessageNode ].
 
 	^ RBMessageNode
-		  receiver: (RBMessageNode
-				   receiver: (RBMessageNode
-						    receiver:
-						    (RBVariableNode named: #ScpInstrumentationRegistry)
-						    selector: #instance)
-				   selector: #at:
-				   arguments:
-				   { (RBLiteralValueNode value: self indirectionIdentifier) })
-		  selector: #message:selector:to:with:
+		  receiver: indirection
+		  selector: #message:from:to:with:
 		  arguments: {
-				  (RBBlockNode body: (RBSequenceNode statements: { aMessageNode })).
 				  (RBLiteralValueNode value: aMessageNode selector).
+				  RBVariableNode selfNode.
 				  aMessageNode receiver.
-				  (RBArrayNode statements: arguments ) }
+				  (RBArrayNode statements: aMessageNode arguments) }
 ]
 
 { #category : #visiting }
@@ -148,25 +143,26 @@ ScpInstrumentationRBVisitor >> visitMethodNode: aMethodNode [
 	aMethodNode pragmas:
 		(aMethodNode pragmas collect: [ :each | self visitNode: each ]).
 	aMethodNode body: (self visitNode: aMethodNode body).
+
 	aMethodNode body addNodeFirst: (RBMessageNode
-			 receiver: (RBMessageNode
-					  receiver: (RBMessageNode
-							   receiver:
-							   (RBVariableNode named: #ScpInstrumentationRegistry)
-							   selector: #instance)
-					  selector: #at:
-					  arguments:
-					  { (RBLiteralValueNode value: self indirectionIdentifier) })
-			 selector: #method:of:from:with:
+			 receiver: indirection
+			 selector: #method:from:to:with:
 			 arguments: {
 					 (RBLiteralValueNode value: aMethodNode selector).
-					 (RBVariableNode named: #self).
 					 (RBMessageNode
 						  receiver: (RBMessageNode
 								   receiver: (RBVariableNode named: #thisContext)
 								   selector: #sender)
 						  selector: #receiver).
+					 RBVariableNode selfNode.
 					 (RBArrayNode statements: aMethodNode arguments) }).
+
+	aMethodNode lastIsReturn ifFalse: [
+		aMethodNode body addNodeLast: (RBReturnNode value: (RBMessageNode
+					  receiver: indirection
+					  selector: #methodReturn:
+					  arguments: { RBVariableNode selfNode })) ].
+
 	^ aMethodNode
 ]
 
@@ -188,23 +184,29 @@ ScpInstrumentationRBVisitor >> visitPatternBlockNode: aRBPatternBlockNode [
 { #category : #visiting }
 ScpInstrumentationRBVisitor >> visitPatternWrapperBlockNode: aRBPatternWrapperBlockNode [
 
-	^ aRBPatternWrapperBlockNode wrappedNode: (
-
-	self visitNode: aRBPatternWrapperBlockNode wrappedNode); arguments: (
-	self visitArgumentNodes: aRBPatternWrapperBlockNode arguments); body: (
-	self visitNode: aRBPatternWrapperBlockNode body);yourself
+	^ aRBPatternWrapperBlockNode
+		  wrappedNode: (self visitNode: aRBPatternWrapperBlockNode wrappedNode);
+		  arguments: (self visitArgumentNodes: aRBPatternWrapperBlockNode arguments);
+		  body: (self visitNode: aRBPatternWrapperBlockNode body);
+		  yourself
 ]
 
 { #category : #visiting }
 ScpInstrumentationRBVisitor >> visitPragmaNode: aPragmaNode [
 
-	^ aPragmaNode arguments: (aPragmaNode  arguments do: [ :each | self visitNode: each ]); yourself
+	^ aPragmaNode 
+		arguments: (aPragmaNode arguments do: [ :each | self visitNode: each ]);
+		yourself
 ]
 
 { #category : #visiting }
 ScpInstrumentationRBVisitor >> visitReturnNode: aReturnNode [
 
-	^ aReturnNode value: ( self visitNode: aReturnNode value); yourself
+	^ aReturnNode
+		  value: (RBMessageNode
+				   receiver: indirection
+				   selector: #methodReturn:
+				   arguments: { (self visitNode: aReturnNode value) })
 ]
 
 { #category : #visiting }
@@ -216,7 +218,8 @@ ScpInstrumentationRBVisitor >> visitSelectorNode: aSelectorNode [
 { #category : #visiting }
 ScpInstrumentationRBVisitor >> visitSequenceNode: aSequenceNode [
 
-	^ aSequenceNode temporaries: (
-	self visitTemporaryNodes: aSequenceNode temporaries);statements: (
-	aSequenceNode statements collect: [ :each | self visitNode: each ]);yourself
+	^ aSequenceNode
+		  temporaries: (self visitTemporaryNodes: aSequenceNode temporaries);
+		  statements: (aSequenceNode statements collect: [ :each | self visitNode: each ]);
+		  yourself
 ]

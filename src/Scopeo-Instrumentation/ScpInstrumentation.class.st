@@ -72,23 +72,33 @@ ScpInstrumentation >> install [
 ]
 
 { #category : #private }
-ScpInstrumentation >> message: aMessageBlock selector: aMessageSelector to: aReceiver with: anArguments [
+ScpInstrumentation >> message: aSelector from: aSender to: aReceiver with: anArguments [
 
 	handler
-		onMessageSent: aMessageSelector
+		onMethodCall: aSelector
+		from: aSender
 		to: aReceiver
 		with: anArguments.
-	^ aMessageBlock value
+
+	^ self methodReturn:
+		  (aReceiver perform: aSelector withArguments: anArguments)
 ]
 
 { #category : #private }
-ScpInstrumentation >> method: aMethodSelector of: aReceiver from: aSender with: anArguments [
+ScpInstrumentation >> method: aSelector from: aSender to: aReceiver with: anArguments [
 
 	handler
-		onMethodCall: aMethodSelector
-		of: aReceiver
+		onMethodCall: aSelector
 		from: aSender
-		with: anArguments
+		to: aReceiver
+		with: anArguments.
+]
+
+{ #category : #private }
+ScpInstrumentation >> methodReturn: aValue [
+
+	handler onMethodReturn: aValue.
+	^ aValue
 ]
 
 { #category : #accessing }

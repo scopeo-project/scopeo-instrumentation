@@ -9,11 +9,9 @@ ScpInstrumentationHandler >> onAssignment: aVariable of: anObject value: aValue 
 ]
 
 { #category : #'events handling' }
-ScpInstrumentationHandler >> onMessageSent: aSelector to: aReceiver with: aArguments [
+ScpInstrumentationHandler >> onMethodCall: aMethodSelector from: aSender to: aReceiver with: aArguments [
 ]
 
-{ #category : #'events handling' }
-ScpInstrumentationHandler >> onMethodCall: aMethodSelector of: aReceiver from: aSender with: aArguments [
-
-   
+{ #category : #'as yet unclassified' }
+ScpInstrumentationHandler >> onMethodReturn: aValue [
 ]
