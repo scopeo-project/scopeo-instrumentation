@@ -54,12 +54,15 @@ ScpInstrumentationRBVisitor >> visitAssignmentNode: anAssignmentNode [
 		  receiver: indirection
 		  selector: #assignment:variable:object:value:
 		  arguments: {
-				  (RBBlockNode body:
-					   (RBSequenceNode statements: { anAssignmentNode })).
-					anAssignmentNode value.
+				  (RBBlockNode
+					   arguments: { (RBVariableNode named: #v) }
+					   body: (RBSequenceNode statements: { (RBAssignmentNode
+								     variable:
+								     (RBVariableNode named: anAssignmentNode variable name)
+								     value: (RBVariableNode named: #v)) })).
 				  (RBLiteralValueNode value: anAssignmentNode variable name).
-				  (RBVariableNode named: #self)
-				   }
+				  (RBVariableNode named: #self).
+				  anAssignmentNode value }
 ]
 
 { #category : #visiting }
