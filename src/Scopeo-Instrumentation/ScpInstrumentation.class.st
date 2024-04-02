@@ -23,10 +23,10 @@ ScpInstrumentation class >> uninstallAll [
 ]
 
 { #category : #private }
-ScpInstrumentation >> assignment: aBlock variable: aValue object: aVariable value: anObject [ 
+ScpInstrumentation >> assignment: aBlock variable: aVariable object: anObject value: aValue [
 
 	handler onAssignment: aVariable of: anObject value: aValue.
-	^ aBlock value
+	^ aBlock value: aValue
 ]
 
 { #category : #parameters }
