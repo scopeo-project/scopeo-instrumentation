@@ -22,6 +22,13 @@ ScpInstrumentation class >> uninstallAll [
 
 ]
 
+{ #category : #private }
+ScpInstrumentation >> assignment: aBlock variable: aValue object: aVariable value: anObject [ 
+
+	handler onAssignment: aVariable of: anObject value: aValue.
+	^ aBlock value
+]
+
 { #category : #parameters }
 ScpInstrumentation >> handler: aHandler [
 
@@ -73,8 +80,9 @@ ScpInstrumentation >> message: aSelector from: aSender to: aReceiver with: anArg
 		to: aReceiver
 		with: anArguments.
 
-	^ self methodReturn:
-		  (aReceiver perform: aSelector withArguments: anArguments) to: aSender
+	^ self
+		  methodReturn: (aReceiver perform: aSelector withArguments: anArguments)
+		  to: aSender
 ]
 
 { #category : #private }
@@ -121,23 +129,15 @@ ScpInstrumentation >> registry [
 ]
 
 { #category : #private }
-ScpInstrumentation >> statement: aBlock assigning: aValue to: aVariable of: anObject [ 
+ScpInstrumentation >> superMessage: aSelector from: aSender with: anArguments in: aClass [
 
-	handler onAssignment: aVariable of: anObject value: aValue.
-	^ aBlock value
-]
-
-{ #category : #private }
-ScpInstrumentation >> superMessage: aSelector from: aSender with: anArguments [
-
-	handler
-		onSuperCall: aSelector
-		from: aSender
-		with: anArguments.
+	handler onSuperCall: aSelector from: aSender with: anArguments.
 
 	^ self
-		  methodReturn:
-		  (aSender perform: aSelector withArguments: anArguments inSuperclass: aSender class superclass)
+		  methodReturn: (aSender
+				   perform: aSelector
+				   withArguments: anArguments
+				   inSuperclass: aClass superclass)
 		  to: aSender
 ]
 

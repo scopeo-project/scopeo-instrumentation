@@ -2,7 +2,8 @@ Class {
 	#name : #ScpInstrumentationRBVisitor,
 	#superclass : #RBProgramNodeVisitor,
 	#instVars : [
-		'indirection'
+		'indirection',
+		'currentMethod'
 	],
 	#category : #'Scopeo-Instrumentation'
 }
@@ -51,7 +52,7 @@ ScpInstrumentationRBVisitor >> visitAssignmentNode: anAssignmentNode [
 
 	^ RBMessageNode
 		  receiver: indirection
-		  selector: #statement:assigning:to:of:
+		  selector: #assignment:variable:object:value:
 		  arguments: {
 				  (RBBlockNode body:
 					   (RBSequenceNode statements: { anAssignmentNode })).
@@ -124,13 +125,15 @@ ScpInstrumentationRBVisitor >> visitMessageNode: aMessageNode [
 			(aMessageNode arguments collect: [ :each | self visitNode: each ]).
 
 	receiver isBlock ifTrue: [ ^ aMessageNode ].
-	receiver isSuperVariable ifTrue: [ ^ RBMessageNode
-		  receiver: indirection
-		  selector: #superMessage:from:with:
-		  arguments: {
-				  (RBLiteralValueNode value: aMessageNode selector).
-				  RBVariableNode selfNode.
-				  (RBArrayNode statements: aMessageNode arguments) } ].
+	receiver isSuperVariable ifTrue: [
+		^ RBMessageNode
+			  receiver: indirection
+			  selector: #superMessage:from:with:in:
+			  arguments: {
+					  (RBLiteralValueNode value: aMessageNode selector).
+					  RBVariableNode selfNode.
+					  (RBArrayNode statements: aMessageNode arguments).
+					  (RBVariableNode named: currentMethod methodClass asString) } ].
 
 	^ RBMessageNode
 		  receiver: indirection
@@ -146,6 +149,9 @@ ScpInstrumentationRBVisitor >> visitMessageNode: aMessageNode [
 ScpInstrumentationRBVisitor >> visitMethodNode: aMethodNode [
 
 	| sender |
+	
+	currentMethod := aMethodNode compilationContext compiledMethod.
+	
 	aMethodNode arguments:
 		(self visitArgumentNodes: aMethodNode arguments).
 	aMethodNode pragmas:
@@ -219,7 +225,7 @@ ScpInstrumentationRBVisitor >> visitReturnNode: aReturnNode [
 			   selector: #methodReturn:to:
 			   arguments: { (self visitNode: aReturnNode value) . (RBMessageNode
 						  receiver: (RBMessageNode
-								   receiver: (RBVariableNode named: #thisContext)
+								   receiver: (RBVariableNode thisContextNode)
 								   selector: #sender)
 						  selector: #receiver) })
 ]
