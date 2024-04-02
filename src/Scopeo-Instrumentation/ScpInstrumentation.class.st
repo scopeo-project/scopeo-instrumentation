@@ -50,25 +50,36 @@ ScpInstrumentation >> initialize [
 { #category : #services }
 ScpInstrumentation >> install [
 
-	self methodsToInstrument ifEmpty: [ ^ self ].
-	
+	| numberOfErrors numberOfMethods |
+	numberOfErrors := 0.
+	numberOfMethods := self methodsToInstrument size.
+
+	numberOfMethods < 0 ifTrue: [ ^ self ].
+
 	self registry register: self.
-	
+
 	self methodsToInstrument do: [ :method |
 		| ast |
 		ast := method ast copy.
-
-		Smalltalk logStdOutDuring: [:logger |
-			logger nextPutAll: method name; cr 
-		].
-
 		ast := visitor visit: ast.
-		method methodClass compile: ast formattedCode.
 
-		[ self registry addMethod: method ] 
-			on: Error 
-			do: [ self uninstall ]
-	]
+		[ method methodClass compile: ast formattedCode ]
+			on: Error
+			do: [ :e |
+				numberOfErrors := numberOfErrors + 1.
+				Smalltalk logStdOutDuring: [ :logger |
+					logger
+						nextPutAll: e;
+						cr ] ].
+
+		[ self registry addMethod: method ]
+			on: Error
+			do: [ self uninstall ] ].
+
+	self inform:
+		'Scopeo: instrumenting '
+		, (numberOfMethods - numberOfErrors) asString , '/'
+		, numberOfMethods asString , ' methods.'
 ]
 
 { #category : #private }
