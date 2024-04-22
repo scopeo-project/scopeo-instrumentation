@@ -1,20 +1,21 @@
 Class {
-	#name : #ScpInstrumentationRBVisitor,
-	#superclass : #RBProgramNodeVisitor,
+	#name : 'ScpInstrumentationRBVisitor',
+	#superclass : 'RBProgramNodeVisitor',
 	#instVars : [
 		'indirection',
 		'currentMethod'
 	],
-	#category : #'Scopeo-Instrumentation'
+	#category : 'Scopeo-Instrumentation',
+	#package : 'Scopeo-Instrumentation'
 }
 
-{ #category : #testing }
+{ #category : 'testing' }
 ScpInstrumentationRBVisitor class >> isAbstract [
 
 	^ self == RBProgramNodeVisitor
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpInstrumentationRBVisitor >> indirectionIdentifier: anIdentifier [
 
 	indirection := RBMessageNode
@@ -27,12 +28,12 @@ ScpInstrumentationRBVisitor >> indirectionIdentifier: anIdentifier [
 		               { (RBLiteralValueNode value: anIdentifier) }
 ]
 
-{ #category : #API }
+{ #category : 'API' }
 ScpInstrumentationRBVisitor >> visit: aRBMessageNode [
 	^ aRBMessageNode acceptVisitor: self
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitArrayNode: anArrayNode [
 
 	^ anArrayNode 
@@ -40,7 +41,7 @@ ScpInstrumentationRBVisitor >> visitArrayNode: anArrayNode [
 		yourself
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitAssignmentNode: anAssignmentNode [
 
 	anAssignmentNode
@@ -65,7 +66,7 @@ ScpInstrumentationRBVisitor >> visitAssignmentNode: anAssignmentNode [
 				  anAssignmentNode value }
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitBlockNode: aBlockNode [
 
 	^ aBlockNode arguments:( self visitArgumentNodes: aBlockNode arguments);
@@ -73,7 +74,7 @@ ScpInstrumentationRBVisitor >> visitBlockNode: aBlockNode [
 		yourself
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitCascadeNode: aCascadeNode [
 
 	| receiverNode receiverNodeVariable statements |
@@ -93,7 +94,7 @@ ScpInstrumentationRBVisitor >> visitCascadeNode: aCascadeNode [
 		  selector: #value
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitEnglobingErrorNode: anEnglobingErrorNode [
 
 	^ anEnglobingErrorNode
@@ -101,7 +102,7 @@ ScpInstrumentationRBVisitor >> visitEnglobingErrorNode: anEnglobingErrorNode [
 		  yourself
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitLiteralArrayNode: aRBLiteralArrayNode [
 
 	^ aRBLiteralArrayNode 
@@ -109,13 +110,13 @@ ScpInstrumentationRBVisitor >> visitLiteralArrayNode: aRBLiteralArrayNode [
 		yourself
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitLiteralNode: aLiteralNode [
 
 	^ aLiteralNode
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitMessageNode: aMessageNode [
 
 	| receiver |
@@ -148,13 +149,12 @@ ScpInstrumentationRBVisitor >> visitMessageNode: aMessageNode [
 				  (RBArrayNode statements: aMessageNode arguments) }
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitMethodNode: aMethodNode [
 
 	| sender |
-	
-	currentMethod := aMethodNode compilationContext compiledMethod.
-	
+	currentMethod := aMethodNode compiledMethod.
+
 	aMethodNode arguments:
 		(self visitArgumentNodes: aMethodNode arguments).
 	aMethodNode pragmas:
@@ -187,13 +187,13 @@ ScpInstrumentationRBVisitor >> visitMethodNode: aMethodNode [
 	^ aMethodNode
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitParseErrorNode: anErrorNode [
 
 	^ anErrorNode
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitPatternBlockNode: aRBPatternBlockNode [
 
 	^ aRBPatternBlockNode
@@ -202,7 +202,7 @@ ScpInstrumentationRBVisitor >> visitPatternBlockNode: aRBPatternBlockNode [
 		yourself
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitPatternWrapperBlockNode: aRBPatternWrapperBlockNode [
 
 	^ aRBPatternWrapperBlockNode
@@ -212,7 +212,7 @@ ScpInstrumentationRBVisitor >> visitPatternWrapperBlockNode: aRBPatternWrapperBl
 		  yourself
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitPragmaNode: aPragmaNode [
 
 	^ aPragmaNode 
@@ -220,7 +220,7 @@ ScpInstrumentationRBVisitor >> visitPragmaNode: aPragmaNode [
 		yourself
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitReturnNode: aReturnNode [
 
 	^ aReturnNode value: (RBMessageNode
@@ -233,13 +233,13 @@ ScpInstrumentationRBVisitor >> visitReturnNode: aReturnNode [
 						  selector: #receiver) })
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitSelectorNode: aSelectorNode [
 
 	^ aSelectorNode
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationRBVisitor >> visitSequenceNode: aSequenceNode [
 
 	^ aSequenceNode
