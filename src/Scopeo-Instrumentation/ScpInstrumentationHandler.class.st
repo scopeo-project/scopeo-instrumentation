@@ -13,10 +13,10 @@ ScpInstrumentationHandler >> onAssignment: aVariable of: anObject value: aValue 
 ScpInstrumentationHandler >> onMethodCall: aMethodSelector from: aSender to: aReceiver with: aArguments [
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'events handling' }
 ScpInstrumentationHandler >> onMethodReturn: aValue [
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'events handling' }
 ScpInstrumentationHandler >> onSuperCall: aSelector from: aSender with: anArguments [
 ]
