@@ -5,18 +5,22 @@ Class {
 	#package : 'Scopeo-Instrumentation'
 }
 
-{ #category : 'events handling' }
-ScpInstrumentationHandler >> onAssignment: aVariable of: anObject value: aValue [
+{ #category : 'as yet unclassified' }
+ScpInstrumentationHandler >> method: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
 ]
 
-{ #category : 'events handling' }
-ScpInstrumentationHandler >> onMethodCall: aMethodSelector from: aSender to: aReceiver with: aArguments [
+{ #category : 'as yet unclassified' }
+ScpInstrumentationHandler >> node: aNodeId assignment: aVariable object: anObject value: aValue [
 ]
 
-{ #category : 'events handling' }
-ScpInstrumentationHandler >> onMethodReturn: aValue [
+{ #category : 'as yet unclassified' }
+ScpInstrumentationHandler >> node: aNodeId message: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
 ]
 
-{ #category : 'events handling' }
-ScpInstrumentationHandler >> onSuperCall: aSelector from: aSender with: anArguments [
+{ #category : 'as yet unclassified' }
+ScpInstrumentationHandler >> node: aNodeId return: aValue [
+]
+
+{ #category : 'as yet unclassified' }
+ScpInstrumentationHandler >> node: aNodeId super: aSelector sender: aSender arguments: anArguments [
 ]

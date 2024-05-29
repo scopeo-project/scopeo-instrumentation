@@ -23,13 +23,6 @@ ScpInstrumentation class >> uninstallAll [
 
 ]
 
-{ #category : 'private' }
-ScpInstrumentation >> assignment: aBlock variable: aVariable object: anObject value: aValue [
-
-	handler onAssignment: aVariable of: anObject value: aValue.
-	^ aBlock value: aValue
-]
-
 { #category : 'parameters' }
 ScpInstrumentation >> handler: aHandler [
 
@@ -43,7 +36,7 @@ ScpInstrumentation >> handler: aHandler [
 { #category : 'initialization' }
 ScpInstrumentation >> initialize [
 
-	visitor := ScpInstrumentationRBVisitor new
+	visitor := ScpInstrumentationMethodVisitor new
 		indirectionIdentifier: self hash;
 		yourself
 ]
@@ -61,8 +54,7 @@ ScpInstrumentation >> install [
 
 	self methodsToInstrument do: [ :method |
 		| ast |
-		ast := method ast copy.
-		ast := visitor visit: ast.
+		ast := visitor visitMethod: method.
 
 		[ method methodClass compile: ast formattedCode ]
 			on: Error
@@ -84,39 +76,15 @@ ScpInstrumentation >> install [
 ]
 
 { #category : 'private' }
-ScpInstrumentation >> message: aSelector from: aSender to: aReceiver with: anArguments [
-
-	handler
-		onMethodCall: aSelector
-		from: aSender
-		to: aReceiver
-		with: anArguments.
-
-	^ self
-		  methodReturn: (aReceiver perform: aSelector withArguments: anArguments)
-		  to: aSender
-]
-
-{ #category : 'private' }
-ScpInstrumentation >> method: aSelector from: aSender to: aReceiver with: anArguments [
+ScpInstrumentation >> method: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
 
 	aSender class = self class ifTrue: [ ^ self ].
 
 	handler
-		onMethodCall: aSelector
-		from: aSender
-		to: aReceiver
-		with: anArguments
-]
-
-{ #category : 'private' }
-ScpInstrumentation >> methodReturn: aValue to: aSender [
-
-	aSender class = self class ifFalse: [
-			handler onMethodReturn: aValue
-		
-		].
-	^ aValue
+		method: aSelector
+		sender: aSender
+		receiver: aReceiver
+		arguments: anArguments
 ]
 
 { #category : 'accessing' }
@@ -135,22 +103,60 @@ ScpInstrumentation >> methodsToInstrument: aMethodCollection [
 ]
 
 { #category : 'private' }
-ScpInstrumentation >> registry [
+ScpInstrumentation >> node: aNodeId assignment: aBlock variable: aVariable object: anObject value: aValue [
 
-	^ ScpInstrumentationRegistry instance
+	handler
+		node: aNodeId
+		assignment: aVariable 
+		object: anObject 
+		value: aValue.
+		
+	^ aBlock value: aValue
 ]
 
 { #category : 'private' }
-ScpInstrumentation >> superMessage: aSelector from: aSender with: anArguments in: aClass [
+ScpInstrumentation >> node: aNodeId message: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
 
-	handler onSuperCall: aSelector from: aSender with: anArguments.
+	handler
+		node: aNodeId
+		message: aSelector
+		sender: aSender
+		receiver: aReceiver
+		arguments: anArguments.
+
+	^ self 
+		node: aNodeId
+		return: (aReceiver perform: aSelector withArguments: anArguments)
+		sender: aSender
+]
+
+{ #category : 'private' }
+ScpInstrumentation >> node: aNodeId return: aValue sender: aSender [
+
+	aSender class = self class ifFalse: [
+		handler node: aNodeId return: aValue
+	].
+	^ aValue
+]
+
+{ #category : 'private' }
+ScpInstrumentation >> node: aNodeId super: aSelector sender: aSender arguments: anArguments class: aClass [
+
+	handler node: aNodeId super: aSelector sender: aSender arguments: anArguments.
 
 	^ self
-		  methodReturn: (aSender
+		  node: aNodeId
+		  return: (aSender
 				   perform: aSelector
 				   withArguments: anArguments
 				   inSuperclass: aClass superclass)
-		  to: aSender
+		  sender: aSender
+]
+
+{ #category : 'private' }
+ScpInstrumentation >> registry [
+
+	^ ScpInstrumentationRegistry instance
 ]
 
 { #category : 'services' }
