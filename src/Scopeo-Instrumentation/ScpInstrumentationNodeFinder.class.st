@@ -1,6 +1,6 @@
 Class {
-	#name : 'ScpInstrumentationNodeFinder',
-	#superclass : 'RBProgramNodeVisitor',
+	#name : #ScpInstrumentationNodeFinder,
+	#superclass : #RBProgramNodeVisitor,
 	#instVars : [
 		'indirection',
 		'currentMethod',
@@ -9,11 +9,10 @@ Class {
 		'node',
 		'seekedNodeId'
 	],
-	#category : 'Scopeo-Instrumentation',
-	#package : 'Scopeo-Instrumentation'
+	#category : 'Scopeo-Instrumentation'
 }
 
-{ #category : 'accessing' }
+{ #category : #accessing }
 ScpInstrumentationNodeFinder class >> findNode: aNodeId [
 
 	| parts method |
@@ -22,14 +21,14 @@ ScpInstrumentationNodeFinder class >> findNode: aNodeId [
 	^ self new findNode: aNodeId inMethod: method.
 ]
 
-{ #category : 'private' }
+{ #category : #private }
 ScpInstrumentationNodeFinder >> checkNode: aNode [
 
 	self nodeIdentifier = seekedNodeId ifFalse: [ ^ self ].
 	node := aNode
 ]
 
-{ #category : 'accessing' }
+{ #category : #accessing }
 ScpInstrumentationNodeFinder >> findNode: aNodeId inMethod: aMethod [
 
 	seekedNodeId := aNodeId.
@@ -42,14 +41,14 @@ ScpInstrumentationNodeFinder >> findNode: aNodeId inMethod: aMethod [
 	^ node
 ]
 
-{ #category : 'private' }
+{ #category : #private }
 ScpInstrumentationNodeFinder >> nodeIdentifier [
 
 	nodeIdentifierIndex := nodeIdentifierIndex + 1.
 	^ nodeIdentifierSuffix , nodeIdentifierIndex asString
 ]
 
-{ #category : 'visiting' }
+{ #category : #visiting }
 ScpInstrumentationNodeFinder >> visitAssignmentNode: anAssignmentNode [
 
 	self checkNode: anAssignmentNode.
@@ -58,7 +57,7 @@ ScpInstrumentationNodeFinder >> visitAssignmentNode: anAssignmentNode [
 	self visitNode: anAssignmentNode value
 ]
 
-{ #category : 'visiting' }
+{ #category : #visiting }
 ScpInstrumentationNodeFinder >> visitMessageNode: aMessageNode [
 
 	aMessageNode receiver isBlock ifFalse: [ 
@@ -74,7 +73,7 @@ ScpInstrumentationNodeFinder >> visitMessageNode: aMessageNode [
 	
 ]
 
-{ #category : 'visiting' }
+{ #category : #visiting }
 ScpInstrumentationNodeFinder >> visitMethodNode: aMethodNode [
 
 	"self checkNode: aMethodNode."
@@ -84,7 +83,7 @@ ScpInstrumentationNodeFinder >> visitMethodNode: aMethodNode [
 	self visitNode: aMethodNode body
 ]
 
-{ #category : 'visiting' }
+{ #category : #visiting }
 ScpInstrumentationNodeFinder >> visitReturnNode: aReturnNode [
 	
 	self checkNode: aReturnNode.

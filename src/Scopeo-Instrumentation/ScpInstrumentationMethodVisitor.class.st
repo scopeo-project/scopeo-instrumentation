@@ -1,23 +1,22 @@
 Class {
-	#name : 'ScpInstrumentationMethodVisitor',
-	#superclass : 'RBProgramNodeVisitor',
+	#name : #ScpInstrumentationMethodVisitor,
+	#superclass : #RBProgramNodeVisitor,
 	#instVars : [
 		'indirection',
 		'currentMethod',
 		'nodeIdentifierSuffix',
 		'nodeIdentifierIndex'
 	],
-	#category : 'Scopeo-Instrumentation',
-	#package : 'Scopeo-Instrumentation'
+	#category : 'Scopeo-Instrumentation'
 }
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor class >> isAbstract [
 
 	^ self == RBProgramNodeVisitor
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> indirectionIdentifier: anIdentifier [
 
 	indirection := RBMessageNode
@@ -30,20 +29,20 @@ ScpInstrumentationMethodVisitor >> indirectionIdentifier: anIdentifier [
 		               { (RBLiteralValueNode value: anIdentifier) }
 ]
 
-{ #category : 'private' }
+{ #category : #private }
 ScpInstrumentationMethodVisitor >> nodeIdentifier [
 
 	nodeIdentifierIndex := nodeIdentifierIndex + 1.
 	^ RBLiteralValueNode value: (nodeIdentifierSuffix , nodeIdentifierIndex asString)
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> nodeIndirection [
 
 	^ indirection
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> nodeSender [
 
 	^ RBMessageNode
@@ -53,7 +52,7 @@ ScpInstrumentationMethodVisitor >> nodeSender [
 		          selector: #receiver
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitArrayNode: anArrayNode [
 
 	^ anArrayNode 
@@ -61,7 +60,7 @@ ScpInstrumentationMethodVisitor >> visitArrayNode: anArrayNode [
 		yourself
 ]
 
-{ #category : 'visiting' }
+{ #category : #visiting }
 ScpInstrumentationMethodVisitor >> visitAssignmentNode: anAssignmentNode [
 
 	anAssignmentNode
@@ -87,7 +86,7 @@ ScpInstrumentationMethodVisitor >> visitAssignmentNode: anAssignmentNode [
 				  anAssignmentNode value }
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitBlockNode: aBlockNode [
 
 	^ aBlockNode arguments:( self visitArgumentNodes: aBlockNode arguments);
@@ -95,7 +94,7 @@ ScpInstrumentationMethodVisitor >> visitBlockNode: aBlockNode [
 		yourself
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitCascadeNode: aCascadeNode [
 
 	| receiverNode receiverNodeVariable statements |
@@ -115,7 +114,7 @@ ScpInstrumentationMethodVisitor >> visitCascadeNode: aCascadeNode [
 		  selector: #value
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitEnglobingErrorNode: anEnglobingErrorNode [
 
 	^ anEnglobingErrorNode
@@ -123,7 +122,7 @@ ScpInstrumentationMethodVisitor >> visitEnglobingErrorNode: anEnglobingErrorNode
 		  yourself
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitLiteralArrayNode: aRBLiteralArrayNode [
 
 	^ aRBLiteralArrayNode 
@@ -131,13 +130,13 @@ ScpInstrumentationMethodVisitor >> visitLiteralArrayNode: aRBLiteralArrayNode [
 		yourself
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitLiteralNode: aLiteralNode [
 
 	^ aLiteralNode
 ]
 
-{ #category : 'visiting' }
+{ #category : #visiting }
 ScpInstrumentationMethodVisitor >> visitMessageNode: aMessageNode [
 
 	| receiver |
@@ -171,7 +170,7 @@ ScpInstrumentationMethodVisitor >> visitMessageNode: aMessageNode [
 				  (RBArrayNode statements: aMessageNode arguments) }
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitMethod: aMethod [
 
 	nodeIdentifierSuffix := aMethod name , '-node'.
@@ -180,7 +179,7 @@ ScpInstrumentationMethodVisitor >> visitMethod: aMethod [
 	^ self visit: aMethod ast copy.
 ]
 
-{ #category : 'visiting' }
+{ #category : #visiting }
 ScpInstrumentationMethodVisitor >> visitMethodNode: aMethodNode [
 
 	currentMethod := aMethodNode compiledMethod.
@@ -212,13 +211,13 @@ ScpInstrumentationMethodVisitor >> visitMethodNode: aMethodNode [
 	^ aMethodNode
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitParseErrorNode: anErrorNode [
 
 	^ anErrorNode
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitPatternBlockNode: aRBPatternBlockNode [
 
 	^ aRBPatternBlockNode
@@ -227,7 +226,7 @@ ScpInstrumentationMethodVisitor >> visitPatternBlockNode: aRBPatternBlockNode [
 		yourself
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitPatternWrapperBlockNode: aRBPatternWrapperBlockNode [
 
 	^ aRBPatternWrapperBlockNode
@@ -237,7 +236,7 @@ ScpInstrumentationMethodVisitor >> visitPatternWrapperBlockNode: aRBPatternWrapp
 		  yourself
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitPragmaNode: aPragmaNode [
 
 	^ aPragmaNode 
@@ -245,7 +244,7 @@ ScpInstrumentationMethodVisitor >> visitPragmaNode: aPragmaNode [
 		yourself
 ]
 
-{ #category : 'visiting' }
+{ #category : #visiting }
 ScpInstrumentationMethodVisitor >> visitReturnNode: aReturnNode [
 
 	^ aReturnNode value: (RBMessageNode
@@ -257,13 +256,13 @@ ScpInstrumentationMethodVisitor >> visitReturnNode: aReturnNode [
 					self nodeSender})
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitSelectorNode: aSelectorNode [
 
 	^ aSelectorNode
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitSequenceNode: aSequenceNode [
 
 	^ aSequenceNode
