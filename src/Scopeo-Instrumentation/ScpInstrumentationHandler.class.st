@@ -1,10 +1,10 @@
 Class {
 	#name : #ScpInstrumentationHandler,
 	#superclass : #Object,
-	#category : 'Scopeo-Instrumentation'
+	#category : #'Scopeo-Instrumentation'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'events handling' }
 ScpInstrumentationHandler >> method: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
 ]
 
