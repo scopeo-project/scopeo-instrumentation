@@ -1,22 +1,23 @@
 Class {
-	#name : #ScpInstrumentationMethodVisitor,
-	#superclass : #RBProgramNodeVisitor,
+	#name : 'ScpInstrumentationMethodVisitor',
+	#superclass : 'RBProgramNodeVisitor',
 	#instVars : [
 		'indirection',
 		'currentMethod',
 		'nodeIdentifierSuffix',
 		'nodeIdentifierIndex'
 	],
-	#category : 'Scopeo-Instrumentation'
+	#category : 'Scopeo-Instrumentation',
+	#package : 'Scopeo-Instrumentation'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : 'as yet unclassified' }
 ScpInstrumentationMethodVisitor class >> isAbstract [
 
 	^ self == RBProgramNodeVisitor
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'private' }
 ScpInstrumentationMethodVisitor >> indirectionIdentifier: anIdentifier [
 
 	indirection := RBMessageNode
@@ -29,20 +30,20 @@ ScpInstrumentationMethodVisitor >> indirectionIdentifier: anIdentifier [
 		               { (RBLiteralValueNode value: anIdentifier) }
 ]
 
-{ #category : #private }
+{ #category : 'private' }
 ScpInstrumentationMethodVisitor >> nodeIdentifier [
 
 	nodeIdentifierIndex := nodeIdentifierIndex + 1.
-	^ RBLiteralValueNode value: (nodeIdentifierSuffix , nodeIdentifierIndex asString)
+	^ RBLiteralValueNode value: nodeIdentifierIndex
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'private' }
 ScpInstrumentationMethodVisitor >> nodeIndirection [
 
 	^ indirection
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'private' }
 ScpInstrumentationMethodVisitor >> nodeSender [
 
 	^ RBMessageNode
@@ -52,7 +53,7 @@ ScpInstrumentationMethodVisitor >> nodeSender [
 		          selector: #receiver
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitArrayNode: anArrayNode [
 
 	^ anArrayNode 
@@ -60,15 +61,10 @@ ScpInstrumentationMethodVisitor >> visitArrayNode: anArrayNode [
 		yourself
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitAssignmentNode: anAssignmentNode [
 
-	anAssignmentNode
-		variable: (self visitNode: anAssignmentNode variable);
-		value: (self visitNode: anAssignmentNode value).
-
-	anAssignmentNode variable isInstanceVariable ifFalse: [
-		^ anAssignmentNode ].
+	anAssignmentNode variable isInstanceVariable ifFalse: [ ^ anAssignmentNode ].
 
 	^ RBMessageNode
 		  receiver: self nodeIndirection
@@ -83,10 +79,10 @@ ScpInstrumentationMethodVisitor >> visitAssignmentNode: anAssignmentNode [
 								     value: (RBVariableNode named: #v)) })).
 				  (RBLiteralValueNode value: anAssignmentNode variable name).
 				  (RBVariableNode selfNode).
-				  anAssignmentNode value }
+				  (self visitNode: anAssignmentNode value) }
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitBlockNode: aBlockNode [
 
 	^ aBlockNode arguments:( self visitArgumentNodes: aBlockNode arguments);
@@ -94,17 +90,18 @@ ScpInstrumentationMethodVisitor >> visitBlockNode: aBlockNode [
 		yourself
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitCascadeNode: aCascadeNode [
 
 	| receiverNode receiverNodeVariable statements |
+
 	receiverNode := aCascadeNode receiver.
 	receiverNodeVariable := RBVariableNode named: #receiver.
+
 	statements := OrderedCollection new.
-	statements add:
-		(RBAssignmentNode variable: receiverNodeVariable value: receiverNode).
-	statements addAll: (aCascadeNode messages collect: [ :m |
-			 m receiver: receiverNodeVariable ]).
+	statements add: ((RBAssignmentNode variable: receiverNodeVariable value: receiverNode) acceptVisitor: self).
+	
+	statements addAll: (aCascadeNode messages collect: [ :m | m receiver: receiverNodeVariable ]).
 	statements := statements collect: [ :s | s acceptVisitor: self ].
 
 	^ RBMessageNode
@@ -114,7 +111,7 @@ ScpInstrumentationMethodVisitor >> visitCascadeNode: aCascadeNode [
 		  selector: #value
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitEnglobingErrorNode: anEnglobingErrorNode [
 
 	^ anEnglobingErrorNode
@@ -122,7 +119,7 @@ ScpInstrumentationMethodVisitor >> visitEnglobingErrorNode: anEnglobingErrorNode
 		  yourself
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitLiteralArrayNode: aRBLiteralArrayNode [
 
 	^ aRBLiteralArrayNode 
@@ -130,35 +127,24 @@ ScpInstrumentationMethodVisitor >> visitLiteralArrayNode: aRBLiteralArrayNode [
 		yourself
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitLiteralNode: aLiteralNode [
 
 	^ aLiteralNode
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitMessageNode: aMessageNode [
 
-	| receiver |
-	receiver := aMessageNode receiver.
-
-	aMessageNode
-		receiver: (self visitNode: aMessageNode receiver copy);
-		selector: (self visitNode: aMessageNode selectorNode);
-		arguments: (aMessageNode arguments collect: [ :each | self visitNode: each ]).
-
-	receiver isBlock ifTrue: [ ^ aMessageNode ].
-	receiver isSuperVariable ifTrue: [
-		^ RBMessageNode
-			  receiver: self nodeIndirection
-           selector: (ScpInstrumentation >> #node:super:sender:arguments:class:) selector
-			  arguments: {
-						self nodeIdentifier.
-					  (RBLiteralValueNode value: aMessageNode selector).
-					  RBVariableNode selfNode.
-					  (RBArrayNode statements: aMessageNode arguments).
-					  (RBVariableNode named: currentMethod methodClass asString) } ].
-
+	aMessageNode receiver isSuperVariable ifTrue: [
+		^ self visitSuperMessage: aMessageNode
+	].
+	aMessageNode receiver isBlock ifTrue: [ 
+		^ aMessageNode
+			receiver: (self visitNode: aMessageNode receiver copy);
+			selector: (self visitNode: aMessageNode selectorNode);
+			arguments: (aMessageNode arguments collect: [ :each | self visitNode: each ]).
+	].
 	^ RBMessageNode
 		  receiver: self nodeIndirection
 		  selector: (ScpInstrumentation >> #node:message:sender:receiver:arguments:) selector
@@ -166,58 +152,58 @@ ScpInstrumentationMethodVisitor >> visitMessageNode: aMessageNode [
 		   		  self nodeIdentifier.
 				  (RBLiteralValueNode value: aMessageNode selector).
 				  RBVariableNode selfNode.
-				  aMessageNode receiver.
-				  (RBArrayNode statements: aMessageNode arguments) }
+				  self visitNode: aMessageNode receiver.
+				  (RBArrayNode statements: (aMessageNode arguments collect: [ :each | self visitNode: each ])) }
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitMethod: aMethod [
 
-	nodeIdentifierSuffix := aMethod name , '-node'.
 	nodeIdentifierIndex := 0.
 
 	^ self visit: aMethod ast copy.
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitMethodNode: aMethodNode [
 
 	currentMethod := aMethodNode compiledMethod.
 
-	aMethodNode arguments:
-		(self visitArgumentNodes: aMethodNode arguments).
-	aMethodNode pragmas:
-		(aMethodNode pragmas collect: [ :each | self visitNode: each ]).
+	aMethodNode arguments: (self visitArgumentNodes: aMethodNode arguments).
+	aMethodNode pragmas: (aMethodNode pragmas collect: [ :each | self visitNode: each ]).
 	aMethodNode body: (self visitNode: aMethodNode body).
 
 	aMethodNode body addNodeFirst: (RBMessageNode
-			 receiver: self nodeIndirection 
-			 selector: (ScpInstrumentation >> #method:sender:receiver:arguments:) selector
-			 arguments: {
-					 (RBLiteralValueNode value: aMethodNode selector).
-					 self nodeSender.
-					 RBVariableNode selfNode.
-					 (RBArrayNode statements: aMethodNode arguments) }).
+		receiver: self nodeIndirection 
+		selector: (ScpInstrumentation >> #method:sender:receiver:arguments:) selector
+		arguments: {
+			(RBLiteralValueNode value: aMethodNode selector).
+			self nodeSender.
+			RBVariableNode selfNode.
+			(RBArrayNode statements: aMethodNode arguments) 
+		}).
 
 	aMethodNode lastIsReturn ifFalse: [
 		aMethodNode body addNodeLast: (RBReturnNode value: (RBMessageNode
-					  receiver: self nodeIndirection
-					  selector: (ScpInstrumentation >> #node:return:sender:) selector
-					  arguments: {
-							  self nodeIdentifier.
-							  RBVariableNode selfNode.
-							  self nodeSender })) ].
+			receiver: self nodeIndirection
+			selector: (ScpInstrumentation >> #node:return:sender:) selector
+			arguments: {
+				self nodeIdentifier.
+				RBVariableNode selfNode.
+				self nodeSender 
+			})
+	)].
 
 	^ aMethodNode
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitParseErrorNode: anErrorNode [
 
 	^ anErrorNode
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitPatternBlockNode: aRBPatternBlockNode [
 
 	^ aRBPatternBlockNode
@@ -226,7 +212,7 @@ ScpInstrumentationMethodVisitor >> visitPatternBlockNode: aRBPatternBlockNode [
 		yourself
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitPatternWrapperBlockNode: aRBPatternWrapperBlockNode [
 
 	^ aRBPatternWrapperBlockNode
@@ -236,7 +222,7 @@ ScpInstrumentationMethodVisitor >> visitPatternWrapperBlockNode: aRBPatternWrapp
 		  yourself
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitPragmaNode: aPragmaNode [
 
 	^ aPragmaNode 
@@ -244,7 +230,7 @@ ScpInstrumentationMethodVisitor >> visitPragmaNode: aPragmaNode [
 		yourself
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitReturnNode: aReturnNode [
 
 	^ aReturnNode value: (RBMessageNode
@@ -256,17 +242,32 @@ ScpInstrumentationMethodVisitor >> visitReturnNode: aReturnNode [
 					self nodeSender})
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitSelectorNode: aSelectorNode [
 
 	^ aSelectorNode
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitSequenceNode: aSequenceNode [
 
 	^ aSequenceNode
 		  temporaries: (self visitTemporaryNodes: aSequenceNode temporaries);
 		  statements: (aSequenceNode statements collect: [ :each | self visitNode: each ]);
 		  yourself
+]
+
+{ #category : 'visiting' }
+ScpInstrumentationMethodVisitor >> visitSuperMessage: aMessageNode [
+
+	^ RBMessageNode
+			  receiver: self nodeIndirection
+           selector: (ScpInstrumentation >> #node:super:sender:arguments:class:) selector
+			  arguments: {
+						self nodeIdentifier.
+					  (RBLiteralValueNode value: aMessageNode selector).
+					  RBVariableNode selfNode.
+					  (RBArrayNode statements: (aMessageNode arguments collect: [ :each | self visitNode: each ])).
+					  (RBVariableNode named: currentMethod methodClass asString) 
+			  }
 ]

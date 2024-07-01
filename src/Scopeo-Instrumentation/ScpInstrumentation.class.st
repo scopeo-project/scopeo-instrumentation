@@ -1,6 +1,6 @@
 Class {
-	#name : #ScpInstrumentation,
-	#superclass : #Object,
+	#name : 'ScpInstrumentation',
+	#superclass : 'Object',
 	#instVars : [
 		'handler',
 		'methodsToInstrument',
@@ -9,10 +9,11 @@ Class {
 	#classInstVars : [
 		'instrumentedMethods'
 	],
-	#category : 'Scopeo-Instrumentation'
+	#category : 'Scopeo-Instrumentation',
+	#package : 'Scopeo-Instrumentation'
 }
 
-{ #category : #private }
+{ #category : 'private' }
 ScpInstrumentation class >> uninstallAll [
 
 	<script: 'self uninstallAll'>
@@ -22,7 +23,7 @@ ScpInstrumentation class >> uninstallAll [
 
 ]
 
-{ #category : #parameters }
+{ #category : 'parameters' }
 ScpInstrumentation >> handler: aHandler [
 
 	handler := aHandler
@@ -32,7 +33,7 @@ ScpInstrumentation >> handler: aHandler [
 	
 ]
 
-{ #category : #initialization }
+{ #category : 'initialization' }
 ScpInstrumentation >> initialize [
 
 	visitor := ScpInstrumentationMethodVisitor new
@@ -40,7 +41,7 @@ ScpInstrumentation >> initialize [
 		yourself
 ]
 
-{ #category : #services }
+{ #category : 'services' }
 ScpInstrumentation >> install [
 
 	| numberOfErrors numberOfMethods |
@@ -74,7 +75,7 @@ ScpInstrumentation >> install [
 		, numberOfMethods asString , ' methods.'
 ]
 
-{ #category : #private }
+{ #category : 'private' }
 ScpInstrumentation >> method: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
 
 	aSender class = self class ifTrue: [ ^ self ].
@@ -86,13 +87,13 @@ ScpInstrumentation >> method: aSelector sender: aSender receiver: aReceiver argu
 		arguments: anArguments
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpInstrumentation >> methodsToInstrument [
 
 	^ methodsToInstrument
 ]
 
-{ #category : #parameters }
+{ #category : 'parameters' }
 ScpInstrumentation >> methodsToInstrument: aMethodCollection [
 
 	(self registry instrumentedMethods includesAny: aMethodCollection) ifTrue: [ 
@@ -101,7 +102,7 @@ ScpInstrumentation >> methodsToInstrument: aMethodCollection [
 	methodsToInstrument := aMethodCollection
 ]
 
-{ #category : #private }
+{ #category : 'private' }
 ScpInstrumentation >> node: aNodeId assignment: aBlock variable: aVariable object: anObject value: aValue [
 
 	handler
@@ -113,7 +114,7 @@ ScpInstrumentation >> node: aNodeId assignment: aBlock variable: aVariable objec
 	^ aBlock value: aValue
 ]
 
-{ #category : #private }
+{ #category : 'private' }
 ScpInstrumentation >> node: aNodeId message: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
 
 	handler
@@ -129,7 +130,7 @@ ScpInstrumentation >> node: aNodeId message: aSelector sender: aSender receiver:
 		sender: aSender
 ]
 
-{ #category : #private }
+{ #category : 'private' }
 ScpInstrumentation >> node: aNodeId return: aValue sender: aSender [
 
 	aSender class = self class ifFalse: [
@@ -138,7 +139,7 @@ ScpInstrumentation >> node: aNodeId return: aValue sender: aSender [
 	^ aValue
 ]
 
-{ #category : #private }
+{ #category : 'private' }
 ScpInstrumentation >> node: aNodeId super: aSelector sender: aSender arguments: anArguments class: aClass [
 
 	handler node: aNodeId super: aSelector sender: aSender arguments: anArguments.
@@ -152,13 +153,13 @@ ScpInstrumentation >> node: aNodeId super: aSelector sender: aSender arguments: 
 		  sender: aSender
 ]
 
-{ #category : #private }
+{ #category : 'private' }
 ScpInstrumentation >> registry [
 
 	^ ScpInstrumentationRegistry instance
 ]
 
-{ #category : #services }
+{ #category : 'services' }
 ScpInstrumentation >> uninstall [
 	
 	self methodsToInstrument ifNotNil: [ :methods | 
