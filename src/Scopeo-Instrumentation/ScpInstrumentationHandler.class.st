@@ -9,18 +9,24 @@ Class {
 ScpInstrumentationHandler >> method: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'events handling' }
 ScpInstrumentationHandler >> node: aNodeId assignment: aVariable object: anObject value: aValue [
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'events handling' }
 ScpInstrumentationHandler >> node: aNodeId message: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'events handling' }
 ScpInstrumentationHandler >> node: aNodeId return: aValue [
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'events handling' }
 ScpInstrumentationHandler >> node: aNodeId super: aSelector sender: aSender arguments: anArguments [
+]
+
+{ #category : 'events handling' }
+ScpInstrumentationHandler >> process [
+
+	self subclassResponsibility
 ]
