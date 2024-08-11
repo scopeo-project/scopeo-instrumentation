@@ -2,129 +2,278 @@ Class {
 	#name : 'ScpInstrumentationMethodVisitor',
 	#superclass : 'RBProgramNodeVisitor',
 	#instVars : [
+		'sequences',
+		'temporary',
+		'nodeIdentifierIndex',
 		'indirection',
-		'currentMethod',
-		'nodeIdentifierSuffix',
-		'nodeIdentifierIndex'
+		'sequence',
+		'argumentIndex'
 	],
 	#category : 'Scopeo-Instrumentation',
 	#package : 'Scopeo-Instrumentation'
 }
 
-{ #category : 'as yet unclassified' }
-ScpInstrumentationMethodVisitor class >> isAbstract [
+{ #category : 'accessing' }
+ScpInstrumentationMethodVisitor class >> transform: aMethod [
 
-	^ self == RBProgramNodeVisitor
+	 ^ self new visitMethod: aMethod
 ]
 
-{ #category : 'private' }
-ScpInstrumentationMethodVisitor >> indirectionIdentifier: anIdentifier [
+{ #category : 'accessing' }
+ScpInstrumentationMethodVisitor >> newArgumentIndex [
 
-	indirection := RBMessageNode
-		               receiver: (RBMessageNode
-				                receiver:
-				                (RBVariableNode named: #ScpInstrumentationRegistry)
-				                selector: #instance)
-		               selector: #at:
-		               arguments:
-		               { (RBLiteralValueNode value: anIdentifier) }
+	argumentIndex := 0
 ]
 
-{ #category : 'private' }
-ScpInstrumentationMethodVisitor >> nodeIdentifier [
+{ #category : 'accessing' }
+ScpInstrumentationMethodVisitor >> nextArgument [
 
-	nodeIdentifierIndex := nodeIdentifierIndex + 1.
-	^ RBLiteralValueNode value: nodeIdentifierIndex
+	| argument |
+	
+	argumentIndex := argumentIndex + 1.
+	argument := '_arg' , argumentIndex asString.
+
+	(self sequence temporaryNames includes: argument) ifFalse: [
+		self sequence addTemporaryNamed: argument
+	].
+	
+	^ RBVariableNode named: argument
 ]
 
-{ #category : 'private' }
-ScpInstrumentationMethodVisitor >> nodeIndirection [
+{ #category : 'instrumenting' }
+ScpInstrumentationMethodVisitor >> nodeAfterMessage: aMessageNode [
 
-	^ indirection
+	aMessageNode receiver isBlock ifTrue: [ ^ nil ].
+	
+	^ RBMessageNode
+		  receiver: self nodeHandler
+		  selector: (ScpInstrumentationHandler >> #node:messageReturn:) selector
+		  arguments: {
+				  (RBLiteralValueNode value: aMessageNode selectorNode start).
+				  self temporary 
+			}
 ]
 
-{ #category : 'private' }
+{ #category : 'instrumenting' }
+ScpInstrumentationMethodVisitor >> nodeBeforeAssignment: anAssignmentNode [
+
+	anAssignmentNode variable isInstanceVariable ifFalse: [ ^ nil ].
+
+	^ RBMessageNode
+		  receiver: self nodeHandler
+		  selector: (ScpInstrumentationHandler >> #node:assignment:object:value:) selector
+		  arguments: {
+				  (RBLiteralValueNode value: anAssignmentNode start).
+				  (RBLiteralValueNode value: anAssignmentNode variable name).
+				  (RBVariableNode selfNode).
+				  anAssignmentNode value 
+			}
+]
+
+{ #category : 'instrumenting' }
+ScpInstrumentationMethodVisitor >> nodeBeforeMessage: aMessageNode [
+	
+	aMessageNode receiver isBlock ifTrue: [ ^ nil ].
+
+	aMessageNode receiver isSuperVariable ifTrue: [ 
+		^ self nodeBeforeSuperMessage: aMessageNode 
+	].
+
+	^ RBMessageNode
+		  receiver: self nodeHandler
+		  selector: (ScpInstrumentationHandler >> #node:message:sender:receiver:arguments:) selector
+		  arguments: {
+				  (RBLiteralValueNode value: aMessageNode selectorNode start).
+				  (RBLiteralValueNode value: aMessageNode selector).
+				  RBVariableNode selfNode.
+				  aMessageNode receiver.
+				  (RBArrayNode statements: aMessageNode arguments)
+		  }
+]
+
+{ #category : 'instrumenting' }
+ScpInstrumentationMethodVisitor >> nodeBeforeReturn: aReturnNode [
+
+	^ RBMessageNode
+		  receiver: self nodeHandler
+		  selector: (ScpInstrumentationHandler >> #node:methodReturn:) selector
+		  arguments: {
+				  (RBLiteralValueNode value: aReturnNode start).
+				  aReturnNode value 
+		  }
+]
+
+{ #category : 'instrumenting' }
+ScpInstrumentationMethodVisitor >> nodeBeforeSuperMessage: aMessageNode [
+
+	^ RBMessageNode
+		  receiver: self nodeHandler
+		  selector: (ScpInstrumentationHandler >> #node:super:sender:arguments:) selector
+		  arguments: {
+			  	  (RBLiteralValueNode value: aMessageNode selectorNode start).
+				  (RBLiteralValueNode value: aMessageNode selector).
+				  RBVariableNode selfNode.
+				  (RBArrayNode statements: aMessageNode arguments) 
+		  }
+]
+
+{ #category : 'instrumenting' }
+ScpInstrumentationMethodVisitor >> nodeHandler [
+
+	^ RBVariableNode named: #_SCOPEO
+]
+
+{ #category : 'instrumenting' }
+ScpInstrumentationMethodVisitor >> nodeMethodEntry: aMethodNode [
+
+	^ RBMessageNode
+		 receiver: self nodeHandler
+		 selector: (ScpInstrumentationHandler >> #method:sender:receiver:arguments:) selector
+		 arguments: {
+			 (RBLiteralValueNode value: aMethodNode selector).
+			 self nodeSender.
+			 RBVariableNode selfNode.
+			 (RBArrayNode statements: aMethodNode arguments) 
+		}
+	
+]
+
+{ #category : 'instrumenting' }
 ScpInstrumentationMethodVisitor >> nodeSender [
 
 	^ RBMessageNode
-		          receiver: (RBMessageNode
-				           receiver: (RBVariableNode thisContextNode)
-				           selector: #sender)
-		          selector: #receiver
+		  receiver: (RBMessageNode
+				   receiver: (RBVariableNode named: #thisContext)
+				   selector: #sender)
+		  selector: #receiver
+]
+
+{ #category : 'accessing' }
+ScpInstrumentationMethodVisitor >> sequence [
+
+	^ sequence
+]
+
+{ #category : 'accessing' }
+ScpInstrumentationMethodVisitor >> sequence: aSequence [
+
+	sequence := aSequence
+]
+
+{ #category : 'accessing' }
+ScpInstrumentationMethodVisitor >> temporary [
+
+	^ temporary
+]
+
+{ #category : 'accessing' }
+ScpInstrumentationMethodVisitor >> temporary: aName [
+
+	temporary := RBVariableNode named: aName
+]
+
+{ #category : 'visiting' }
+ScpInstrumentationMethodVisitor >> visitArguments: aNodeCollection [	
+
+	| temp arguments statements value |
+
+	arguments := OrderedCollection new.
+	statements := OrderedCollection new.
+
+	aNodeCollection do: [ :n |
+		value := self visit: n.
+		value isCollection 
+			ifTrue: [
+				temp := self nextArgument.
+				statements addAll: value.
+				statements add: (RBAssignmentNode 
+					variable: temp 
+					value: self temporary
+				).
+				arguments add: temp.
+			]
+			ifFalse: [ 
+				arguments add: value.
+			]
+		
+	].
+	self newArgumentIndex.
+
+	^ { arguments . statements } 
 ]
 
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitArrayNode: anArrayNode [
 
-	^ anArrayNode 
-		statements: (anArrayNode children collect: [ :each | self visitNode: each ]);
-		yourself
+	| statements arguments |
+	
+	statements := OrderedCollection new.
+
+	arguments := self visitArguments: anArrayNode children.
+
+	anArrayNode statements: arguments first.
+	
+	statements addAll: arguments second.
+	statements add: anArrayNode.
+
+	^ statements 
 ]
 
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitAssignmentNode: anAssignmentNode [
 
-	anAssignmentNode variable isInstanceVariable ifFalse: [ ^ anAssignmentNode ].
+	| statements value |
 
-	^ RBMessageNode
-		  receiver: self nodeIndirection
-		  selector: (ScpInstrumentation >> #node:assignment:variable:object:value:) selector
-		  arguments: {
-					self nodeIdentifier.
-				  (RBBlockNode
-					   arguments: { (RBVariableNode named: #v) }
-					   body: (RBSequenceNode statements: { (RBAssignmentNode
-								     variable:
-								     (RBVariableNode named: anAssignmentNode variable name)
-								     value: (RBVariableNode named: #v)) })).
-				  (RBLiteralValueNode value: anAssignmentNode variable name).
-				  (RBVariableNode selfNode).
-				  (self visitNode: anAssignmentNode value) }
+	statements := OrderedCollection new.
+	
+	value := self visit: anAssignmentNode value.
+	
+	value isCollection ifTrue: [ 
+		anAssignmentNode value: self temporary.
+		statements addAll: value.
+	].
+
+	(self nodeBeforeAssignment: anAssignmentNode) ifNotNil: [ :n |
+		statements add: n.
+	].
+	statements add: anAssignmentNode.
+	
+	^ statements
 ]
 
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitBlockNode: aBlockNode [
 
-	^ aBlockNode arguments:( self visitArgumentNodes: aBlockNode arguments);
-		body: (self visitNode: aBlockNode body);
-		yourself
+	self visitNode: aBlockNode body.
+	
+	^ aBlockNode
 ]
 
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitCascadeNode: aCascadeNode [
 
-	| receiverNode receiverNodeVariable statements |
-
-	receiverNode := aCascadeNode receiver.
-	receiverNodeVariable := RBVariableNode named: #receiver.
+	| statements receiver |
 
 	statements := OrderedCollection new.
-	statements add: ((RBAssignmentNode variable: receiverNodeVariable value: receiverNode) acceptVisitor: self).
-	
-	statements addAll: (aCascadeNode messages collect: [ :m | m receiver: receiverNodeVariable ]).
-	statements := statements collect: [ :s | s acceptVisitor: self ].
 
-	^ RBMessageNode
-		  receiver: (RBBlockNode body: (RBSequenceNode
-					    temporaries: { receiverNodeVariable }
-					    statements: statements))
-		  selector: #value
-]
+	receiver := self visitNode: aCascadeNode receiver.
+	receiver isCollection ifTrue: [
+		receiver := self temporary.
+		statements addAll: receiver.
+	].
 
-{ #category : 'visiting' }
-ScpInstrumentationMethodVisitor >> visitEnglobingErrorNode: anEnglobingErrorNode [
+	statements addAll: (aCascadeNode messages flatCollect: [ :m |
+		m receiver: receiver. 
+		self visitNode: m
+	]).
 
-	^ anEnglobingErrorNode
-		  contents: (anEnglobingErrorNode contents collect: [ :each | self visitNode: each ]);
-		  yourself
+	^ statements
 ]
 
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitLiteralArrayNode: aRBLiteralArrayNode [
 
-	^ aRBLiteralArrayNode 
-		contents: (aRBLiteralArrayNode contents collect: [ :each | self visitNode: each ]);
-		yourself
+	^ aRBLiteralArrayNode
 ]
 
 { #category : 'visiting' }
@@ -136,138 +285,100 @@ ScpInstrumentationMethodVisitor >> visitLiteralNode: aLiteralNode [
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitMessageNode: aMessageNode [
 
-	aMessageNode receiver isSuperVariable ifTrue: [
-		^ self visitSuperMessage: aMessageNode
+	| statements receiver arguments  |
+	
+	statements := OrderedCollection new.
+	
+	receiver := self visitNode: aMessageNode receiver.
+	receiver isCollection ifTrue: [ 
+		aMessageNode receiver: self temporary.
+		statements addAll: receiver
 	].
-	aMessageNode receiver isBlock ifTrue: [ 
-		^ aMessageNode
-			receiver: (self visitNode: aMessageNode receiver copy);
-			selector: (self visitNode: aMessageNode selectorNode);
-			arguments: (aMessageNode arguments collect: [ :each | self visitNode: each ]).
+	
+	arguments := self visitArguments: aMessageNode arguments.
+
+	aMessageNode arguments: arguments first.	
+	
+	statements addAll: arguments second.
+	(self nodeBeforeMessage: aMessageNode) ifNotNil: [ :n |
+		statements add: n.
 	].
-	^ RBMessageNode
-		  receiver: self nodeIndirection
-		  selector: (ScpInstrumentation >> #node:message:sender:receiver:arguments:) selector
-		  arguments: {
-		   		  self nodeIdentifier.
-				  (RBLiteralValueNode value: aMessageNode selector).
-				  RBVariableNode selfNode.
-				  self visitNode: aMessageNode receiver.
-				  (RBArrayNode statements: (aMessageNode arguments collect: [ :each | self visitNode: each ])) }
+	statements add: (RBAssignmentNode 
+		variable: self temporary 
+		value: aMessageNode
+	).
+	(self nodeAfterMessage: aMessageNode) ifNotNil: [ :n |
+		statements add: n.
+	].
+	
+	^ statements
+
 ]
 
-{ #category : 'visiting' }
+{ #category : 'services' }
 ScpInstrumentationMethodVisitor >> visitMethod: aMethod [
 
-	nodeIdentifierIndex := 0.
-
+	self temporary: '_scp'.
+	self newArgumentIndex.
+	
 	^ self visit: aMethod ast copy.
 ]
 
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitMethodNode: aMethodNode [
 
-	currentMethod := aMethodNode compiledMethod.
-
-	aMethodNode arguments: (self visitArgumentNodes: aMethodNode arguments).
-	aMethodNode pragmas: (aMethodNode pragmas collect: [ :each | self visitNode: each ]).
-	aMethodNode body: (self visitNode: aMethodNode body).
-
-	aMethodNode body addNodeFirst: (RBMessageNode
-		receiver: self nodeIndirection 
-		selector: (ScpInstrumentation >> #method:sender:receiver:arguments:) selector
-		arguments: {
-			(RBLiteralValueNode value: aMethodNode selector).
-			self nodeSender.
-			RBVariableNode selfNode.
-			(RBArrayNode statements: aMethodNode arguments) 
-		}).
-
-	aMethodNode lastIsReturn ifFalse: [
-		aMethodNode body addNodeLast: (RBReturnNode value: (RBMessageNode
-			receiver: self nodeIndirection
-			selector: (ScpInstrumentation >> #node:return:sender:) selector
-			arguments: {
-				self nodeIdentifier.
-				RBVariableNode selfNode.
-				self nodeSender 
-			})
-	)].
-
+	self sequence: aMethodNode body.
+	
+	aMethodNode body addSelfReturn.
+	
+	self visit: aMethodNode body.
+	
+	(self nodeMethodEntry: aMethodNode) ifNotNil: [ :n |
+		aMethodNode body addNodeFirst: n.
+	].
+	
 	^ aMethodNode
-]
-
-{ #category : 'visiting' }
-ScpInstrumentationMethodVisitor >> visitParseErrorNode: anErrorNode [
-
-	^ anErrorNode
-]
-
-{ #category : 'visiting' }
-ScpInstrumentationMethodVisitor >> visitPatternBlockNode: aRBPatternBlockNode [
-
-	^ aRBPatternBlockNode
-		arguments: (self visitArgumentNodes: aRBPatternBlockNode arguments);
-		body: (self visitNode: aRBPatternBlockNode body);
-		yourself
-]
-
-{ #category : 'visiting' }
-ScpInstrumentationMethodVisitor >> visitPatternWrapperBlockNode: aRBPatternWrapperBlockNode [
-
-	^ aRBPatternWrapperBlockNode
-		  wrappedNode: (self visitNode: aRBPatternWrapperBlockNode wrappedNode);
-		  arguments: (self visitArgumentNodes: aRBPatternWrapperBlockNode arguments);
-		  body: (self visitNode: aRBPatternWrapperBlockNode body);
-		  yourself
-]
-
-{ #category : 'visiting' }
-ScpInstrumentationMethodVisitor >> visitPragmaNode: aPragmaNode [
-
-	^ aPragmaNode 
-		arguments: (aPragmaNode arguments do: [ :each | self visitNode: each ]);
-		yourself
 ]
 
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitReturnNode: aReturnNode [
 
-	^ aReturnNode value: (RBMessageNode
-			   receiver: self nodeIndirection
-			   selector: #node:return:sender:
-			   arguments: { 
-					self nodeIdentifier.
-					(self visitNode: aReturnNode value) . 
-					self nodeSender})
-]
+	| statements value |
 
-{ #category : 'visiting' }
-ScpInstrumentationMethodVisitor >> visitSelectorNode: aSelectorNode [
+	statements := OrderedCollection new.
+	
+	value := self visit: aReturnNode value.
+	value isCollection ifTrue: [ 
+		aReturnNode value: self temporary.
+		statements addAll: value.
+	].
 
-	^ aSelectorNode
+	(self nodeBeforeReturn: aReturnNode) ifNotNil: [ :n |
+		statements add: n.
+	].
+	statements add: aReturnNode.
+	
+	^ statements
 ]
 
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitSequenceNode: aSequenceNode [
 
-	^ aSequenceNode
-		  temporaries: (self visitTemporaryNodes: aSequenceNode temporaries);
-		  statements: (aSequenceNode statements collect: [ :each | self visitNode: each ]);
-		  yourself
-]
+	| oldStatements newStatements |
 
-{ #category : 'visiting' }
-ScpInstrumentationMethodVisitor >> visitSuperMessage: aMessageNode [
+	aSequenceNode parent isBlock ifFalse: [  
+		aSequenceNode addTemporaryNamed: self temporary name.
+	].
 
-	^ RBMessageNode
-			  receiver: self nodeIndirection
-           selector: (ScpInstrumentation >> #node:super:sender:arguments:class:) selector
-			  arguments: {
-						self nodeIdentifier.
-					  (RBLiteralValueNode value: aMessageNode selector).
-					  RBVariableNode selfNode.
-					  (RBArrayNode statements: (aMessageNode arguments collect: [ :each | self visitNode: each ])).
-					  (RBVariableNode named: currentMethod methodClass asString) 
-			  }
+	oldStatements := aSequenceNode statements.
+	aSequenceNode statements: Array empty.
+	oldStatements do: [ :s | 
+		newStatements := self visit: s.
+		newStatements isCollection 
+			ifTrue: [ aSequenceNode addNodes: newStatements ]
+			ifFalse: [ aSequenceNode addNode: newStatements ]
+	].
+	
+	^ aSequenceNode.
+
 ]

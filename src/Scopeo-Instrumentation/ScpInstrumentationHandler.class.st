@@ -18,15 +18,13 @@ ScpInstrumentationHandler >> node: aNodeId message: aSelector sender: aSender re
 ]
 
 { #category : 'events handling' }
-ScpInstrumentationHandler >> node: aNodeId return: aValue [
+ScpInstrumentationHandler >> node: aNodeId messageReturn: aValue [
+]
+
+{ #category : 'events handling' }
+ScpInstrumentationHandler >> node: aNodeId methodReturn: aValue [
 ]
 
 { #category : 'events handling' }
 ScpInstrumentationHandler >> node: aNodeId super: aSelector sender: aSender arguments: anArguments [
-]
-
-{ #category : 'events handling' }
-ScpInstrumentationHandler >> process [
-
-	self subclassResponsibility
 ]

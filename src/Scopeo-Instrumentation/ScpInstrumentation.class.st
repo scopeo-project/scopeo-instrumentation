@@ -4,23 +4,39 @@ Class {
 	#instVars : [
 		'handler',
 		'methodsToInstrument',
-		'visitor'
-	],
-	#classInstVars : [
-		'instrumentedMethods'
+		'visitor',
+		'enabled'
 	],
 	#category : 'Scopeo-Instrumentation',
 	#package : 'Scopeo-Instrumentation'
 }
 
 { #category : 'private' }
-ScpInstrumentation class >> uninstallAll [
+ScpInstrumentation class >> uninstall [
 
-	<script: 'self uninstallAll'>
-	ScpInstrumentationRegistry instance instrumentations do: [ :i | 
-		i uninstall 
+	<script: 'self uninstall'>
+	self allInstancesDo: [ :i | 
+		i uninstall
 	]
 
+]
+
+{ #category : 'protocol' }
+ScpInstrumentation >> disable [
+
+	Smalltalk globals at: #'_SCOPEO' put: ScpInstrumentationHandler new.
+]
+
+{ #category : 'protocol' }
+ScpInstrumentation >> enable [
+
+	Smalltalk globals at: #'_SCOPEO' put: handler.
+]
+
+{ #category : 'accessing' }
+ScpInstrumentation >> handler [
+
+	^ handler
 ]
 
 { #category : 'parameters' }
@@ -37,54 +53,55 @@ ScpInstrumentation >> handler: aHandler [
 ScpInstrumentation >> initialize [
 
 	visitor := ScpInstrumentationMethodVisitor new
-		indirectionIdentifier: self hash;
-		yourself
 ]
 
 { #category : 'services' }
 ScpInstrumentation >> install [
 
-	| numberOfErrors numberOfMethods |
-	numberOfErrors := 0.
-	numberOfMethods := self methodsToInstrument size.
+	| errors |
 
-	numberOfMethods < 0 ifTrue: [ ^ self ].
+	self isInstalled ifTrue: [ self error: 'Instrumentation already installed' ].
+	handler ifNil: [ self error: 'No instrumentation handler provided' ].
 
-	self registry register: self.
+	self methodsToInstrument ifEmpty: [ ^ self ].
 
+	self disable. "Let the user decide whenever enabling the instrumentation"
+
+	errors := OrderedCollection new.
 	self methodsToInstrument do: [ :method |
 		| ast |
 		ast := visitor visitMethod: method.
-
 		[ method methodClass compile: ast formattedCode ]
 			on: Error
-			do: [ :e |
-				numberOfErrors := numberOfErrors + 1.
-				Smalltalk logStdOutDuring: [ :logger |
-					logger
-						nextPutAll: e;
-						cr ] ].
+			do: [ :e | errors add: e. ].
+	].
 
-		[ self registry addMethod: method ]
-			on: Error
-			do: [ self uninstall ] ].
+	self logSummary: errors
+]
 
-	self inform:
-		'Scopeo: instrumenting '
-		, (numberOfMethods - numberOfErrors) asString , '/'
-		, numberOfMethods asString , ' methods.'
+{ #category : 'testing' }
+ScpInstrumentation >> isInstalled [
+
+	^ Smalltalk globals includesKey: #'_SCOPEO' 
 ]
 
 { #category : 'private' }
-ScpInstrumentation >> method: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
+ScpInstrumentation >> logSummary: aErrors [
 
-	aSender class = self class ifTrue: [ ^ self ].
+	| numberOfMethods |
 
-	handler
-		method: aSelector
-		sender: aSender
-		receiver: aReceiver
-		arguments: anArguments
+	numberOfMethods := self methodsToInstrument size.
+	
+	self inform:
+		'Scopeo: instrumented '
+		, (numberOfMethods - aErrors size) asString , '/'
+		, numberOfMethods asString , ' methods.' .
+	
+	Smalltalk logStdOutDuring: [ :logger |
+		aErrors do: [ :e | 
+			logger	 nextPutAll: e; cr 
+		]
+	]
 ]
 
 { #category : 'accessing' }
@@ -96,77 +113,17 @@ ScpInstrumentation >> methodsToInstrument [
 { #category : 'parameters' }
 ScpInstrumentation >> methodsToInstrument: aMethodCollection [
 
-	(self registry instrumentedMethods includesAny: aMethodCollection) ifTrue: [ 
-		self error: 'At least one of the methods provided has already been instrumented.' 
-	].
 	methodsToInstrument := aMethodCollection
-]
-
-{ #category : 'private' }
-ScpInstrumentation >> node: aNodeId assignment: aBlock variable: aVariable object: anObject value: aValue [
-
-	handler
-		node: aNodeId
-		assignment: aVariable 
-		object: anObject 
-		value: aValue.
-		
-	^ aBlock value: aValue
-]
-
-{ #category : 'private' }
-ScpInstrumentation >> node: aNodeId message: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
-
-	handler
-		node: aNodeId
-		message: aSelector
-		sender: aSender
-		receiver: aReceiver
-		arguments: anArguments.
-
-	^ self 
-		node: aNodeId
-		return: (aReceiver perform: aSelector withArguments: anArguments)
-		sender: aSender
-]
-
-{ #category : 'private' }
-ScpInstrumentation >> node: aNodeId return: aValue sender: aSender [
-
-	aSender class = self class ifFalse: [
-		handler node: aNodeId return: aValue
-	].
-	^ aValue
-]
-
-{ #category : 'private' }
-ScpInstrumentation >> node: aNodeId super: aSelector sender: aSender arguments: anArguments class: aClass [
-
-	handler node: aNodeId super: aSelector sender: aSender arguments: anArguments.
-
-	^ self
-		  node: aNodeId
-		  return: (aSender
-				   perform: aSelector
-				   withArguments: anArguments
-				   inSuperclass: aClass superclass)
-		  sender: aSender
-]
-
-{ #category : 'private' }
-ScpInstrumentation >> registry [
-
-	^ ScpInstrumentationRegistry instance
 ]
 
 { #category : 'services' }
 ScpInstrumentation >> uninstall [
 	
+	self disable.
 	self methodsToInstrument ifNotNil: [ :methods | 
 		methods do: [ :m | 
 			m methodClass addSelector: m selector withMethod: m.
-			self registry removeMethod: m
 		]
 	].
-	self registry unregister: self
+	Smalltalk globals removeKey: #'_SCOPEO' ifAbsent: [ "Do nothing" ].
 ]
