@@ -21,19 +21,23 @@ ScpInstrumentation class >> uninstall [
 
 ]
 
-{ #category : 'protocol' }
+{ #category : 'services' }
 ScpInstrumentation >> disable [
 
-	Smalltalk globals at: #'_SCOPEO' put: ScpInstrumentationHandler new.
+	self isEnabled ifFalse: [ ^ self ].
+	
+	self useDefaultHandler
 ]
 
-{ #category : 'protocol' }
+{ #category : 'services' }
 ScpInstrumentation >> enable [
 
+	self isEnabled ifTrue: [ ^ self ].
+	
 	Smalltalk globals at: #'_SCOPEO' put: handler.
 ]
 
-{ #category : 'accessing' }
+{ #category : 'services' }
 ScpInstrumentation >> handler [
 
 	^ handler
@@ -65,7 +69,8 @@ ScpInstrumentation >> install [
 
 	self methodsToInstrument ifEmpty: [ ^ self ].
 
-	self disable. "Let the user decide whenever enabling the instrumentation"
+	"Waiting for the user to provide a handler and enable the usage of the instrumentation with it."
+	self useDefaultHandler.
 
 	errors := OrderedCollection new.
 	self methodsToInstrument do: [ :method |
@@ -79,10 +84,18 @@ ScpInstrumentation >> install [
 	self logSummary: errors
 ]
 
-{ #category : 'testing' }
+{ #category : 'services' }
+ScpInstrumentation >> isEnabled [
+	
+	self isInstalled ifFalse: [ ^ false ].
+	
+	^ (Smalltalk globals at: #'_SCOPEO') class ~~ ScpInstrumentationHandler
+]
+
+{ #category : 'services' }
 ScpInstrumentation >> isInstalled [
 
-	^ Smalltalk globals includesKey: #'_SCOPEO' 
+	^ Smalltalk globals includesKey: #'_SCOPEO'
 ]
 
 { #category : 'private' }
@@ -104,7 +117,7 @@ ScpInstrumentation >> logSummary: aErrors [
 	]
 ]
 
-{ #category : 'accessing' }
+{ #category : 'services' }
 ScpInstrumentation >> methodsToInstrument [
 
 	^ methodsToInstrument
@@ -126,4 +139,10 @@ ScpInstrumentation >> uninstall [
 		]
 	].
 	Smalltalk globals removeKey: #'_SCOPEO' ifAbsent: [ "Do nothing" ].
+]
+
+{ #category : 'private' }
+ScpInstrumentation >> useDefaultHandler [
+
+	Smalltalk globals at: #'_SCOPEO' put: ScpInstrumentationHandler new.
 ]
