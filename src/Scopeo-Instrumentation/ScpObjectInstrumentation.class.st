@@ -1,6 +1,6 @@
 Class {
 	#name : 'ScpObjectInstrumentation',
-	#superclass : 'ASTProgramNodeVisitor',
+	#superclass : 'RBProgramNodeVisitor',
 	#instVars : [
 		'object',
 		'objectClass',
