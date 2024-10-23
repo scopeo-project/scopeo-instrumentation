@@ -6,25 +6,9 @@ Class {
 }
 
 { #category : 'events handling' }
-ScpInstrumentationHandler >> method: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
+ScpInstrumentationHandler >> assignment: aVariable object: anObject value: aValue [
 ]
 
 { #category : 'events handling' }
-ScpInstrumentationHandler >> node: aNodeId assignment: aVariable object: anObject value: aValue [
-]
-
-{ #category : 'events handling' }
-ScpInstrumentationHandler >> node: aNodeId message: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
-]
-
-{ #category : 'events handling' }
-ScpInstrumentationHandler >> node: aNodeId messageReturn: aValue [
-]
-
-{ #category : 'events handling' }
-ScpInstrumentationHandler >> node: aNodeId methodReturn: aValue [
-]
-
-{ #category : 'events handling' }
-ScpInstrumentationHandler >> node: aNodeId super: aSelector sender: aSender arguments: anArguments [
+ScpInstrumentationHandler >> message: aSelector sender: aSender receiver: aReceiver return: aValue [
 ]

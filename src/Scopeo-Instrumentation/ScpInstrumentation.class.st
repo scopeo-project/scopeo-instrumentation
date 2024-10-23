@@ -7,33 +7,45 @@ Class {
 		'visitor',
 		'enabled'
 	],
+	#classInstVars : [
+		'instance'
+	],
 	#category : 'Scopeo-Instrumentation',
 	#package : 'Scopeo-Instrumentation'
 }
+
+{ #category : 'applying' }
+ScpInstrumentation class >> applyOn: anObject [
+
+	^ self instance 
+		instrument: anObject; 
+		install;
+		enable;
+		yourself  
+]
+
+{ #category : 'accessing' }
+ScpInstrumentation class >> instance [
+
+	^ instance ifNil: [ instance := self new ]
+]
 
 { #category : 'private' }
 ScpInstrumentation class >> uninstall [
 
 	<script: 'self uninstall'>
-	self allInstancesDo: [ :i | 
-		i uninstall
-	]
-
+	self instance uninstall
 ]
 
 { #category : 'services' }
 ScpInstrumentation >> disable [
 
-	self isEnabled ifFalse: [ ^ self ].
-	
-	self useDefaultHandler
+	Smalltalk globals at: #'_SCOPEO' put: ScpInstrumentationHandler new.
 ]
 
 { #category : 'services' }
 ScpInstrumentation >> enable [
 
-	self isEnabled ifTrue: [ ^ self ].
-	
 	Smalltalk globals at: #'_SCOPEO' put: handler.
 ]
 
@@ -56,32 +68,26 @@ ScpInstrumentation >> handler: aHandler [
 { #category : 'initialization' }
 ScpInstrumentation >> initialize [
 
-	visitor := ScpInstrumentationMethodVisitor new
+	self initializeDefaultHandler
+]
+
+{ #category : 'initialization' }
+ScpInstrumentation >> initializeDefaultHandler [
+
+	handler := ScpInstrumentationTracer new
 ]
 
 { #category : 'services' }
 ScpInstrumentation >> install [
 
-	| errors |
+	self isInstalled ifTrue: [ ^ self ].
+	self disable.
+]
 
-	self isInstalled ifTrue: [ self error: 'Instrumentation already installed' ].
-	handler ifNil: [ self error: 'No instrumentation handler provided' ].
+{ #category : 'intrumenting' }
+ScpInstrumentation >> instrument: anObject [
 
-	self methodsToInstrument ifEmpty: [ ^ self ].
-
-	"Waiting for the user to provide a handler and enable the usage of the instrumentation with it."
-	self useDefaultHandler.
-
-	errors := OrderedCollection new.
-	self methodsToInstrument do: [ :method |
-		| ast |
-		ast := visitor visitMethod: method.
-		[ method methodClass compile: ast formattedCode ]
-			on: Error
-			do: [ :e | errors add: e. ].
-	].
-
-	self logSummary: errors
+	^ ScpObjectInstrumentation applyOn: anObject 
 ]
 
 { #category : 'services' }
@@ -98,51 +104,11 @@ ScpInstrumentation >> isInstalled [
 	^ Smalltalk globals includesKey: #'_SCOPEO'
 ]
 
-{ #category : 'private' }
-ScpInstrumentation >> logSummary: aErrors [
-
-	| numberOfMethods |
-
-	numberOfMethods := self methodsToInstrument size.
-	
-	self inform:
-		'Scopeo: instrumented '
-		, (numberOfMethods - aErrors size) asString , '/'
-		, numberOfMethods asString , ' methods.' .
-	
-	Smalltalk logStdOutDuring: [ :logger |
-		aErrors do: [ :e | 
-			logger	 nextPutAll: e; cr 
-		]
-	]
-]
-
-{ #category : 'services' }
-ScpInstrumentation >> methodsToInstrument [
-
-	^ methodsToInstrument
-]
-
-{ #category : 'parameters' }
-ScpInstrumentation >> methodsToInstrument: aMethodCollection [
-
-	methodsToInstrument := aMethodCollection
-]
-
 { #category : 'services' }
 ScpInstrumentation >> uninstall [
 	
 	self disable.
-	self methodsToInstrument ifNotNil: [ :methods | 
-		methods do: [ :m | 
-			m methodClass addSelector: m selector withMethod: m.
-		]
-	].
+	self initializeDefaultHandler.
 	Smalltalk globals removeKey: #'_SCOPEO' ifAbsent: [ "Do nothing" ].
-]
-
-{ #category : 'private' }
-ScpInstrumentation >> useDefaultHandler [
-
-	Smalltalk globals at: #'_SCOPEO' put: ScpInstrumentationHandler new.
+	ScpObjectInstrumentation allInstancesDo: [ :i | i uninstall ]
 ]
