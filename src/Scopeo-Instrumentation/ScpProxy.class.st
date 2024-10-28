@@ -13,7 +13,7 @@ To maintain the hash consistency with the original object, I reimplement the fol
 
 "
 Class {
-	#name : 'ScpObjectProxy',
+	#name : 'ScpProxy',
 	#superclass : 'Object',
 	#instVars : [
 		'instrumentation'
@@ -23,7 +23,7 @@ Class {
 }
 
 { #category : 'instance creation' }
-ScpObjectProxy class >> newFor: anInstrumentation [
+ScpProxy class >> newFor: anInstrumentation [
 
 	| proxy |
 
@@ -38,7 +38,7 @@ ScpObjectProxy class >> newFor: anInstrumentation [
 ]
 
 { #category : 'reflective operations' }
-ScpObjectProxy >> basicIdentityHash [
+ScpProxy >> basicIdentityHash [
 	"See ProtoObject >> #basicIdentityHash"
 
 	<primitive: 75>
@@ -46,48 +46,48 @@ ScpObjectProxy >> basicIdentityHash [
 ]
 
 { #category : 'reflective operations' }
-ScpObjectProxy >> doesNotUnderstand: aMessage [
+ScpProxy >> doesNotUnderstand: aMessage [
 
 	<debuggerCompleteToSender>
-	
+
 	^ instrumentation handle: aMessage 
 ]
 
 { #category : 'comparing' }
-ScpObjectProxy >> hash [
+ScpProxy >> hash [
 
 	^ self identityHash
 ]
 
 { #category : 'comparing' }
-ScpObjectProxy >> identityHash [
+ScpProxy >> identityHash [
 	"See ProtoObject >> #identityHash"
 
 	^ self basicIdentityHash bitShift: 8
 ]
 
 { #category : 'as yet unclassified' }
-ScpObjectProxy >> instrument [
+ScpProxy >> instrument [
 
 	^ self
 ]
 
 { #category : 'primitive failure' }
-ScpObjectProxy >> primitiveFail [
+ScpProxy >> primitiveFail [
 	"See ProtoObject >> #primitiveFail"
 
 	^ self primitiveFailed
 ]
 
 { #category : 'primitive failure' }
-ScpObjectProxy >> primitiveFailed [
+ScpProxy >> primitiveFailed [
 	"See ProtoObject >> #primitiveFailed"
 	
 	^ self primitiveFailed: thisContext sender selector
 ]
 
 { #category : 'primitive failure' }
-ScpObjectProxy >> primitiveFailed: selector [
+ScpProxy >> primitiveFailed: selector [
 	"See ProtoObject >> #primitiveFailed:"
 
 	PrimitiveFailed signalFor: selector

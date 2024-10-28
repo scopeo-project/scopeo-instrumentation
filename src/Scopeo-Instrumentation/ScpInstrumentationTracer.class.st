@@ -11,7 +11,7 @@ Class {
 { #category : 'events handling' }
 ScpInstrumentationTracer >> assignment: aVariable object: anObject value: aValue [
 
-	events add: '(' , anObject asString  , ')', aVariable asString, ' = ', aValue asString 
+	('(' , anObject asString  , ')', aVariable asString, ' = ', aValue asString) crTrace
 		
 ]
 
@@ -24,6 +24,6 @@ ScpInstrumentationTracer >> initialize [
 { #category : 'events handling' }
 ScpInstrumentationTracer >> message: aMessage sender: aSender receiver: aReceiver return: aReturn [
 
-	events add: aSender asString ,  ' ' , aMessage asString , ' ', aReceiver asString , ' ', aReturn asString 
+	(aSender asString ,  ' ' , aMessage asString , ' ', aReceiver asString , ' ', aReturn asString) crTrace
 		
 ]

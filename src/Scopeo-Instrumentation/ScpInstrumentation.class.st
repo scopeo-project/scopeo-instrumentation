@@ -40,13 +40,13 @@ ScpInstrumentation class >> uninstall [
 { #category : 'services' }
 ScpInstrumentation >> disable [
 
-	Smalltalk globals at: #'_SCOPEO' put: ScpInstrumentationHandler new.
+	Smalltalk globals at: self class globalSymbol put: ScpInstrumentationHandler new.
 ]
 
 { #category : 'services' }
 ScpInstrumentation >> enable [
 
-	Smalltalk globals at: #'_SCOPEO' put: handler.
+	Smalltalk globals at: self class globalSymbol put: handler.
 ]
 
 { #category : 'services' }
@@ -87,7 +87,7 @@ ScpInstrumentation >> install [
 { #category : 'intrumenting' }
 ScpInstrumentation >> instrument: anObject [
 
-	^ ScpObjectInstrumentation applyOn: anObject 
+	^ anObject instrument 
 ]
 
 { #category : 'services' }
@@ -95,13 +95,13 @@ ScpInstrumentation >> isEnabled [
 	
 	self isInstalled ifFalse: [ ^ false ].
 	
-	^ (Smalltalk globals at: #'_SCOPEO') class ~~ ScpInstrumentationHandler
+	^ (Smalltalk globals at: self class globalSymbol) class ~~ ScpInstrumentationHandler
 ]
 
 { #category : 'services' }
 ScpInstrumentation >> isInstalled [
 
-	^ Smalltalk globals includesKey: #'_SCOPEO'
+	^ Smalltalk globals includesKey: self class globalSymbol
 ]
 
 { #category : 'services' }
@@ -109,6 +109,6 @@ ScpInstrumentation >> uninstall [
 	
 	self disable.
 	self initializeDefaultHandler.
-	Smalltalk globals removeKey: #'_SCOPEO' ifAbsent: [ "Do nothing" ].
+	Smalltalk globals removeKey: self class globalSymbol ifAbsent: [ "Do nothing" ].
 	ScpObjectInstrumentation allInstancesDo: [ :i | i uninstall ]
 ]
