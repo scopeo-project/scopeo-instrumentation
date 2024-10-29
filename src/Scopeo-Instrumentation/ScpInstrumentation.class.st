@@ -2,16 +2,22 @@ Class {
 	#name : 'ScpInstrumentation',
 	#superclass : 'RBProgramNodeVisitor',
 	#instVars : [
-		'proxy',
-		'target',
-		'targetClass',
-		'anoClass',
+		'enabled',
 		'handler',
-		'inMetaLevel'
+		'object',
+		'objectClass',
+		'lookupClass',
+		'proxy'
 	],
 	#category : 'Scopeo-Instrumentation',
 	#package : 'Scopeo-Instrumentation'
 }
+
+{ #category : 'instance creation' }
+ScpInstrumentation class >> applyOn: aClass usingHandler: anInstrumentationHandler [
+
+	self subclassResponsibility
+]
 
 { #category : 'private - constants' }
 ScpInstrumentation class >> handlerSymbol [
@@ -25,137 +31,42 @@ ScpInstrumentation class >> isAbstract [
 	^ self == ScpInstrumentation
 ]
 
-{ #category : 'as yet unclassified' }
-ScpInstrumentation class >> metaLevelSymbol [
-
-	^ #_metaLevel
-]
-
 { #category : 'private - constants' }
 ScpInstrumentation class >> proxySymbol [
 
 	^ #_proxy
 ]
 
-{ #category : 'visiting' }
+{ #category : 'private - constants' }
 ScpInstrumentation class >> tempVarSymbol [
 
-	^ #_temp
+	^ #_tmp
 ]
 
-{ #category : 'rewriting' }
+{ #category : 'private - rewriting' }
 ScpInstrumentation >> astForAssignment: anASTElement [
-	
-	| statements |
 
-	statements := OrderedCollection new.
-	statements add: (RBAssignmentNode 
-		variable: self astForTempVariable
-		value: anASTElement value
-	).
-	statements add: (self astForAssignmentHook: anASTElement).
-	statements add: (RBAssignmentNode 
-		variable: anASTElement variable 
-		value: self astForTempVariable
-	).
+	| statements |
 	
+	statements := OrderedCollection new.
+
+	statements add: (RBAssignmentNode variable: self astForTempVariable value: anASTElement value).
+	
+	statements add: (RBMessageNode
+		receiver: (RBVariableNode named: self class handlerSymbol)
+		selector: (ScpInstrumentationHandler >> #assignment:object:value:) selector
+		arguments: {
+			(RBLiteralValueNode value: anASTElement variable name).
+			RBVariableNode selfNode.
+			self astForTempVariable 
+		}).
+					
+	statements add: (RBAssignmentNode variable: anASTElement variable value: self astForTempVariable).
+
 	^ statements
 ]
 
-{ #category : 'rewriting' }
-ScpInstrumentation >> astForAssignmentHook: anASTElement [
-
-	^ RBMessageNode
-		  receiver: self astForHandler
-		  selector: (ScpInstrumentationHandler >> #assignment:object:value:) selector
-		  arguments: {
-				  (RBLiteralValueNode value: anASTElement variable name).
-				  (RBVariableNode selfNode).
-					self astForTempVariable
-		  }
-]
-
-{ #category : 'rewriting' }
-ScpInstrumentation >> astForHandler [
-
-	^ RBVariableNode named: self class handlerSymbol
-]
-
-{ #category : 'rewriting' }
-ScpInstrumentation >> astForMetaLevel [
-
-	^ RBVariableNode named: self class metaLevelSymbol
-]
-
-{ #category : 'rewriting' }
-ScpInstrumentation >> astForMetaLevel: aMethod [
-
-	aMethod body addNodesFirst: { 
-		RBMessageNode
-		  receiver: self astForMetaLevel
-		  selector: #ifTrue:
-		  arguments: { 
-				(RBBlockNode body:
-				   (RBSequenceNode statements: { 
-						(RBReturnNode value: 
-							(RBMessageNode
-								 receiver: (RBVariableNode superNode)
-							    selector: aMethod selector))}))} .
-		RBAssignmentNode
-			variable: self astForMetaLevel
-			value: (RBLiteralValueNode value: true)
-	}.
-	
-	aMethod body addNodeLast: (RBAssignmentNode
-			variable: self astForMetaLevel
-			value: (RBLiteralValueNode value: false))
-]
-
-{ #category : 'rewriting' }
-ScpInstrumentation >> astForMethod: anASTElement [
-
-	^ RBMessageNode
-		 receiver: (RBVariableNode named: self class handlerSymbol)
-		 selector: (ScpInstrumentationHandler >> #message:sender:receiver:arguments:) selector
-		 arguments: {
-			 (RBLiteralValueNode value: anASTElement selector).
-			 (RBMessageNode
-					receiver: (RBMessageNode
-			 			receiver: (RBMessageNode
-					  		receiver: (RBMessageNode
-							  	 receiver: (RBVariableNode named: #thisContext)
-							   	 selector: #sender)
-					      selector: #sender)
-			 			selector: #sender)
-					selector: #receiver).
-			 RBVariableNode selfNode.
-			 (RBArrayNode statements: anASTElement arguments) 
-		}
-]
-
-{ #category : 'rewriting' }
-ScpInstrumentation >> astForMethodHook: anASTElement [
-
-	^ RBMessageNode
-		 receiver: self astForHandler
-		 selector: (ScpInstrumentationHandler >> #message:sender:receiver:arguments:) selector
-		 arguments: {
-			 (RBLiteralValueNode value: anASTElement selector).
-			 (RBMessageNode
-					receiver: (RBMessageNode
-			 			receiver: (RBMessageNode
-					  		receiver: (RBMessageNode
-							  	 receiver: (RBVariableNode thisContextNode)
-							   	 selector: #sender)
-					      selector: #sender)
-			 			selector: #sender)
-					selector: #receiver).
-			 RBVariableNode selfNode.
-			 (RBArrayNode statements: anASTElement arguments) 
-		}
-]
-
-{ #category : 'rewriting' }
+{ #category : 'private - rewriting' }
 ScpInstrumentation >> astForPropagation: anASTElementNode [
 
 	anASTElementNode isSelfVariable ifTrue: [ ^ self astForSelf ].
@@ -166,117 +77,104 @@ ScpInstrumentation >> astForPropagation: anASTElementNode [
 		  arguments: { (RBVariableNode named: self class handlerSymbol) }
 ]
 
-{ #category : 'rewriting' }
-ScpInstrumentation >> astForReturn: anASTElement [
-
-	| statements |
-
-	statements := OrderedCollection new.
-	statements add: (RBAssignmentNode 
-		variable: self astForTempVariable
-		value: anASTElement value
-	).
-	statements add: (self astForReturnHook: anASTElement).
-	statements add: anASTElement.
-	
-	^ statements
-]
-
-{ #category : 'rewriting' }
-ScpInstrumentation >> astForReturnHook: anASTElement [
-
-	anASTElement value: self astForTempVariable.
-
-	^ RBMessageNode
-		  receiver: self astForHandler 
-		  selector: (ScpInstrumentationHandler >> #return:) selector
-		  arguments: { anASTElement value }
-]
-
-{ #category : 'rewriting' }
+{ #category : 'private - rewriting' }
 ScpInstrumentation >> astForSelf [
 
 	^ RBVariableNode named: self class proxySymbol
 ]
 
-{ #category : 'rewriting' }
+{ #category : 'private - rewriting' }
 ScpInstrumentation >> astForTempVariable [
 
 	^ RBVariableNode named: self class tempVarSymbol
 ]
 
-{ #category : 'handling' }
+{ #category : 'services' }
+ScpInstrumentation >> disable [
+
+	enabled := false.
+]
+
+{ #category : 'services' }
+ScpInstrumentation >> enable [
+
+	enabled := true.
+]
+
+{ #category : 'private - hook' }
 ScpInstrumentation >> handleMessage: aMessage [
 
 	| return |
+	
+	self isEnabled ifTrue: [ 
+		MirrorPrimitives
+		  withReceiver: object
+		  perform: aMessage selector
+		  withArguments: aMessage arguments
+		  inSuperclass: objectClass.
+	].
+	self disable.
+	
+	(objectClass lookupSelector: aMessage selector) ifNotNil: [ :method |
+		self instrument: method 
+	].
 
-	(targetClass lookupSelector: aMessage selector) 
-		ifNil: [ MessageNotUnderstood new message: aMessage; receiver: target; signal ]
-		ifNotNil: [ :method |	self instrument: method ].
-				
+	handler 
+		message: aMessage selector 
+		sender: thisContext sender sender receiver 
+		receiver: object 
+		arguments: aMessage arguments.
+
 	return := MirrorPrimitives
-		  withReceiver: target
+		  withReceiver: object
 		  perform: aMessage selector
 		  withArguments: aMessage arguments.
-		
+	
+	handler return: return.
+	self enable.
+			
  	^ return
 
 	
 ]
 
-{ #category : 'accessing' }
-ScpInstrumentation >> handler: anInstrumentationHandler [
-
-	handler := anInstrumentationHandler
-]
-
 { #category : 'initialization' }
 ScpInstrumentation >> initialize [
-
+	
 	proxy := ScpProxy newFor: self.
-	inMetaLevel := false
+	self disable
 
 	
 ]
 
 { #category : 'initialization' }
-ScpInstrumentation >> initializeInstVar [
+ScpInstrumentation >> initializeLookupClass: aLookupClass [
 
-	anoClass addInstVarNamed: self class handlerSymbol.	
-	anoClass addInstVarNamed: self class metaLevelSymbol.
-	anoClass addInstVarNamed: self class proxySymbol.	
-	
-	MirrorPrimitives
-		fixedFieldOf: target
-		at: (anoClass slotNamed: self class handlerSymbol) index
-		put: handler.
-	MirrorPrimitives
-		fixedFieldOf: target
-		at: (anoClass slotNamed: self class metaLevelSymbol) index
-		put: false.
-	MirrorPrimitives
-		fixedFieldOf: target
-		at: (anoClass slotNamed: self class proxySymbol) index
-		put: proxy.
+	lookupClass := aLookupClass.
+	lookupClass addClassVarNamed: self class handlerSymbol.	
+	lookupClass addClassVarNamed: self class proxySymbol.	
+
+	lookupClass classVarNamed: self class handlerSymbol put: handler. 
+	lookupClass classVarNamed: self class proxySymbol put: proxy.
 ]
 
-{ #category : 'actions' }
+{ #category : 'initialization' }
 ScpInstrumentation >> install [
 
 	self subclassResponsibility
 ]
 
-{ #category : 'intrumenting' }
+{ #category : 'private - rewriting' }
 ScpInstrumentation >> instrument: aMethod [
 
 	"Instrument the selector and compile it in the subclass, if:
 	- The object has been attached to an anonymous subclass.
 	- That anonymous subclass does not already contains the selector in argument."
 
-	anoClass ifNil: [ ^ self ].
-	(anoClass includesSelector: aMethod selector) ifTrue: [ ^ self ]. 
+	lookupClass ifNil: [ ^ self ].
+	(lookupClass includesSelector: aMethod selector) ifTrue: [ ^ self ]. 
 	(aMethod hasPragmaNamed: #noInstrumentation) ifTrue: [ ^ self ].
-	[ anoClass compile: (self visitMethodNode: aMethod ast) formattedCode ]
+	[ lookupClass compile: (self visitMethodNode: aMethod ast) formattedCode ]
 		onErrorDo: [ :e | 
 			Smalltalk logStdOutDuring: [ :logger |
 				logger	 nextPutAll: e; cr 
@@ -284,25 +182,27 @@ ScpInstrumentation >> instrument: aMethod [
 		]
 ]
 
-{ #category : 'accessing' }
-ScpInstrumentation >> proxy [
+{ #category : 'services' }
+ScpInstrumentation >> isEnabled [
 
-	^ proxy
+	^ enabled
 ]
 
-{ #category : 'accessing' }
-ScpInstrumentation >> target [
+{ #category : 'parameters' }
+ScpInstrumentation >> object: anObject handler: aHandler [
 
-	self subclassResponsibility
+	object := anObject.
+	handler := aHandler
+	
 ]
 
-{ #category : 'actions' }
+{ #category : 'initialization' }
 ScpInstrumentation >> uninstall [
 
 	self subclassResponsibility
 ]
 
-{ #category : 'visiting' }
+{ #category : 'private - rewriting' }
 ScpInstrumentation >> visitAssignmentNode: anAssignmentNode [
 
 	self visitNode: anAssignmentNode value.
@@ -312,7 +212,7 @@ ScpInstrumentation >> visitAssignmentNode: anAssignmentNode [
 	^ self astForAssignment: anAssignmentNode
 ]
 
-{ #category : 'visiting' }
+{ #category : 'private - rewriting' }
 ScpInstrumentation >> visitMessageNode: aMessageNode [
 
 	aMessageNode arguments do: [ :each | 
@@ -334,7 +234,7 @@ ScpInstrumentation >> visitMessageNode: aMessageNode [
 	
 ]
 
-{ #category : 'visiting' }
+{ #category : 'private - rewriting' }
 ScpInstrumentation >> visitMethodNode: aMethodNode [
 
 	| method |
@@ -344,26 +244,27 @@ ScpInstrumentation >> visitMethodNode: aMethodNode [
 	
 	self visitNode: method body.
 	
+	"
+	self astForMethod: method.
 	self astForMetaLevel: method.
-		
+	"
+	
 	^ method
 ]
 
-{ #category : 'visiting' }
+{ #category : 'private - rewriting' }
 ScpInstrumentation >> visitReturnNode: aReturnNode [
 	
 	self visitNode: aReturnNode value.
 	
-	(aReturnNode value isVariable and: [ aReturnNode value name = #self ]) ifTrue: [
-		aReturnNode value: self astForSelf.
-	].
-	
-	^ self astForReturn: aReturnNode
+	aReturnNode value isVariable ifTrue: [ ^ self ]. 
+	aReturnNode value name = #self ifTrue: [ ^ self ].
+	aReturnNode value: self astForSelf.
 
 	
 ]
 
-{ #category : 'visiting' }
+{ #category : 'private - rewriting' }
 ScpInstrumentation >> visitSequenceNode: aSequenceNode [
 
 	| oldStatements newStatements |
@@ -382,18 +283,18 @@ ScpInstrumentation >> visitSequenceNode: aSequenceNode [
 	].
 ]
 
-{ #category : 'visiting' }
+{ #category : 'private - rewriting' }
 ScpInstrumentation >> visitSuperMethod: aSelector [
 
 	| method ast |
 	
-	method := targetClass superclass lookupSelector: aSelector.
+	method := objectClass superclass lookupSelector: aSelector.
 	
 	ast := RBParser parseMethod: method methodClass name , '_' , method sourceCode.
 
 	method := self visitMethodNode: ast.
 
-	anoClass compile: method formattedCode.
+	lookupClass compile: method formattedCode.
 
 	^ method selector
 ]

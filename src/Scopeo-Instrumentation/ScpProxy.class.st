@@ -72,12 +72,6 @@ ScpProxy >> instrument: anInstrumentationHandler [
 	^ self
 ]
 
-{ #category : 'as yet unclassified' }
-ScpProxy >> instrumentedObject [
-
-	^ instrumentation target
-]
-
 { #category : 'primitive failure' }
 ScpProxy >> primitiveFail [
 	"See ProtoObject >> #primitiveFail"

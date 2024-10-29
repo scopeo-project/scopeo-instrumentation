@@ -1,6 +1,9 @@
 Class {
 	#name : 'ScpObjectInstrumentation',
 	#superclass : 'ScpInstrumentation',
+	#instVars : [
+		'uninstalling'
+	],
 	#category : 'Scopeo-Instrumentation',
 	#package : 'Scopeo-Instrumentation'
 }
@@ -9,9 +12,8 @@ Class {
 ScpObjectInstrumentation class >> applyOn: anObject usingHandler: anInstrumentationHandler [
 
 	anObject isLiteral | anObject isBlock ifTrue: [ ^ anObject ].
-	^ self new 
-		handler: anInstrumentationHandler;
-		object: anObject;
+	^ self new
+		object: anObject handler: anInstrumentationHandler;
 		install;
 		proxy
 		
@@ -23,36 +25,26 @@ ScpObjectInstrumentation >> install [
 
 	| temp |
 
-	targetClass := target class.
+	objectClass := object class.
+	objectClass isAnonymous ifTrue: [ ^ self ].
 	
-	targetClass isAnonymous ifTrue: [ ^ self ].
-	anoClass := targetClass newAnonymousSubclass.
-	anoClass adoptInstance: target.
+	self initializeLookupClass: objectClass newAnonymousSubclass.
 	
-	self initializeInstVars.
+	lookupClass adoptInstance: object.
 	
-	temp := target. 
-	target := proxy. 
+	temp := object. 
+	object := proxy. 
 	proxy := temp.
 
-	target become: proxy.
-]
-
-{ #category : 'initialization' }
-ScpObjectInstrumentation >> object: anObject [
-
-	target := anObject
-]
-
-{ #category : 'accessing' }
-ScpObjectInstrumentation >> target [
-
-	^ target
+	object become: proxy.
 ]
 
 { #category : 'actions' }
 ScpObjectInstrumentation >> uninstall [
 
-	targetClass adoptInstance: target.
-	proxy become: target
+	self disable.
+
+	objectClass adoptInstance: object.
+	
+	proxy become: object.
 ]

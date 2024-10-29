@@ -12,9 +12,3 @@ Object >> instrument: anInstrumentationHandler [
 		]
 
 ]
-
-{ #category : '*Scopeo-Instrumentation' }
-Object >> instrumentedObject [
-
-	^ self
-]
