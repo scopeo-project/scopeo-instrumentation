@@ -1,12 +1,11 @@
-Class {
+Trait {
 	#name : 'ScpInstrumentationHandler',
-	#superclass : 'Object',
 	#category : 'Scopeo-Instrumentation',
 	#package : 'Scopeo-Instrumentation'
 }
 
 { #category : 'private - constants' }
-ScpInstrumentationHandler class >> globalSymbol [
+ScpInstrumentationHandler classSide >> globalSymbol [
 
 	^ #_SCOPEO
 ]
@@ -16,5 +15,9 @@ ScpInstrumentationHandler >> assignment: aVariable object: anObject value: aValu
 ]
 
 { #category : 'events handling' }
-ScpInstrumentationHandler >> message: aSelector sender: aSender receiver: aReceiver return: aValue [
+ScpInstrumentationHandler >> message: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
+]
+
+{ #category : 'handling' }
+ScpInstrumentationHandler >> return: aValue [
 ]

@@ -1,49 +1,58 @@
 Class {
 	#name : 'ScpObjectInstrumentation',
-	#superclass : 'ScpAbstractInstrumentation',
+	#superclass : 'ScpInstrumentation',
 	#category : 'Scopeo-Instrumentation',
 	#package : 'Scopeo-Instrumentation'
 }
 
 { #category : 'instance creation' }
-ScpObjectInstrumentation class >> applyOn: anObject [
+ScpObjectInstrumentation class >> applyOn: anObject usingHandler: anInstrumentationHandler [
 
-	anObject isLiteral ifTrue: [ ^ anObject ].
-	^ self new initializeObject: anObject
+	anObject isLiteral | anObject isBlock ifTrue: [ ^ anObject ].
+	^ self new 
+		handler: anInstrumentationHandler;
+		object: anObject;
+		install;
+		proxy
+		
 
 ]
 
-{ #category : 'initialization' }
-ScpObjectInstrumentation >> initializeObject: anObject [
+{ #category : 'actions' }
+ScpObjectInstrumentation >> install [
 
-	target := anObject.
+	| temp |
+
 	targetClass := target class.
 	
-	targetClass isAnonymous ifTrue: [ ^ targetClass instrument ].
+	targetClass isAnonymous ifTrue: [ ^ self ].
 	anoClass := targetClass newAnonymousSubclass.
 	anoClass adoptInstance: target.
 	
-	^ self initializeProxy
-]
-
-{ #category : 'initialization' }
-ScpObjectInstrumentation >> initializeProxy [
+	self initializeInstVars.
 	
-	| temp |
-	
-	super initializeProxy.
-
 	temp := target. 
 	target := proxy. 
 	proxy := temp.
 
 	target become: proxy.
-	
-	^ proxy
+]
+
+{ #category : 'initialization' }
+ScpObjectInstrumentation >> object: anObject [
+
+	target := anObject
+]
+
+{ #category : 'accessing' }
+ScpObjectInstrumentation >> target [
+
+	^ target
 ]
 
 { #category : 'actions' }
 ScpObjectInstrumentation >> uninstall [
 
-	
+	targetClass adoptInstance: target.
+	proxy become: target
 ]

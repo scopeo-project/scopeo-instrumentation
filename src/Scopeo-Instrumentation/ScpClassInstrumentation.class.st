@@ -1,6 +1,6 @@
 Class {
 	#name : 'ScpClassInstrumentation',
-	#superclass : 'ScpAbstractInstrumentation',
+	#superclass : 'ScpInstrumentation',
 	#classInstVars : [
 		'proxies'
 	],
@@ -8,24 +8,66 @@ Class {
 	#package : 'Scopeo-Instrumentation'
 }
 
-{ #category : 'applying' }
-ScpClassInstrumentation class >> applyOn: aClass [
-
+{ #category : 'instance creation' }
+ScpClassInstrumentation class >> applyOn: aClass usingHandler: anInstrumentationHandler [
+	
 	aClass isClass ifFalse: [ ^ aClass ].
+
+	^ self new
+		handler: anInstrumentationHandler;
+		class: aClass;
+		install;
+		proxy
+
+	"
 
 	proxies ifNil: [ proxies := WeakKeyDictionary new ].
 	^ proxies at: aClass ifAbsentPut: [ 
-		self new initializeClass: aClass 
+		self new
+			handler: anInstrumentationHandler; 
+			initializeClass: aClass;
+			proxy
 	] 
-
+"
 ]
 
-{ #category : 'initialization' }
-ScpClassInstrumentation >> initializeClass: aClass [
+{ #category : 'instance removal' }
+ScpClassInstrumentation class >> uninstall: aClass [
 
-	targetClass := aClass classSide.
-	target := aClass newAnonymousSubclass.
+	proxies ifNotNil: [ :p |  
+		p removeKey: aClass ifAbsent: [ 
+			'No instrumentation for ',  aClass, '.' 	
+		]
+	]
+]
+
+{ #category : 'instance creation' }
+ScpClassInstrumentation >> class: aClass [
+
+	target := aClass
+]
+
+{ #category : 'actions' }
+ScpClassInstrumentation >> install [
+
+	targetClass := target classSide.
+	target := target newAnonymousSubclass.
+
 	anoClass := target classSide.
 	
-	^ self initializeProxy
+	self initializeInstVar
+
+	"Smalltalk globals at: targetClass instanceSide name put: proxy."
+]
+
+{ #category : 'accessing' }
+ScpClassInstrumentation >> target [
+
+	^ targetClass instanceSide
+]
+
+{ #category : 'actions' }
+ScpClassInstrumentation >> uninstall [
+
+	Smalltalk globals at: targetClass instanceSide name put: targetClass instanceSide.
 ]

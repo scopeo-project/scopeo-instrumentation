@@ -50,7 +50,7 @@ ScpProxy >> doesNotUnderstand: aMessage [
 
 	<debuggerCompleteToSender>
 
-	^ instrumentation handle: aMessage 
+	^ instrumentation handleMessage: aMessage 
 ]
 
 { #category : 'comparing' }
@@ -67,9 +67,15 @@ ScpProxy >> identityHash [
 ]
 
 { #category : 'as yet unclassified' }
-ScpProxy >> instrument [
+ScpProxy >> instrument: anInstrumentationHandler [
 
 	^ self
+]
+
+{ #category : 'as yet unclassified' }
+ScpProxy >> instrumentedObject [
+
+	^ instrumentation target
 ]
 
 { #category : 'primitive failure' }
