@@ -37,6 +37,8 @@ ScpObjectInstrumentation >> install [
 	proxy := temp.
 
 	object become: proxy.
+	
+	self enable.
 ]
 
 { #category : 'actions' }

@@ -105,9 +105,8 @@ ScpInstrumentation >> enable [
 ScpInstrumentation >> handleMessage: aMessage [
 
 	| return |
-	
-	self isEnabled ifTrue: [ 
-		MirrorPrimitives
+	self isEnabled ifFalse: [ 
+		^ MirrorPrimitives
 		  withReceiver: object
 		  perform: aMessage selector
 		  withArguments: aMessage arguments

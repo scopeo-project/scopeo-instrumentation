@@ -17,13 +17,17 @@ ScpClassInstrumentation class >> applyOn: aClass usingHandler: anInstrumentation
 
 { #category : 'initialization' }
 ScpClassInstrumentation >> install [
-
+	
 	objectClass := object classSide.
 	object := object newAnonymousSubclass.
 
 	self initializeLookupClass: object classSide.
 	
 	Smalltalk globals at: objectClass instanceSide name put: proxy.
+	
+	self enable.
+
+	
 ]
 
 { #category : 'initialization' }
