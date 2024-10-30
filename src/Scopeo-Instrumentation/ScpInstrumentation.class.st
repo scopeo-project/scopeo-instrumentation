@@ -1,6 +1,6 @@
 Class {
-	#name : 'ScpInstrumentation',
-	#superclass : 'Object',
+	#name : #ScpInstrumentation,
+	#superclass : #Object,
 	#traits : 'ScpInstrumentationMethodRewriter',
 	#classTraits : 'ScpInstrumentationMethodRewriter classTrait',
 	#instVars : [
@@ -11,23 +11,22 @@ Class {
 		'lookupClass',
 		'proxy'
 	],
-	#category : 'Scopeo-Instrumentation',
-	#package : 'Scopeo-Instrumentation'
+	#category : 'Scopeo-Instrumentation'
 }
 
-{ #category : 'services' }
+{ #category : #services }
 ScpInstrumentation >> disable [
 
 	enabled := false.
 ]
 
-{ #category : 'services' }
+{ #category : #services }
 ScpInstrumentation >> enable [
 
 	enabled := true.
 ]
 
-{ #category : 'private - hook' }
+{ #category : #'private - hook' }
 ScpInstrumentation >> handleMessage: aMessage [
 
 	| return |
@@ -63,13 +62,13 @@ ScpInstrumentation >> handleMessage: aMessage [
 	
 ]
 
-{ #category : 'parameters' }
+{ #category : #parameters }
 ScpInstrumentation >> handler: aHandler [
 
 	handler := aHandler
 ]
 
-{ #category : 'initialization' }
+{ #category : #initialization }
 ScpInstrumentation >> initialize [
 	
 	self disable
@@ -77,7 +76,7 @@ ScpInstrumentation >> initialize [
 	
 ]
 
-{ #category : 'private - rewriting' }
+{ #category : #'private - rewriting' }
 ScpInstrumentation >> instrument: aMethod [
 	"
 	Instrument the selector and compile it in the subclass, if:
@@ -97,13 +96,13 @@ ScpInstrumentation >> instrument: aMethod [
 		]
 ]
 
-{ #category : 'services' }
+{ #category : #services }
 ScpInstrumentation >> isEnabled [
 
 	^ enabled
 ]
 
-{ #category : 'parameters' }
+{ #category : #parameters }
 ScpInstrumentation >> object: anObject [ 
 
 	object := anObject	

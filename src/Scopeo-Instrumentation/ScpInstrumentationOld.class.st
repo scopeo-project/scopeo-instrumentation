@@ -1,6 +1,6 @@
 Class {
-	#name : 'ScpInstrumentationOld',
-	#superclass : 'RBProgramNodeVisitor',
+	#name : #ScpInstrumentationOld,
+	#superclass : #RBProgramNodeVisitor,
 	#instVars : [
 		'proxy',
 		'anoClass',
@@ -11,35 +11,34 @@ Class {
 		'lookupClass',
 		'disabled'
 	],
-	#category : 'Scopeo-Instrumentation',
-	#package : 'Scopeo-Instrumentation'
+	#category : #'Scopeo-Instrumentation'
 }
 
-{ #category : 'private - constants' }
+{ #category : #'private - constants' }
 ScpInstrumentationOld class >> handlerSymbol [
 
 	^ #_handler
 ]
 
-{ #category : 'testing' }
+{ #category : #testing }
 ScpInstrumentationOld class >> isAbstract [
 
 	^ self == ScpInstrumentation
 ]
 
-{ #category : 'private - constants' }
+{ #category : #'private - constants' }
 ScpInstrumentationOld class >> proxySymbol [
 
 	^ #_proxy
 ]
 
-{ #category : 'private - constants' }
+{ #category : #'private - constants' }
 ScpInstrumentationOld class >> tempVarSymbol [
 
 	^ #_tmp
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> astForAssignmentHook: anASTElement [
 
 	^ RBMessageNode
@@ -52,19 +51,19 @@ ScpInstrumentationOld >> astForAssignmentHook: anASTElement [
 		  }
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> astForHandler [
 
 	^ RBVariableNode named: self class handlerSymbol
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> astForMetaLevel [
 
 	^ RBVariableNode named: self class metaLevelSymbol
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> astForMetaLevel: aMethod [
 
 	aMethod body addNodesFirst: { 
@@ -88,7 +87,7 @@ ScpInstrumentationOld >> astForMetaLevel: aMethod [
 			value: (RBLiteralValueNode value: false))
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> astForMethod: anASTElement [
 
 	^ RBMessageNode
@@ -110,7 +109,7 @@ ScpInstrumentationOld >> astForMethod: anASTElement [
 		}
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> astForMethodHook: anASTElement [
 
 	^ RBMessageNode
@@ -132,7 +131,7 @@ ScpInstrumentationOld >> astForMethodHook: anASTElement [
 		}
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> astForPropagation: anASTElementNode [
 
 	anASTElementNode isSelfVariable ifTrue: [ ^ self nodeForRewrittenSelfVariable ].
@@ -143,7 +142,7 @@ ScpInstrumentationOld >> astForPropagation: anASTElementNode [
 		  arguments: { (RBVariableNode named: self class handlerSymbol) }
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> astForReturn: anASTElement [
 
 	| statements |
@@ -159,7 +158,7 @@ ScpInstrumentationOld >> astForReturn: anASTElement [
 	^ statements
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> astForReturnHook: anASTElement [
 
 	anASTElement value: self nodeForRewritingTempVariable.
@@ -170,7 +169,7 @@ ScpInstrumentationOld >> astForReturnHook: anASTElement [
 		  arguments: { anASTElement value }
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> handleMessage: aMessage [
 
 	| return |
@@ -207,22 +206,22 @@ ScpInstrumentationOld >> handleMessage: aMessage [
 	
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> handler: anInstrumentationHandler [
 
 	handler := anInstrumentationHandler
 ]
 
-{ #category : 'initialization' }
+{ #category : #initialization }
 ScpInstrumentationOld >> initialize [
 
-	proxy := ScpObjectProxy newFor: self.
+	proxy := ScpObjectProxyOld newFor: self.
 	inMetaLevel := false
 
 	
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> initializeInstVar [
 	
 	lookupClass addClassVarNamed: self class handlerSymbol.	
@@ -232,13 +231,13 @@ ScpInstrumentationOld >> initializeInstVar [
 	lookupClass classVarNamed: self class proxySymbol put: proxy.
 ]
 
-{ #category : 'initialization' }
+{ #category : #initialization }
 ScpInstrumentationOld >> install [
 
 	self subclassResponsibility
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> instrument: aMethod [
 
 	"Instrument the selector and compile it in the subclass, if:
@@ -256,31 +255,31 @@ ScpInstrumentationOld >> instrument: aMethod [
 		]
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> nodeForRewritingTempVariable [
 
 	^ RBVariableNode named: self class tempVarSymbol
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> nodeForRewrittenSelfVariable [
 
 	^ RBVariableNode named: self class proxySymbol
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> object [
 
 	self subclassResponsibility
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> proxy [
 
 	^ proxy
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> rewriteAssignment: anASTElement [
 	
 	| statements |
@@ -299,13 +298,13 @@ ScpInstrumentationOld >> rewriteAssignment: anASTElement [
 	^ statements
 ]
 
-{ #category : 'initialization' }
+{ #category : #initialization }
 ScpInstrumentationOld >> uninstall [
 
 	self subclassResponsibility
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> visitAssignmentNode: anAssignmentNode [
 
 	self visitNode: anAssignmentNode value.
@@ -315,7 +314,7 @@ ScpInstrumentationOld >> visitAssignmentNode: anAssignmentNode [
 	^ self rewriteAssignment: anAssignmentNode
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> visitMessageNode: aMessageNode [
 
 	aMessageNode arguments do: [ :each | 
@@ -337,7 +336,7 @@ ScpInstrumentationOld >> visitMessageNode: aMessageNode [
 	
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> visitMethodNode: aMethodNode [
 
 	| method |
@@ -355,7 +354,7 @@ ScpInstrumentationOld >> visitMethodNode: aMethodNode [
 	^ method
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> visitReturnNode: aReturnNode [
 	
 	self visitNode: aReturnNode value.
@@ -369,7 +368,7 @@ ScpInstrumentationOld >> visitReturnNode: aReturnNode [
 	
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> visitSequenceNode: aSequenceNode [
 
 	| oldStatements newStatements |
@@ -388,7 +387,7 @@ ScpInstrumentationOld >> visitSequenceNode: aSequenceNode [
 	].
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : #'as yet unclassified' }
 ScpInstrumentationOld >> visitSuperMethod: aSelector [
 
 	| method ast |

@@ -1,32 +1,31 @@
 Trait {
-	#name : 'ScpInstrumentationMethodRewriter',
+	#name : #ScpInstrumentationMethodRewriter,
 	#instVars : [
 		'method',
 		'rewritingClass'
 	],
-	#category : 'Scopeo-Instrumentation',
-	#package : 'Scopeo-Instrumentation'
+	#category : 'Scopeo-Instrumentation'
 }
 
-{ #category : 'private - constants' }
+{ #category : #'private - constants' }
 ScpInstrumentationMethodRewriter >> nodeForInstrumentationHandler [
 
 	^ RBVariableNode named: #_handler
 ]
 
-{ #category : 'private - constants' }
+{ #category : #'private - constants' }
 ScpInstrumentationMethodRewriter >> nodeForRewritingTempVariable [
 
 	^ RBVariableNode named: #_tmp
 ]
 
-{ #category : 'private - constants' }
+{ #category : #'private - constants' }
 ScpInstrumentationMethodRewriter >> nodeForRewrittenSelfVariable [
 
 	^ RBVariableNode named: #_proxy
 ]
 
-{ #category : 'services' }
+{ #category : #services }
 ScpInstrumentationMethodRewriter >> rewrite: aMethod [
 
 	method := aMethod copy.
@@ -34,14 +33,14 @@ ScpInstrumentationMethodRewriter >> rewrite: aMethod [
 	rewritingClass compile: method formattedCode
 ]
 
-{ #category : 'parameters' }
+{ #category : #parameters }
 ScpInstrumentationMethodRewriter >> rewritingClass: aClass [
 
 	rewritingClass := aClass.
 	
 ]
 
-{ #category : 'visiting' }
+{ #category : #visiting }
 ScpInstrumentationMethodRewriter >> visitAssignmentNode: anAssignmentNode [
 	"
 	Visit the value of the assignement and rewrite the assigment if it modifies an instance variable, rewrite it in the following form:	
@@ -76,7 +75,7 @@ ScpInstrumentationMethodRewriter >> visitAssignmentNode: anAssignmentNode [
 	^ statements
 ]
 
-{ #category : 'visiting' }
+{ #category : #visiting }
 ScpInstrumentationMethodRewriter >> visitMessageNode: aMessageNode [
 	"
 	Visit the arguments and the receiver of a message.
@@ -115,14 +114,14 @@ ScpInstrumentationMethodRewriter >> visitMessageNode: aMessageNode [
 	
 ]
 
-{ #category : 'visiting' }
+{ #category : #visiting }
 ScpInstrumentationMethodRewriter >> visitMethodNode: aMethodNode [
 
 	method body addSelfReturn.
 	self visitNode: method body.
 ]
 
-{ #category : 'visiting' }
+{ #category : #visiting }
 ScpInstrumentationMethodRewriter >> visitReturnNode: aReturnNode [
 	"
 	Rewrite a return node if it returns the variable self and replace it by a reference to the proxy of the instrumentation.
@@ -134,7 +133,7 @@ ScpInstrumentationMethodRewriter >> visitReturnNode: aReturnNode [
 	aReturnNode value: self nodeForRewrittenSelfVariable
 ]
 
-{ #category : 'visiting' }
+{ #category : #visiting }
 ScpInstrumentationMethodRewriter >> visitSequenceNode: aSequenceNode [
 	"
 	Rewrites a sequence node by visiting children nodes and replacing each of them by the result of their visit.
@@ -158,7 +157,7 @@ ScpInstrumentationMethodRewriter >> visitSequenceNode: aSequenceNode [
 	].
 ]
 
-{ #category : 'visiting' }
+{ #category : #visiting }
 ScpInstrumentationMethodRewriter >> visitSuperMethod: aSelector [
 	"
 	Retrieve the method that is going to be executed when using the variable super (the super method).

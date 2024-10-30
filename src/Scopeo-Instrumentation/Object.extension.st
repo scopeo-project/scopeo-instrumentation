@@ -1,12 +1,12 @@
-Extension { #name : 'Object' }
+Extension { #name : #Object }
 
-{ #category : '*Scopeo-Instrumentation' }
+{ #category : #'*Scopeo-Instrumentation' }
 Object >> instrument: anInstrumentationHandler [
 
 	| object proxy rewritingClass temp |
 	
 	object := self.
-	proxy := ScpObjectProxy new.
+	proxy := ScpObjectProxyOld new.
 	
 	rewritingClass := self class newAnonymousSubclass.
 	

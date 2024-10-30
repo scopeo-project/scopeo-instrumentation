@@ -1,6 +1,6 @@
-Extension { #name : 'Class' }
+Extension { #name : #Class }
 
-{ #category : '*Scopeo-Instrumentation' }
+{ #category : #'*Scopeo-Instrumentation' }
 Class >> instrument: anInstrumentationHandler [
 
 	[^ ScpClassInstrumentation applyOn: self usingHandler: anInstrumentationHandler ] on: Error 

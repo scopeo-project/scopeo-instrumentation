@@ -1,14 +1,13 @@
 Class {
-	#name : 'ScpObjectInstrumentation',
-	#superclass : 'ScpInstrumentation',
+	#name : #ScpObjectInstrumentation,
+	#superclass : #ScpInstrumentation,
 	#instVars : [
 		'uninstalling'
 	],
-	#category : 'Scopeo-Instrumentation',
-	#package : 'Scopeo-Instrumentation'
+	#category : 'Scopeo-Instrumentation'
 }
 
-{ #category : 'instance creation' }
+{ #category : #'instance creation' }
 ScpObjectInstrumentation class >> applyOn: anObject usingHandler: anInstrumentationHandler [
 
 	anObject isLiteral | anObject isBlock ifTrue: [ ^ anObject ].
@@ -20,7 +19,7 @@ ScpObjectInstrumentation class >> applyOn: anObject usingHandler: anInstrumentat
 
 ]
 
-{ #category : 'actions' }
+{ #category : #actions }
 ScpObjectInstrumentation >> install [
 
 	| temp |
@@ -43,7 +42,7 @@ ScpObjectInstrumentation >> install [
 	self enable.
 ]
 
-{ #category : 'actions' }
+{ #category : #actions }
 ScpObjectInstrumentation >> uninstall [
 
 	self disable.

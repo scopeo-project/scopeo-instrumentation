@@ -1,13 +1,12 @@
 Trait {
-	#name : 'ScpProxy',
+	#name : #ScpProxy,
 	#instVars : [
 		'instrumentation'
 	],
-	#category : 'Scopeo-Instrumentation',
-	#package : 'Scopeo-Instrumentation'
+	#category : 'Scopeo-Instrumentation'
 }
 
-{ #category : 'deferred message' }
+{ #category : #'deferred message' }
 ScpProxy >> doesNotUnderstand: aMessage [
 
 	<debuggerCompleteToSender>
@@ -15,7 +14,7 @@ ScpProxy >> doesNotUnderstand: aMessage [
 	^ instrumentation handleMessage: aMessage
 ]
 
-{ #category : 'services' }
+{ #category : #services }
 ScpProxy >> instrument: anInstrumentationHandler [
 
 	^ self

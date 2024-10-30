@@ -1,11 +1,10 @@
 Class {
-	#name : 'ScpClassInstrumentation',
-	#superclass : 'ScpInstrumentation',
-	#category : 'Scopeo-Instrumentation',
-	#package : 'Scopeo-Instrumentation'
+	#name : #ScpClassInstrumentation,
+	#superclass : #ScpInstrumentation,
+	#category : 'Scopeo-Instrumentation'
 }
 
-{ #category : 'instance creation' }
+{ #category : #'instance creation' }
 ScpClassInstrumentation class >> applyOn: aClass usingHandler: anInstrumentationHandler [
 	
 	aClass isClass ifFalse: [ ^ aClass ].
@@ -15,7 +14,7 @@ ScpClassInstrumentation class >> applyOn: aClass usingHandler: anInstrumentation
 		proxy
 ]
 
-{ #category : 'initialization' }
+{ #category : #initialization }
 ScpClassInstrumentation >> install [
 	
 	objectClass := object classSide copy.
@@ -29,7 +28,7 @@ ScpClassInstrumentation >> install [
 	
 ]
 
-{ #category : 'initialization' }
+{ #category : #initialization }
 ScpClassInstrumentation >> uninstall [
 
 	self disable.

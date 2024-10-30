@@ -1,17 +1,16 @@
 Trait {
-	#name : 'ScpInstrumentationHandler',
-	#category : 'Scopeo-Instrumentation',
-	#package : 'Scopeo-Instrumentation'
+	#name : #ScpInstrumentationHandler,
+	#category : 'Scopeo-Instrumentation'
 }
 
-{ #category : 'events handling' }
+{ #category : #'events handling' }
 ScpInstrumentationHandler >> assignment: aVariable object: anObject value: aValue [
 ]
 
-{ #category : 'events handling' }
+{ #category : #'events handling' }
 ScpInstrumentationHandler >> message: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
 ]
 
-{ #category : 'handling' }
+{ #category : #handling }
 ScpInstrumentationHandler >> return: aValue [
 ]
