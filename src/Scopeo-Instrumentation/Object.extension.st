@@ -3,37 +3,33 @@ Extension { #name : #Object }
 { #category : #'*Scopeo-Instrumentation' }
 Object >> instrument: anInstrumentationHandler [
 
-	| object proxy rewritingClass temp |
+	| object proxy rewritingClass instrumentation |
 	
 	object := self.
-	proxy := ScpObjectProxyOld new.
+	proxy := ScpObjectProxy new.
 	
 	rewritingClass := self class newAnonymousSubclass.
-	
 	rewritingClass adoptInstance:object.
 	
-	rewritingClass addClassVarNamed: self class handlerSymbol.	
-	rewritingClass addClassVarNamed: self class proxySymbol.	
-
-	rewritingClass classVarNamed: self class handlerSymbol put: anInstrumentationHandler. 
-	rewritingClass classVarNamed: self class proxySymbol put: proxy.
+	rewritingClass addClassVarNamed: ScpInstrumentationMethodRewriter handlerSymbol.	
+	rewritingClass addClassVarNamed: ScpInstrumentationMethodRewriter proxySymbol.	
+	rewritingClass classVarNamed: ScpInstrumentationMethodRewriter handlerSymbol put: anInstrumentationHandler. 
 	
-	rewritingClass adoptInstance: object.
+	instrumentation := ScpInstrumentation new 
+		object: self;
+		handler: anInstrumentationHandler;
+		rewritingClass: rewritingClass;
+		yourself.
 	
-	temp := object. 
-	object := proxy. 
-	proxy := temp.
-
+	MirrorPrimitives
+		fixedFieldOf: proxy
+		at: (proxy class slotNamed: #instrumentation) index
+		put: instrumentation.
+		
 	object become: proxy.
 	
-
-
-	[ ^ ScpObjectInstrumentation applyOn: self usingHandler: anInstrumentationHandler. ] 
-		on: Error 
-		do: [ :e | 
-			Smalltalk logStdOutDuring: [ :logger |
-				logger	 nextPutAll: e; cr 
-			]
-		]
-
+	rewritingClass classVarNamed: ScpInstrumentationMethodRewriter proxySymbol put: object.
+	
+	instrumentation enable
+	
 ]

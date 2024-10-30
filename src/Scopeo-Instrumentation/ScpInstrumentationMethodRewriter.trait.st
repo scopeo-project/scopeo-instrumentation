@@ -4,13 +4,25 @@ Trait {
 		'method',
 		'rewritingClass'
 	],
-	#category : 'Scopeo-Instrumentation'
+	#category : #'Scopeo-Instrumentation'
 }
+
+{ #category : #'private - constants' }
+ScpInstrumentationMethodRewriter classSide >> handlerSymbol [
+
+	^ #_handler
+]
+
+{ #category : #'private - constants' }
+ScpInstrumentationMethodRewriter classSide >> proxySymbol [
+
+	^ #_proxy
+]
 
 { #category : #'private - constants' }
 ScpInstrumentationMethodRewriter >> nodeForInstrumentationHandler [
 
-	^ RBVariableNode named: #_handler
+	^ RBVariableNode named: self class handlerSymbol
 ]
 
 { #category : #'private - constants' }
@@ -22,7 +34,7 @@ ScpInstrumentationMethodRewriter >> nodeForRewritingTempVariable [
 { #category : #'private - constants' }
 ScpInstrumentationMethodRewriter >> nodeForRewrittenSelfVariable [
 
-	^ RBVariableNode named: #_proxy
+	^ RBVariableNode named: self class proxySymbol
 ]
 
 { #category : #services }

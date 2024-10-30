@@ -47,3 +47,13 @@ ScpObjectProxy >> primitiveFailed: selector [
 
 	PrimitiveFailed signalFor: selector
 ]
+
+{ #category : #'as yet unclassified' }
+ScpObjectProxy >> uninstrument [
+
+	instrumentation disable.
+
+	instrumentation object class superclass adoptInstance: instrumentation object.
+	
+	instrumentation object become: self
+]

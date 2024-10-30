@@ -6,12 +6,9 @@ Class {
 	#instVars : [
 		'enabled',
 		'handler',
-		'object',
-		'objectClass',
-		'lookupClass',
-		'proxy'
+		'object'
 	],
-	#category : 'Scopeo-Instrumentation'
+	#category : #'Scopeo-Instrumentation'
 }
 
 { #category : #services }
@@ -100,6 +97,12 @@ ScpInstrumentation >> instrument: aMethod [
 ScpInstrumentation >> isEnabled [
 
 	^ enabled
+]
+
+{ #category : #accessing }
+ScpInstrumentation >> object [
+
+	^ object
 ]
 
 { #category : #parameters }
