@@ -40,25 +40,6 @@ ScpInstrumentationOld class >> tempVarSymbol [
 ]
 
 { #category : 'as yet unclassified' }
-ScpInstrumentationOld >> astForAssignment: anASTElement [
-	
-	| statements |
-
-	statements := OrderedCollection new.
-	statements add: (RBAssignmentNode 
-		variable: self astForTempVariable
-		value: anASTElement value
-	).
-	statements add: (self astForAssignmentHook: anASTElement).
-	statements add: (RBAssignmentNode 
-		variable: anASTElement variable 
-		value: self astForTempVariable
-	).
-	
-	^ statements
-]
-
-{ #category : 'as yet unclassified' }
 ScpInstrumentationOld >> astForAssignmentHook: anASTElement [
 
 	^ RBMessageNode
@@ -67,7 +48,7 @@ ScpInstrumentationOld >> astForAssignmentHook: anASTElement [
 		  arguments: {
 				  (RBLiteralValueNode value: anASTElement variable name).
 				  (RBVariableNode selfNode).
-					self astForTempVariable
+					self nodeForRewritingTempVariable
 		  }
 ]
 
@@ -154,7 +135,7 @@ ScpInstrumentationOld >> astForMethodHook: anASTElement [
 { #category : 'as yet unclassified' }
 ScpInstrumentationOld >> astForPropagation: anASTElementNode [
 
-	anASTElementNode isSelfVariable ifTrue: [ ^ self astForSelf ].
+	anASTElementNode isSelfVariable ifTrue: [ ^ self nodeForRewrittenSelfVariable ].
 
 	^ RBMessageNode
 		  receiver: anASTElementNode
@@ -169,7 +150,7 @@ ScpInstrumentationOld >> astForReturn: anASTElement [
 
 	statements := OrderedCollection new.
 	statements add: (RBAssignmentNode 
-		variable: self astForTempVariable
+		variable: self nodeForRewritingTempVariable
 		value: anASTElement value
 	).
 	statements add: (self astForReturnHook: anASTElement).
@@ -181,24 +162,12 @@ ScpInstrumentationOld >> astForReturn: anASTElement [
 { #category : 'as yet unclassified' }
 ScpInstrumentationOld >> astForReturnHook: anASTElement [
 
-	anASTElement value: self astForTempVariable.
+	anASTElement value: self nodeForRewritingTempVariable.
 
 	^ RBMessageNode
 		  receiver: self astForHandler 
 		  selector: (ScpInstrumentationHandler >> #return:) selector
 		  arguments: { anASTElement value }
-]
-
-{ #category : 'as yet unclassified' }
-ScpInstrumentationOld >> astForSelf [
-
-	^ RBVariableNode named: self class proxySymbol
-]
-
-{ #category : 'as yet unclassified' }
-ScpInstrumentationOld >> astForTempVariable [
-
-	^ RBVariableNode named: self class tempVarSymbol
 ]
 
 { #category : 'as yet unclassified' }
@@ -247,7 +216,7 @@ ScpInstrumentationOld >> handler: anInstrumentationHandler [
 { #category : 'initialization' }
 ScpInstrumentationOld >> initialize [
 
-	proxy := ScpProxy newFor: self.
+	proxy := ScpObjectProxy newFor: self.
 	inMetaLevel := false
 
 	
@@ -288,6 +257,18 @@ ScpInstrumentationOld >> instrument: aMethod [
 ]
 
 { #category : 'as yet unclassified' }
+ScpInstrumentationOld >> nodeForRewritingTempVariable [
+
+	^ RBVariableNode named: self class tempVarSymbol
+]
+
+{ #category : 'as yet unclassified' }
+ScpInstrumentationOld >> nodeForRewrittenSelfVariable [
+
+	^ RBVariableNode named: self class proxySymbol
+]
+
+{ #category : 'as yet unclassified' }
 ScpInstrumentationOld >> object [
 
 	self subclassResponsibility
@@ -297,6 +278,25 @@ ScpInstrumentationOld >> object [
 ScpInstrumentationOld >> proxy [
 
 	^ proxy
+]
+
+{ #category : 'as yet unclassified' }
+ScpInstrumentationOld >> rewriteAssignment: anASTElement [
+	
+	| statements |
+
+	statements := OrderedCollection new.
+	statements add: (RBAssignmentNode 
+		variable: self nodeForRewritingTempVariable
+		value: anASTElement value
+	).
+	statements add: (self astForAssignmentHook: anASTElement).
+	statements add: (RBAssignmentNode 
+		variable: anASTElement variable 
+		value: self nodeForRewritingTempVariable
+	).
+	
+	^ statements
 ]
 
 { #category : 'initialization' }
@@ -312,7 +312,7 @@ ScpInstrumentationOld >> visitAssignmentNode: anAssignmentNode [
 	
 	anAssignmentNode variable isInstanceVariable ifFalse: [ ^ self ].
 	
-	^ self astForAssignment: anAssignmentNode
+	^ self rewriteAssignment: anAssignmentNode
 ]
 
 { #category : 'as yet unclassified' }
@@ -361,7 +361,7 @@ ScpInstrumentationOld >> visitReturnNode: aReturnNode [
 	self visitNode: aReturnNode value.
 	
 	(aReturnNode value isVariable and: [ aReturnNode value name = #self ]) ifTrue: [
-		aReturnNode value: self astForSelf.
+		aReturnNode value: self nodeForRewrittenSelfVariable.
 	].
 	
 	"^ self astForReturn: aReturnNode"

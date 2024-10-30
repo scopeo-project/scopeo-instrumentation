@@ -18,12 +18,11 @@ ScpClassInstrumentation class >> applyOn: aClass usingHandler: anInstrumentation
 { #category : 'initialization' }
 ScpClassInstrumentation >> install [
 	
-	objectClass := object classSide.
-	object := object newAnonymousSubclass.
+	objectClass := object classSide copy.
 
-	self initializeLookupClass: object classSide.
-	
-	Smalltalk globals at: objectClass instanceSide name put: proxy.
+	self initializeLookupClass: object.
+	lookupClass := lookupClass classSide.
+	lookupClass methodDictionary removeAll.
 	
 	self enable.
 
@@ -34,6 +33,10 @@ ScpClassInstrumentation >> install [
 ScpClassInstrumentation >> uninstall [
 
 	self disable.
-
-	Smalltalk globals at: objectClass instanceSide name put: objectClass instanceSide.
+	
+	lookupClass methodDictionary: objectClass methodDict.
+	object removeClassVarNamed: self class handlerSymbol.
+	object removeClassVarNamed: self class proxySymbol
+	
+	
 ]

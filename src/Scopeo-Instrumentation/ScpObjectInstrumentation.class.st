@@ -24,6 +24,8 @@ ScpObjectInstrumentation class >> applyOn: anObject usingHandler: anInstrumentat
 ScpObjectInstrumentation >> install [
 
 	| temp |
+	
+	self halt.
 
 	objectClass := object class.
 	objectClass isAnonymous ifTrue: [ ^ self ].
