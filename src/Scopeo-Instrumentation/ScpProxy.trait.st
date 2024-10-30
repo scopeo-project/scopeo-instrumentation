@@ -1,5 +1,5 @@
 Trait {
-	#name : 'ScpProxyOld',
+	#name : 'ScpProxy',
 	#instVars : [
 		'instrumentation'
 	],
@@ -8,7 +8,7 @@ Trait {
 }
 
 { #category : 'deferred message' }
-ScpProxyOld >> doesNotUnderstand: aMessage [
+ScpProxy >> doesNotUnderstand: aMessage [
 
 	<debuggerCompleteToSender>
 
@@ -16,7 +16,7 @@ ScpProxyOld >> doesNotUnderstand: aMessage [
 ]
 
 { #category : 'services' }
-ScpProxyOld >> instrument: anInstrumentationHandler [
+ScpProxy >> instrument: anInstrumentationHandler [
 
 	^ self
 ]
