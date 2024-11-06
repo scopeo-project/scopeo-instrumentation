@@ -3,23 +3,22 @@ Class {
 	#superclass : #Object,
 	#traits : 'ScpInstrumentationHandler',
 	#classTraits : 'ScpInstrumentationHandler classTrait',
-	#category : 'Scopeo-Instrumentation'
+	#category : #'Scopeo-Instrumentation'
 }
 
-{ #category : #'events handling' }
+{ #category : #hooks }
 ScpInstrumentationHook >> assignment: aVariable object: anObject value: aValue [
 
 	anObject asString , ' -> ' , aVariable asString , ' := ', aValue asString
 ]
 
-{ #category : #'events handling' }
+{ #category : #hooks }
 ScpInstrumentationHook >> message: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
 
-	self haltOnce.
 	(aSender asString, ' - ' ,aSelector asString, ' -> ' ,  aReceiver asString) crTrace
 ]
 
-{ #category : #handling }
+{ #category : #hooks }
 ScpInstrumentationHook >> return: aValue [
 
 	aValue asString

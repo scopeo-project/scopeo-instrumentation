@@ -1,16 +1,37 @@
 Trait {
 	#name : #ScpInstrumentationHandler,
-	#category : 'Scopeo-Instrumentation'
+	#instVars : [
+		'enabled'
+	],
+	#category : #'Scopeo-Instrumentation'
 }
 
-{ #category : #'events handling' }
+{ #category : #hooks }
 ScpInstrumentationHandler >> assignment: aVariable object: anObject value: aValue [
 ]
 
-{ #category : #'events handling' }
+{ #category : #services }
+ScpInstrumentationHandler >> disable [
+
+	enabled := false
+]
+
+{ #category : #services }
+ScpInstrumentationHandler >> enable [
+
+	enabled := true
+]
+
+{ #category : #services }
+ScpInstrumentationHandler >> isEnabled [
+
+	^ enabled ifNil: [ false ]
+]
+
+{ #category : #hooks }
 ScpInstrumentationHandler >> message: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
 ]
 
-{ #category : #handling }
+{ #category : #hooks }
 ScpInstrumentationHandler >> return: aValue [
 ]
