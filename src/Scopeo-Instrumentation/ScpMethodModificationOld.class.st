@@ -1,47 +1,46 @@
 Class {
-	#name : #ScpMethodModification,
+	#name : #ScpMethodModificationOld,
 	#superclass : #RBProgramNodeVisitor,
-	#traits : 'ScpASTModification',
-	#classTraits : 'ScpASTModification classTrait',
+	#traits : 'MethodModification',
+	#classTraits : 'MethodModification classTrait',
 	#instVars : [
-		'installationClass',
-		'newSelector'
+		'installationClass'
 	],
 	#category : #'Scopeo-Instrumentation'
 }
 
 { #category : #applying }
-ScpMethodModification >> applyOn: aMethodNode [
+ScpMethodModificationOld >> applyOn: aMethodNode [
 
 	self visitMethodNode: aMethodNode 
 ]
 
 { #category : #accessing }
-ScpMethodModification >> installationClass: aClass [
+ScpMethodModificationOld >> installationClass: aClass [
 
 	installationClass := aClass
 ]
 
-{ #category : #accessing }
-ScpMethodModification >> newSelector: aSelector [
-
-	newSelector := aSelector
-]
-
 { #category : #'private - constants' }
-ScpMethodModification >> nodeForInstrumentationHandler [
+ScpMethodModificationOld >> nodeForInstrumentationHandler [
 
 	^ RBVariableNode named: self class handlerSymbol
 ]
 
 { #category : #'private - constants' }
-ScpMethodModification >> nodeForRewritingTempVariable [
+ScpMethodModificationOld >> nodeForRewritingTempVariable [
 
 	^ RBVariableNode named: #_tmp
 ]
 
+{ #category : #'as yet unclassified' }
+ScpMethodModificationOld >> nodeForSender [
+
+	 ^ self subclassResponsibility
+]
+
 { #category : #visiting }
-ScpMethodModification >> visitAssignmentNode: anAssignmentNode [
+ScpMethodModificationOld >> visitAssignmentNode: anAssignmentNode [
 	"
 	Visit the value of the assignement and rewrite the assigment if it modifies an instance variable, rewrite it in the following form:	
 	Original:
@@ -77,7 +76,7 @@ ScpMethodModification >> visitAssignmentNode: anAssignmentNode [
 ]
 
 { #category : #visiting }
-ScpMethodModification >> visitMessageNode: aMessageNode [
+ScpMethodModificationOld >> visitMessageNode: aMessageNode [
 	"
 	Visit the arguments and the receiver of a message.
 	If the receiver is not an block, rewrite it.
@@ -111,7 +110,7 @@ ScpMethodModification >> visitMessageNode: aMessageNode [
 ]
 
 { #category : #visiting }
-ScpMethodModification >> visitMessageToSuperNode: aMessageNode [
+ScpMethodModificationOld >> visitMessageToSuperNode: aMessageNode [
 	"
 	Retrieve the method that is going to be executed when using the variable super (the super method).
 	Change the name of the super method to identify it using its original class name.
@@ -119,27 +118,25 @@ ScpMethodModification >> visitMessageToSuperNode: aMessageNode [
 	Reuses the ScpMethodRewriter>>#rewrite: method to ensure the process is recursive.
 	Restore the currently rewritten method once the super method has been rewritten. 
 	"
-	| method selector alias superMethod newMethod |	
+	| method alias superMethod |	
 	
 	method := aMessageNode methodNode compiledMethod.
 	superMethod := method methodClass superclass lookupSelector: aMessageNode selector.
 	
 	alias := (superMethod methodClass name copyReplaceAll:  ' ' with:  '_') , '_' , superMethod selector.
-	
-	(installationClass includesSelector: newSelector) ifFalse: [
-		selector := newSelector. 
-		newSelector := alias.
-		newMethod := superMethod applyModification: self andInstallIn: installationClass.	
-		newSelector := selector.
+	(installationClass includesSelector: alias) ifFalse: [
+		superMethod 
+			applyModification: (ScpClassSuperModification new 
+					newSelector: alias; 
+					yourself) 
+			andInstallIn: installationClass
 	]. 
 		
 	^ alias
 ]
 
 { #category : #visiting }
-ScpMethodModification >> visitMethodNode: aMethodNode [
-
-	newSelector ifNotNil: [ aMethodNode selector: newSelector ].
+ScpMethodModificationOld >> visitMethodNode: aMethodNode [
 
 	aMethodNode body addSelfReturn.
 	self visitNode: aMethodNode body.
@@ -151,17 +148,10 @@ ScpMethodModification >> visitMethodNode: aMethodNode [
 					 selector
 			 arguments: {
 					 (RBLiteralValueNode value: aMethodNode selector).
-					 (RBMessageNode
-						  receiver: (RBMessageNode
-								   receiver: (RBMessageNode
-										    receiver: (RBMessageNode
-												     receiver: (RBVariableNode named: #thisContext)
-												     selector: #sender)
-										    selector: #sender)
-								   selector: #sender)
-						  selector: #receiver).
+					 self nodeForSender.
 					 RBVariableNode selfNode.
-					 (RBArrayNode statements: aMethodNode arguments) }).
+					 (RBArrayNode statements: aMethodNode arguments) 
+			}).
 
 	aMethodNode body addNodeLast: (RBMessageNode
 			 receiver: self nodeForInstrumentationHandler
@@ -169,7 +159,7 @@ ScpMethodModification >> visitMethodNode: aMethodNode [
 ]
 
 { #category : #visiting }
-ScpMethodModification >> visitReturnNode: aReturnNode [
+ScpMethodModificationOld >> visitReturnNode: aReturnNode [
 	"
 	Rewrite a return node if it returns the variable self and replace it by a reference to the proxy of the instrumentation.
 	Also adds a call to the instrumentation handler of Scopeo.
@@ -211,7 +201,7 @@ ScpMethodModification >> visitReturnNode: aReturnNode [
 ]
 
 { #category : #visiting }
-ScpMethodModification >> visitSequenceNode: aSequenceNode [
+ScpMethodModificationOld >> visitSequenceNode: aSequenceNode [
 	"
 	Rewrites a sequence node by visiting children nodes and replacing each of them by the result of their visit.
 	These results can either be collections of statements or child nodes themselves.
@@ -235,7 +225,7 @@ ScpMethodModification >> visitSequenceNode: aSequenceNode [
 ]
 
 { #category : #visiting }
-ScpMethodModification >> visitVariableNode: aVariableNode [
+ScpMethodModificationOld >> visitVariableNode: aVariableNode [
 
 	^ aVariableNode
 	

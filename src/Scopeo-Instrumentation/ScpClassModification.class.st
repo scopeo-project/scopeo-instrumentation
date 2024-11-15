@@ -1,7 +1,6 @@
 Class {
 	#name : #ScpClassModification,
-	#superclass : #ScpMethodModification,
-	#classTraits : 'ScpASTModification classTrait',
+	#superclass : #ScpMethodModificationOld,
 	#category : #'Scopeo-Instrumentation'
 }
 
@@ -21,6 +20,20 @@ ScpClassModification class >> proxySymbol [
 ScpClassModification >> nodeForRewrittenSelfVariable [
 
 	^ RBVariableNode named: self class proxySymbol
+]
+
+{ #category : #'as yet unclassified' }
+ScpClassModification >> nodeForSender [
+
+	^ RBMessageNode
+		  receiver: (RBMessageNode
+				   receiver: (RBMessageNode
+						    receiver: (RBMessageNode
+								     receiver: (RBVariableNode named: #thisContext)
+								     selector: #sender)
+						    selector: #sender)
+				   selector: #sender)
+		  selector: #receiver
 ]
 
 { #category : #visiting }

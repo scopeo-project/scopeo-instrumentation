@@ -1,7 +1,6 @@
 Class {
 	#name : #ScpMetaclassModification,
-	#superclass : #ScpMethodModification,
-	#classTraits : 'ScpASTModification classTrait',
+	#superclass : #ScpMethodModificationOld,
 	#category : #'Scopeo-Instrumentation'
 }
 
@@ -9,6 +8,18 @@ Class {
 ScpMetaclassModification class >> handlerSymbol [
 
 	^ #_meta_handler
+]
+
+{ #category : #'as yet unclassified' }
+ScpMetaclassModification >> nodeForSender [
+
+	^ RBMessageNode
+		  receiver: (RBMessageNode
+				   receiver: (RBMessageNode
+						    receiver: (RBVariableNode named: #thisContext)
+						    selector: #sender)
+				   selector: #sender)
+		  selector: #receiver
 ]
 
 { #category : #visiting }
