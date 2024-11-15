@@ -1,25 +1,21 @@
-Class {
-	#name : #Test,
-	#superclass : #Object,
-	#category : #'Scopeo-Instrumentation-GenericMethodModification'
-}
+Extension { #name : #CompiledMethod }
 
-{ #category : #'as yet unclassified' }
-Test >> applyModification: anASTModification [
+{ #category : #'*Scopeo-Instrumentation' }
+CompiledMethod >> applyModification: anASTModification [
 
 	^ self applyModification: anASTModification andInstallIn: self methodClass
 ]
 
-{ #category : #'as yet unclassified' }
-Test >> applyModification: anASTModification andIfAbsentInstallIn: aClass [
+{ #category : #'*Scopeo-Instrumentation' }
+CompiledMethod >> applyModification: anASTModification andIfAbsentInstallIn: aClass [
 
 	(aClass includesSelector: self selector) ifTrue: [ ^ aClass >> self selector ].
 
 	^ self applyModification: anASTModification andInstallIn: aClass
 ]
 
-{ #category : #'as yet unclassified' }
-Test >> applyModification: anASTModification andInstallIn: aClass [
+{ #category : #'*Scopeo-Instrumentation' }
+CompiledMethod >> applyModification: anASTModification andInstallIn: aClass [
 
 	| ast newMethod |
 
@@ -38,20 +34,20 @@ Test >> applyModification: anASTModification andInstallIn: aClass [
 	^ newMethod
 ]
 
-{ #category : #'as yet unclassified' }
-Test >> isOriginalMethod [
+{ #category : #'*Scopeo-Instrumentation' }
+CompiledMethod >> isOriginalMethod [
 
 	^ self originalMethod == self
 ]
 
-{ #category : #'as yet unclassified' }
-Test >> originalMethod [
+{ #category : #'*Scopeo-Instrumentation' }
+CompiledMethod >> originalMethod [
 
 	^ self propertyAt: #original ifAbsent: [ ^ self ]
 ]
 
-{ #category : #'as yet unclassified' }
-Test >> revertModification [
+{ #category : #'*Scopeo-Instrumentation' }
+CompiledMethod >> revertModification [
 
 	self isOriginalMethod ifTrue: [ ^ self ].
 
