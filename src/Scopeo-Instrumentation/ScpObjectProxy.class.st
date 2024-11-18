@@ -6,36 +6,8 @@ Class {
 		'handler',
 		'modification'
 	],
-	#category : #'Scopeo-Instrumentation'
+	#category : #'Scopeo-Instrumentation-ScopeoMethodInstrumentation'
 }
-
-{ #category : #'instance creation' }
-ScpObjectProxy class >> newFor: anObject handler: aHandler [ 
-
-	| proxy |
-
-	proxy := self basicNew.
-
-	MirrorPrimitives
-		fixedFieldOf: proxy
-		at: (proxy class slotNamed: #object) index
-		put: proxy.
-
-	MirrorPrimitives
-		fixedFieldOf: proxy
-		at: (proxy class slotNamed: #modification) index
-		put: (ScpClassModification new
-			installationClass: anObject class;
-			yourself
-		).
-		
-	MirrorPrimitives
-		fixedFieldOf: proxy
-		at: (proxy class slotNamed: #handler) index
-		put: aHandler.
-		
-	anObject become: proxy.
-]
 
 { #category : #'reflective operations' }
 ScpObjectProxy >> basicIdentityHash [
@@ -106,9 +78,5 @@ ScpObjectProxy >> primitiveFailed: selector [
 { #category : #services }
 ScpObjectProxy >> uninstrument [
 
-	handler disable.
-
-	object class superclass adoptInstance: object.
-	
-	object become: self
+	(ScpInstrumentationRegistry instance at: object) uninstall 
 ]

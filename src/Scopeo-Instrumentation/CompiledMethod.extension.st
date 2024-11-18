@@ -35,6 +35,15 @@ CompiledMethod >> applyModification: anASTModification andInstallIn: aClass [
 ]
 
 { #category : #'*Scopeo-Instrumentation' }
+CompiledMethod >> executeOriginalMethodOn: aReceiver withArguments: anArguments [
+
+	^ MirrorPrimitives 
+		withReceiver: aReceiver 
+		andArguments: anArguments
+		execute: self originalMethod
+]
+
+{ #category : #'*Scopeo-Instrumentation' }
 CompiledMethod >> isOriginalMethod [
 
 	^ self originalMethod == self

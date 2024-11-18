@@ -23,62 +23,80 @@ AbstractMethodModification >> applyOn: aMethodNode [
 	^ self visitMethodNode: aMethodNode
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifications }
 AbstractMethodModification >> modificationAfterAssignment: anAssignmentNode [
 
 	^ nil
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifications }
 AbstractMethodModification >> modificationAfterMessage: aMessageNode [
 
 	^ nil
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifications }
 AbstractMethodModification >> modificationBeforeAssignment: anAssignmentNode [
 
 	^ nil
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifications }
 AbstractMethodModification >> modificationBeforeMessage: aMessageNode [
 
 	^ nil
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifications }
 AbstractMethodModification >> modificationBeforeMethod: aMethodNode [
 
 	^ nil
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifications }
 AbstractMethodModification >> modificationBeforeReturn: aReturnNode [
 
 	^ nil
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifications }
 AbstractMethodModification >> modificationInsteadAssignment: anAssignmentNode [
 
 	^ nil
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifications }
 AbstractMethodModification >> modificationInsteadMessage: aMessageNode [
 
 	^ nil
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifications }
 AbstractMethodModification >> modificationInsteadMethod: aMethodNode [
 
 	^ nil
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifications }
 AbstractMethodModification >> modificationInsteadReturn: aReturnNode [
+
+	^ nil
+]
+
+{ #category : #modifications }
+AbstractMethodModification >> modificationInsteadSelfVariable: aMessageNode [
+
+	^ nil
+]
+
+{ #category : #modifications }
+AbstractMethodModification >> modificationInsteadSuperVariable: aMessageNode [
+
+	^ nil
+]
+
+{ #category : #visiting }
+AbstractMethodModification >> modificationInsteadVariable: aVariableNode [
 
 	^ nil
 ]
@@ -184,14 +202,14 @@ AbstractMethodModification >> visitAssignmentNode: anAssignmentNode [
 	].
 
 	(self modificationBeforeAssignment: anAssignmentNode) 
-		ifNotNil: [ :n | statements add: n ].
+		ifNotNil: [ :n | statements addAll: n ].
 		
 	(self modificationInsteadAssignment: anAssignmentNode) 
 		ifNil: [ statements add: anAssignmentNode ] 
-		ifNotNil: [ :n | statements add: n ].
+		ifNotNil: [ :n | statements addAll: n ].
 	
 	(self modificationAfterAssignment: anAssignmentNode) 
-		ifNotNil: [ :n | statements add: n ].
+		ifNotNil: [ :n | statements addAll: n ].
 	
 	^ statements
 ]
@@ -257,10 +275,10 @@ AbstractMethodModification >> visitMessageNode: aMessageNode [
 	statements addAll: arguments second.
 	
 	(self modificationInsteadMessage: aMessageNode)
-		ifNotNil: [ :n | statements add: n ]
+		ifNotNil: [ :n | statements addAll: n ]
 		ifNil: [
 			(self modificationBeforeMessage: aMessageNode) 
-				ifNotNil: [ :n | statements add: n ].
+				ifNotNil: [ :n | statements addAll: n ].
 			statements add: (RBAssignmentNode 
 				variable: self nodeForTemporaryVariable 
 				value: aMessageNode
@@ -306,14 +324,25 @@ AbstractMethodModification >> visitReturnNode: aReturnNode [
 	].
 
 	(self modificationInsteadReturn: aReturnNode)
-		ifNotNil: [ :n | statements add: n ]
+		ifNotNil: [ :n | statements addAll: n ]
 		ifNil: [ 
 			(self modificationBeforeReturn: aReturnNode) 
-				ifNotNil: [ :n | statements add: n ].
+				ifNotNil: [ :n | statements addAll: n ].
 			statements add: aReturnNode.	
 		].
 
 	^ statements
+]
+
+{ #category : #visiting }
+AbstractMethodModification >> visitSelfNode: aSelfNode [
+
+	(self modificationInsteadSelfVariable: aSelfNode) 
+		ifNotNil: [ :n | ^ n ].
+		
+	^ aSelfNode
+	
+	
 ]
 
 { #category : #visiting }
@@ -334,6 +363,26 @@ AbstractMethodModification >> visitSequenceNode: aSequenceNode [
 			ifFalse: [ aSequenceNode addNode: newStatements ]
 	].
 	
-	^ aSequenceNode.
+	^ aSequenceNode
 
+]
+
+{ #category : #visiting }
+AbstractMethodModification >> visitSuperNode: aSuperNode [
+
+	(self modificationInsteadSuperVariable: aSuperNode) 
+		ifNotNil: [ :n | ^ n ].
+		
+	^ aSuperNode
+	
+	
+]
+
+{ #category : #visiting }
+AbstractMethodModification >> visitVariableNode: aVariableNode [
+
+	(self modificationInsteadVariable: aVariableNode)
+		ifNotNil: [ :n | ^ n ].
+		
+	^ aVariableNode
 ]

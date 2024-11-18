@@ -3,7 +3,7 @@ Trait {
 	#instVars : [
 		'enabled'
 	],
-	#category : #'Scopeo-Instrumentation'
+	#category : #'Scopeo-Instrumentation-ScopeoMethodInstrumentation'
 }
 
 { #category : #hooks }

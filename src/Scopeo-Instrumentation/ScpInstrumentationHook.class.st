@@ -3,7 +3,7 @@ Class {
 	#superclass : #Object,
 	#traits : 'ScpInstrumentationHandler',
 	#classTraits : 'ScpInstrumentationHandler classTrait',
-	#category : #'Scopeo-Instrumentation'
+	#category : #'Scopeo-Instrumentation-ScopeoMethodInstrumentation'
 }
 
 { #category : #hooks }
