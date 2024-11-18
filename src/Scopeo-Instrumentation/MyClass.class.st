@@ -1,7 +1,7 @@
 Class {
 	#name : #MyClass,
 	#superclass : #MySuperClass,
-	#category : #'Scopeo-Instrumentation'
+	#category : #'Scopeo-Instrumentation-Tests'
 }
 
 { #category : #'as yet unclassified' }

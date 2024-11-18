@@ -9,12 +9,18 @@ Class {
 }
 
 { #category : #accessing }
+ScpMethodModification >> configuration [
+
+	^ configuration
+]
+
+{ #category : #accessing }
 ScpMethodModification >> configuration: aConfiguration [
 
 	configuration := aConfiguration
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifying }
 ScpMethodModification >> modificationBeforeAssignment: anAssignmentNode [
 
 	anAssignmentNode variable isInstanceVariable ifFalse: [ ^ nil ].
@@ -28,7 +34,7 @@ ScpMethodModification >> modificationBeforeAssignment: anAssignmentNode [
 				   anAssignmentNode value }) }
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifying }
 ScpMethodModification >> modificationBeforeMethod: aMethodNode [
 
 	| statements |
@@ -56,7 +62,7 @@ ScpMethodModification >> modificationBeforeMethod: aMethodNode [
 	^ statements
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifying }
 ScpMethodModification >> modificationBeforeReturn: aReturnNode [
 
 	| statements |
@@ -76,7 +82,7 @@ ScpMethodModification >> modificationBeforeReturn: aReturnNode [
 	^ statements
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifying }
 ScpMethodModification >> modificationInsteadMessage: aMessageNode [
 	"
 	If the receiver is not an block, rewrite it.
@@ -96,7 +102,7 @@ ScpMethodModification >> modificationInsteadMessage: aMessageNode [
 	)
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifying }
 ScpMethodModification >> modificationInsteadSuperMessage: aMessageNode [
 	"
 	Retrieve the method that is going to be executed when using the variable super (the super method).
@@ -114,9 +120,11 @@ ScpMethodModification >> modificationInsteadSuperMessage: aMessageNode [
 	(configuration installationClass includesSelector: alias) ifFalse: [
 		superMethod 
 			applyModification: (self class new 
-					configuration: configuration;
+					configuration: (configuration copy 
+						newSelector: alias; 
+						yourself);
 					yourself) 
-			andInstallIn: configuration
+			andInstallIn: configuration installationClass
 	]. 
 		
 	^ alias
