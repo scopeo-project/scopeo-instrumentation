@@ -10,5 +10,5 @@ Class {
 { #category : #accessing }
 ScpInstrumentationRegistry class >> instance [
 
-	^ instance ifNil: [ instance = self new ]
+	^ instance ifNil: [ instance := self new ]
 ]

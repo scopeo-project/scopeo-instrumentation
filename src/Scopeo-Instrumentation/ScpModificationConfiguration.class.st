@@ -3,7 +3,8 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'nodeForHandler',
-		'installationClass'
+		'installationClass',
+		'selector'
 	],
 	#category : #'Scopeo-Instrumentation-ScopeoMethodModification'
 }
@@ -36,6 +37,18 @@ ScpModificationConfiguration >> installationClass [
 ScpModificationConfiguration >> installationClass: anObject [
 
 	installationClass := anObject
+]
+
+{ #category : #'instance creation' }
+ScpModificationConfiguration >> newSelector [
+
+	^ selector
+]
+
+{ #category : #parameters }
+ScpModificationConfiguration >> newSelector: aSelector [
+
+	selector := aSelector asSymbol
 ]
 
 { #category : #accessing }

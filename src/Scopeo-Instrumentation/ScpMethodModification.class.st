@@ -129,3 +129,13 @@ ScpMethodModification >> modificationInsteadSuperMessage: aMessageNode [
 		
 	^ alias
 ]
+
+{ #category : #visiting }
+ScpMethodModification >> visitMethodNode: aMethodNode [
+
+	configuration newSelector ifNotNil: [ :s |		
+		aMethodNode selector: s
+	].
+
+	^ super visitMethodNode: aMethodNode
+]
