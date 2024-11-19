@@ -78,5 +78,7 @@ ScpObjectProxy >> primitiveFailed: selector [
 { #category : #services }
 ScpObjectProxy >> uninstrument [
 
-	(ScpInstrumentationRegistry instance at: object) uninstall 
+	^ ScpInstrumentationRegistry instance
+		  at: object
+		  ifPresent: [ :i | i uninstall ]
 ]

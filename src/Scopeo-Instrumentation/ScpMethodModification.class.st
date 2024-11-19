@@ -89,17 +89,26 @@ ScpMethodModification >> modificationInsteadMessage: aMessageNode [
 	When the receiver is the super variable, rewrite the parent method.
 	Otherwise rewrite the receiver to propagate the instrumentation.
 	"
-
-	aMessageNode receiver isBlock ifTrue: [ ^ { aMessageNode } ].
+	aMessageNode receiver isBlock ifTrue: [ ^ aMessageNode ].
 
 	aMessageNode isSuperSend ifTrue: [ ^ self modificationInsteadSuperMessage: aMessageNode ].	
-		
+	
 	aMessageNode receiver: (
 		RBMessageNode
 		  receiver: aMessageNode receiver 
 		  selector: #instrument:
 		  arguments: { configuration nodeForHandler }
 	)
+]
+
+{ #category : #visiting }
+ScpMethodModification >> modificationInsteadSelfVariable:  aVariableNode [
+
+	configuration hasProxy ifTrue: [ 
+		^  	configuration nodeForProxy
+	].
+
+	^ aVariableNode
 ]
 
 { #category : #modifying }
@@ -111,23 +120,24 @@ ScpMethodModification >> modificationInsteadSuperMessage: aMessageNode [
 	Reuses the ScpMethodRewriter>>#rewrite: method to ensure the process is recursive.
 	Restore the currently rewritten method once the super method has been rewritten. 
 	"
-	| method alias superMethod |	
+	| method superMethod |	
 	
 	method := aMessageNode methodNode compiledMethod.
 	superMethod := method methodClass superclass lookupSelector: aMessageNode selector.
 	
-	alias := (superMethod methodClass name copyReplaceAll: String space with: $_ asString) , $_ asString , superMethod selector.
-	(configuration installationClass includesSelector: alias) ifFalse: [
+	aMessageNode receiver: RBVariableNode selfNode.
+	aMessageNode selector: (superMethod methodClass name , superMethod selector) asCamelCase.
+	(configuration installationClass includesSelector: aMessageNode selector) ifFalse: [
 		superMethod 
 			applyModification: (self class new 
 					configuration: (configuration copy 
-						newSelector: alias; 
+						newSelector: aMessageNode selector; 
 						yourself);
 					yourself) 
 			andInstallIn: configuration installationClass
 	]. 
 		
-	^ alias
+	^ aMessageNode
 ]
 
 { #category : #visiting }

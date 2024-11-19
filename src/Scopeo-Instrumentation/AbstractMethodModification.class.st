@@ -11,12 +11,6 @@ Class {
 	#category : #'Scopeo-Instrumentation-GenericMethodModification'
 }
 
-{ #category : #accessing }
-AbstractMethodModification class >> transform: aMethod [
-
-	 ^ self new visitMethod: aMethod
-]
-
 { #category : #applying }
 AbstractMethodModification >> applyOn: aMethodNode [
 
@@ -275,7 +269,11 @@ AbstractMethodModification >> visitMessageNode: aMessageNode [
 	statements addAll: arguments second.
 	
 	(self modificationInsteadMessage: aMessageNode)
-		ifNotNil: [ :n | statements addAll: n ]
+		ifNotNil: [ :n | 
+			statements add: (RBAssignmentNode 
+				variable: self nodeForTemporaryVariable 
+				value: n)
+		]
 		ifNil: [
 			(self modificationBeforeMessage: aMessageNode) 
 				ifNotNil: [ :n | statements addAll: n ].
@@ -284,7 +282,7 @@ AbstractMethodModification >> visitMessageNode: aMessageNode [
 				value: aMessageNode
 			).
 			(self modificationAfterMessage: aMessageNode) 
-				ifNotNil: [ :n | statements add: n ]	
+				ifNotNil: [ :n | statements addAll: n ]	
 		].
 		
 	^ statements
@@ -299,7 +297,7 @@ AbstractMethodModification >> visitMethodNode: aMethodNode [
 	self newArgumentIndex.
 
 	self sequence: aMethodNode body.
-	
+
 	aMethodNode body addSelfReturn.
 	
 	self visitNode: aMethodNode body.

@@ -25,7 +25,7 @@ CompiledMethod >> applyModification: anASTModification andInstallIn: aClass [
 	anASTModification applyOn: ast.
 	
 	newMethod := aClass compiler 
-		source: ast formattedCode; 
+		source: ast formattedCode;
 		compile.
 	newMethod propertyAt: #original put: self.
 		

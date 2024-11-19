@@ -12,5 +12,7 @@ Class >> instrument: aHandler [
 { #category : #'*Scopeo-Instrumentation' }
 Class >> uninstrument [
 
-	^ (ScpInstrumentationRegistry instance at: self) uninstall
+	^ ScpInstrumentationRegistry instance
+		  at: self
+		  ifPresent: [ :i | i uninstall ]
 ]

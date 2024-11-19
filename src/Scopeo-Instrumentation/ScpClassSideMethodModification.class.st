@@ -4,7 +4,7 @@ Class {
 	#category : #'Scopeo-Instrumentation-ScopeoMethodModification'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 ScpClassSideMethodModification >> nodeForMetaLevelGardClause: aMethodNode [
 
 	^ RBMessageNode
@@ -27,7 +27,7 @@ ScpClassSideMethodModification >> nodeForMetaLevelGardClause: aMethodNode [
 								     (RBArrayNode statements: aMethodNode arguments) }) })) }
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 ScpClassSideMethodModification >> nodeForSender [
 
 	^ RBMessageNode

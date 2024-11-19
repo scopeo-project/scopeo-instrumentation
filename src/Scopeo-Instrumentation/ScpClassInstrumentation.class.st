@@ -22,8 +22,7 @@ ScpClassInstrumentation >> install [
 
 	selectors := IdentitySet new.
 	[ currentClass = Object class ] whileFalse: [
-
-		methods := currentClass methods reject: [ :m | selectors includes: m ].
+		methods := currentClass methods reject: [ :m | selectors includes: m selector].
 		selectors addAll: (methods collect: [ :m |
 			m applyModification: modification 
 			  andInstallIn: modification configuration installationClass.

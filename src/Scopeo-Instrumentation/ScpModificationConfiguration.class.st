@@ -28,6 +28,12 @@ ScpModificationConfiguration >> hasMetaLevelGardClause [
 ]
 
 { #category : #accessing }
+ScpModificationConfiguration >> hasProxy [
+
+	^ false
+]
+
+{ #category : #accessing }
 ScpModificationConfiguration >> installationClass [
 
 	^ installationClass
@@ -39,7 +45,7 @@ ScpModificationConfiguration >> installationClass: anObject [
 	installationClass := anObject
 ]
 
-{ #category : #'instance creation' }
+{ #category : #accessing }
 ScpModificationConfiguration >> newSelector [
 
 	^ selector
