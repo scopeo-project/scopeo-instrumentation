@@ -1,26 +1,28 @@
 Class {
-	#name : #ScpMethodModification,
-	#superclass : #AbstractMethodModification,
+	#name : 'ScpMethodModification',
+	#superclass : 'AbstractMethodModification',
 	#instVars : [
 		'nodeForHandler',
 		'configuration'
 	],
-	#category : #'Scopeo-Instrumentation-ScopeoMethodModification'
+	#category : 'Scopeo-Instrumentation-ScopeoMethodModification',
+	#package : 'Scopeo-Instrumentation',
+	#tag : 'ScopeoMethodModification'
 }
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpMethodModification >> configuration [
 
 	^ configuration
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpMethodModification >> configuration: aConfiguration [
 
 	configuration := aConfiguration
 ]
 
-{ #category : #modifying }
+{ #category : 'modifying' }
 ScpMethodModification >> modificationBeforeAssignment: anAssignmentNode [
 
 	anAssignmentNode variable isInstanceVariable ifFalse: [ ^ nil ].
@@ -34,7 +36,7 @@ ScpMethodModification >> modificationBeforeAssignment: anAssignmentNode [
 				   anAssignmentNode value }) }
 ]
 
-{ #category : #modifying }
+{ #category : 'modifying' }
 ScpMethodModification >> modificationBeforeMethod: aMethodNode [
 
 	| statements |
@@ -62,7 +64,7 @@ ScpMethodModification >> modificationBeforeMethod: aMethodNode [
 	^ statements
 ]
 
-{ #category : #modifying }
+{ #category : 'modifying' }
 ScpMethodModification >> modificationBeforeReturn: aReturnNode [
 
 	| statements |
@@ -82,7 +84,7 @@ ScpMethodModification >> modificationBeforeReturn: aReturnNode [
 	^ statements
 ]
 
-{ #category : #modifying }
+{ #category : 'modifying' }
 ScpMethodModification >> modificationInsteadMessage: aMessageNode [
 	"
 	If the receiver is not an block, rewrite it.
@@ -101,7 +103,7 @@ ScpMethodModification >> modificationInsteadMessage: aMessageNode [
 	)
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpMethodModification >> modificationInsteadSelfVariable:  aVariableNode [
 
 	configuration hasProxy ifTrue: [ 
@@ -111,7 +113,7 @@ ScpMethodModification >> modificationInsteadSelfVariable:  aVariableNode [
 	^ aVariableNode
 ]
 
-{ #category : #modifying }
+{ #category : 'modifying' }
 ScpMethodModification >> modificationInsteadSuperMessage: aMessageNode [
 	"
 	Retrieve the method that is going to be executed when using the variable super (the super method).
@@ -140,7 +142,7 @@ ScpMethodModification >> modificationInsteadSuperMessage: aMessageNode [
 	^ aMessageNode
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpMethodModification >> visitMethodNode: aMethodNode [
 
 	configuration newSelector ifNotNil: [ :s |		

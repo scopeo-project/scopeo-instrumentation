@@ -1,15 +1,18 @@
 Class {
-	#name : #ScpObjectProxy,
-	#superclass : #nil,
+	#name : 'ScpObjectProxy',
+	#superclass : 'nil',
 	#instVars : [
-		'object',
+		'metaObject',
 		'handler',
+		'object',
 		'modification'
 	],
-	#category : #'Scopeo-Instrumentation-ScopeoMethodInstrumentation'
+	#category : 'Scopeo-Instrumentation-ScopeoMethodInstrumentation',
+	#package : 'Scopeo-Instrumentation',
+	#tag : 'ScopeoMethodInstrumentation'
 }
 
-{ #category : #'reflective operations' }
+{ #category : 'reflective operations' }
 ScpObjectProxy >> basicIdentityHash [
 	"See ProtoObject >> #basicIdentityHash"
 
@@ -17,68 +20,84 @@ ScpObjectProxy >> basicIdentityHash [
 	self primitiveFailed
 ]
 
-{ #category : #'deferred message' }
+{ #category : 'deferred message' }
 ScpObjectProxy >> doesNotUnderstand: aMessage [
 
 	<debuggerCompleteToSender>
 	
-	(object class hasSelector: aMessage selector) ifFalse: [ 
+	| return |
+	
+	handler isEnabled ifFalse: [ 
+		^ MirrorPrimitives
+			withReceiver: object
+  			perform: aMessage selector
+  			withArguments: aMessage arguments
+  			inSuperclass: object class superclass
+	].
+			
+	handler disable.
+	
+	(object class includesSelector: aMessage selector) ifFalse: [ 
 		(object class superclass lookupSelector: aMessage selector) ifNotNil: [ :m | 
 			m applyModification: modification andIfAbsentInstallIn: object class. 
 		].	
 	].
-
-	^ MirrorPrimitives
+		
+	return := MirrorPrimitives
 			withReceiver: object
-		  	perform: aMessage selector
-		  	withArguments: aMessage arguments
-		  	inSuperclass: object class superclass. 
+  			perform: aMessage selector
+  			withArguments: aMessage arguments
+  			inSuperclass: object class.
+
+	handler enable.
+	
+	^ return
 ]
 
-{ #category : #comparing }
+{ #category : 'comparing' }
 ScpObjectProxy >> hash [
 
 	^ self identityHash
 ]
 
-{ #category : #comparing }
+{ #category : 'comparing' }
 ScpObjectProxy >> identityHash [
 	"See ProtoObject >> #identityHash"
 
 	^ self basicIdentityHash bitShift: 8
 ]
 
-{ #category : #services }
+{ #category : 'services' }
 ScpObjectProxy >> instrument: anInstrumentationHandler [
 
 	^ self
 ]
 
-{ #category : #'primitive failure' }
+{ #category : 'primitive failure' }
 ScpObjectProxy >> primitiveFail [
 	"See ProtoObject >> #primitiveFail"
 
 	^ self primitiveFailed
 ]
 
-{ #category : #'primitive failure' }
+{ #category : 'primitive failure' }
 ScpObjectProxy >> primitiveFailed [
 	"See ProtoObject >> #primitiveFailed"
 	
 	^ self primitiveFailed: thisContext sender selector
 ]
 
-{ #category : #'primitive failure' }
+{ #category : 'primitive failure' }
 ScpObjectProxy >> primitiveFailed: selector [
 	"See ProtoObject >> #primitiveFailed:"
 
 	PrimitiveFailed signalFor: selector
 ]
 
-{ #category : #services }
+{ #category : 'services' }
 ScpObjectProxy >> uninstrument [
 
 	^ ScpInstrumentationRegistry instance
-		  at: object
+		  at: metaObject object
 		  ifPresent: [ :i | i uninstall ]
 ]

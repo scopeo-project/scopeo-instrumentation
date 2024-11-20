@@ -1,6 +1,6 @@
-Extension { #name : #Class }
+Extension { #name : 'Class' }
 
-{ #category : #'*Scopeo-Instrumentation' }
+{ #category : '*Scopeo-Instrumentation' }
 Class >> instrument: aHandler [
 
 	^ ScpClassInstrumentation instance 
@@ -9,7 +9,7 @@ Class >> instrument: aHandler [
 		install 
 ]
 
-{ #category : #'*Scopeo-Instrumentation' }
+{ #category : '*Scopeo-Instrumentation' }
 Class >> uninstrument [
 
 	^ ScpInstrumentationRegistry instance

@@ -1,80 +1,94 @@
 Class {
-	#name : #ScpObjectInstrumentation,
-	#superclass : #ScpInstrumentation,
+	#name : 'ScpObjectInstrumentation',
+	#superclass : 'ScpInstrumentation',
 	#instVars : [
 		'proxyVariableName',
 		'proxy'
 	],
-	#category : #'Scopeo-Instrumentation-ScopeoMethodInstrumentation'
+	#category : 'Scopeo-Instrumentation-ScopeoMethodInstrumentation',
+	#package : 'Scopeo-Instrumentation',
+	#tag : 'ScopeoMethodInstrumentation'
 }
 
-{ #category : #initialization }
+{ #category : 'initialization' }
 ScpObjectInstrumentation >> initialize [
 
 	proxyVariableName := #proxy
 ]
 
-{ #category : #actions }
+{ #category : 'services' }
 ScpObjectInstrumentation >> install [
 
-	target class newAnonymousSubclass adoptInstance: target.
-	
-	self installHandlerVariable.
+	self target class newAnonymousSubclass adoptInstance: self target.
+
+	self installHandlerVariableOn: self target class.
 
 	self installProxy.
 	
-	self swapProxyAndTarget.
+	self handler enable.
 	
-	handler enable.
+	ScpInstrumentationRegistry instance at: self target put: self.
 	
-	ScpInstrumentationRegistry instance at: target put: self.
-	
-	^ proxy
+	^ self proxy
 	
 ]
 
-{ #category : #initialization }
-ScpObjectInstrumentation >> installHandlerVariable [
-
-	(target class hasClassVarNamed: handlerVariableName) ifTrue: [ ^ self ].
-	target class addClassVarNamed: handlerVariableName.	
-	target class classVarNamed: handlerVariableName put: handler
-]
-
-{ #category : #'as yet unclassified' }
+{ #category : 'private' }
 ScpObjectInstrumentation >> installProxy [
 
-	| modification |
-
 	proxy := ScpObjectProxy basicNew.
-	
-	modification := ScpMethodModification new.
-	modification configuration: (ScpInstanceSideMethodModification new
-		handlerName: handlerVariableName ;
-		installationClass: target class;
-		yourself).
-		
+
 	MirrorPrimitives
 		fixedFieldOf: proxy
-		at: (proxy class slotNamed: #object) index
+		at: (ScpObjectProxy slotNamed: #object) index
 		put: proxy.
 
 	MirrorPrimitives
 		fixedFieldOf: proxy
-		at: (proxy class slotNamed: #modification) index
-		put: modification.
-		
+		at: (ScpObjectProxy slotNamed: #handler) index
+		put: self handler.
+	
 	MirrorPrimitives
 		fixedFieldOf: proxy
-		at: (proxy class slotNamed: #handler) index
-		put: handler.
-		
-	(target class hasClassVarNamed: proxyVariableName) ifTrue: [ ^ self ].
-	target class addClassVarNamed: proxyVariableName.	
-	target class classVarNamed: proxyVariableName put: proxy
+		at: (ScpObjectProxy slotNamed: #modification) index
+		put: self modification.
+				
+	self swapProxyAndTarget.
+
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : 'private' }
+ScpObjectInstrumentation >> installProxyVariable [
+
+	(self target class hasClassVarNamed: self proxyVariableName) ifTrue: [ ^ self ].
+	self target class addClassVarNamed: self proxyVariableName.	
+	self target class classVarNamed: self proxyVariableName put: self proxy
+]
+
+{ #category : 'private' }
+ScpObjectInstrumentation >> modification [
+
+	^ ScpMethodModification new
+		  configuration: (ScpInstanceSideMethodModification new
+				   handlerName: handlerVariableName;
+				   installationClass: target class;
+				   yourself);
+		  yourself
+]
+
+{ #category : 'private' }
+ScpObjectInstrumentation >> proxy [
+
+	^ proxy
+]
+
+{ #category : 'private' }
+ScpObjectInstrumentation >> proxyVariableName [
+
+	^ proxyVariableName
+]
+
+{ #category : 'private' }
 ScpObjectInstrumentation >> swapProxyAndTarget [
 
 	| temp |
@@ -83,10 +97,10 @@ ScpObjectInstrumentation >> swapProxyAndTarget [
 	target := proxy.
 	proxy := temp.
 	
-	target become: proxy
+	proxy become: target
 ]
 
-{ #category : #actions }
+{ #category : 'services' }
 ScpObjectInstrumentation >> uninstall [
 
 	handler disable.

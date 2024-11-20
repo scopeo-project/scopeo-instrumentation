@@ -1,9 +1,11 @@
 Trait {
-	#name : #MethodModification,
-	#category : #'Scopeo-Instrumentation-GenericMethodModification'
+	#name : 'MethodModification',
+	#category : 'Scopeo-Instrumentation-GenericMethodModification',
+	#package : 'Scopeo-Instrumentation',
+	#tag : 'GenericMethodModification'
 }
 
-{ #category : #applying }
+{ #category : 'applying' }
 MethodModification >> applyOn: aMethodNode [
 
 	"Modifies the AST of a method"

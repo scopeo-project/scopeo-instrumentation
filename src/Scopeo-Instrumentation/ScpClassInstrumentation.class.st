@@ -1,34 +1,32 @@
 Class {
-	#name : #ScpClassInstrumentation,
-	#superclass : #ScpInstrumentation,
-	#category : #'Scopeo-Instrumentation-ScopeoMethodInstrumentation'
+	#name : 'ScpClassInstrumentation',
+	#superclass : 'ScpInstrumentation',
+	#category : 'Scopeo-Instrumentation-ScopeoMethodInstrumentation',
+	#package : 'Scopeo-Instrumentation',
+	#tag : 'ScopeoMethodInstrumentation'
 }
 
-{ #category : #actions }
+{ #category : 'services' }
 ScpClassInstrumentation >> install [
 
-	| modification currentClass selectors methods |
+	| modification class selectors methods |
 
-	self isInstalled ifTrue: [ ^ target ].
+	self isInstalled ifTrue: [ ^ self target ].
+
 	self installHandlerVariable.
-	
-	modification := ScpMethodModification new.
-	modification configuration: (ScpClassSideMethodModification new
-		handlerName: handlerVariableName;
-		installationClass: target classSide;
-		yourself).
 
-	currentClass := modification configuration installationClass.
+	modification := self modification.
+	class := self target class.
 
 	selectors := IdentitySet new.
-	[ currentClass = Object class ] whileFalse: [
-		methods := currentClass methods reject: [ :m | selectors includes: m selector].
+	[ class = Object class ] whileFalse: [
+		methods := class methods reject: [ :m | selectors includes: m selector].
 		selectors addAll: (methods collect: [ :m |
 			m applyModification: modification 
-			  andInstallIn: modification configuration installationClass.
+			  andInstallIn: self target class.
 			m selector 
 		]).
-		currentClass := currentClass superclass 
+		class := class superclass 
 	].
 
 	handler enable.
@@ -38,36 +36,31 @@ ScpClassInstrumentation >> install [
 	^ target
 ]
 
-{ #category : #'instance creation' }
-ScpClassInstrumentation >> installHandlerVariable [
+{ #category : 'private' }
+ScpClassInstrumentation >> modification [
 
-	(target hasClassVarNamed: handlerVariableName) ifTrue: [ ^ self ].
-	target addClassVarNamed: handlerVariableName.	
-	target classVarNamed: handlerVariableName put: handler
+	^ ScpMethodModification new
+		  configuration: (ScpClassSideMethodModification new
+				   handlerName: self handlerVariableName;
+				   installationClass: self target classSide;
+				   yourself);
+		  yourself
 ]
 
-{ #category : #actions }
+{ #category : 'services' }
 ScpClassInstrumentation >> uninstall [
 
 	self isInstalled ifFalse: [ ^ self ].
 	
-	handler disable.
+	self handler disable.
 
-	(target classSide allMethods select: [ :m | m methodClass == target classSide ]) do: [ :m |
+	(self target classSide allMethods select: [ :m | m methodClass == self target classSide ]) do: [ :m |
 		m revertModification	
 	].
 
 	self uninstallHandlerVariable.
 	
-	ScpInstrumentationRegistry instance removeKey: target.
+	ScpInstrumentationRegistry instance removeKey: self target.
 	
-	^ target
-]
-
-{ #category : #actions }
-ScpClassInstrumentation >> uninstallHandlerVariable [
-
-	(target hasClassVarNamed: handlerVariableName) ifFalse: [ ^ self ].
-	target removeClassVarNamed: handlerVariableName
-
+	^ self target
 ]

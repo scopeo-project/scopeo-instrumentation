@@ -1,6 +1,6 @@
-Extension { #name : #Object }
+Extension { #name : 'Object' }
 
-{ #category : #'*Scopeo-Instrumentation' }
+{ #category : '*Scopeo-Instrumentation' }
 Object >> instrument: aHandler [
 
 	^ ScpObjectInstrumentation new

@@ -1,75 +1,77 @@
 Class {
-	#name : #ScpModificationConfiguration,
-	#superclass : #Object,
+	#name : 'ScpModificationConfiguration',
+	#superclass : 'Object',
 	#instVars : [
 		'nodeForHandler',
 		'installationClass',
 		'selector'
 	],
-	#category : #'Scopeo-Instrumentation-ScopeoMethodModification'
+	#category : 'Scopeo-Instrumentation-ScopeoMethodModification',
+	#package : 'Scopeo-Instrumentation',
+	#tag : 'ScopeoMethodModification'
 }
 
-{ #category : #testing }
+{ #category : 'testing' }
 ScpModificationConfiguration class >> isAbstract [
 
 	^ self == ScpModificationConfiguration
 ]
 
-{ #category : #parameters }
+{ #category : 'parameters' }
 ScpModificationConfiguration >> handlerName: aSymbol [
 
 	nodeForHandler := RBVariableNode named: aSymbol
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpModificationConfiguration >> hasMetaLevelGardClause [
 
-	^ true
+	^ self subclassResponsibility
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpModificationConfiguration >> hasProxy [
 
-	^ false
+	^ self subclassResponsibility
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpModificationConfiguration >> installationClass [
 
 	^ installationClass
 ]
 
-{ #category : #parameters }
+{ #category : 'parameters' }
 ScpModificationConfiguration >> installationClass: anObject [
 
 	installationClass := anObject
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpModificationConfiguration >> newSelector [
 
 	^ selector
 ]
 
-{ #category : #parameters }
+{ #category : 'parameters' }
 ScpModificationConfiguration >> newSelector: aSelector [
 
 	selector := aSelector asSymbol
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpModificationConfiguration >> nodeForHandler [
 
 	^ nodeForHandler
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpModificationConfiguration >> nodeForMetaLevelGardClause: aMethodNode [
 
 	^ self subclassResponsibility
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpModificationConfiguration >> nodeForSender [
 
 	^ self subclassResponsibility

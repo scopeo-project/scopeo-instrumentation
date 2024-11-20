@@ -1,42 +1,97 @@
 Class {
-	#name : #ScpInstrumentation,
-	#superclass : #Object,
+	#name : 'ScpInstrumentation',
+	#superclass : 'Object',
 	#instVars : [
 		'target',
 		'handler',
 		'handlerVariableName'
 	],
 	#classInstVars : [
-		'instance'
+		'instance',
+		'enabled'
 	],
-	#category : #'Scopeo-Instrumentation-ScopeoMethodInstrumentation'
+	#category : 'Scopeo-Instrumentation-ScopeoMethodInstrumentation',
+	#package : 'Scopeo-Instrumentation',
+	#tag : 'ScopeoMethodInstrumentation'
 }
 
-{ #category : #accessing }
-ScpInstrumentation class >> instance [
+{ #category : 'testing' }
+ScpInstrumentation class >> disable [
 
-	^ instance ifNil: [ instance := self new ]
+	enabled := false
 ]
 
-{ #category : #accessing }
+{ #category : 'testing' }
+ScpInstrumentation class >> enable [
+
+	enabled := true
+]
+
+{ #category : 'testing' }
+ScpInstrumentation class >> isEnabled [
+
+	^ enabled ifNil: [ false ]
+]
+
+{ #category : 'cleanup' }
+ScpInstrumentation class >> uninstallAll [
+
+	<script: 'self uninstallAll'>
+	
+	ScpInstrumentationRegistry instance valuesDo: [ :i | i uninstall ]
+]
+
+{ #category : 'private' }
+ScpInstrumentation >> handler [
+
+	^ handler
+]
+
+{ #category : 'services' }
 ScpInstrumentation >> handler: aHandler [
 
 	handler := aHandler
 ]
 
-{ #category : #actions }
+{ #category : 'private' }
+ScpInstrumentation >> handlerVariableName [
+
+	^ handlerVariableName
+]
+
+{ #category : 'services' }
 ScpInstrumentation >> install [
 
 	^ self subclassResponsibility
 ]
 
-{ #category : #testing }
+{ #category : 'private' }
+ScpInstrumentation >> installHandlerVariableOn: anObject [
+
+	(anObject hasClassVarNamed: self handlerVariableName) ifTrue: [ ^ self ].
+	anObject addClassVarNamed: self handlerVariableName.	
+	anObject classVarNamed: self handlerVariableName put: self handler
+]
+
+{ #category : 'services' }
 ScpInstrumentation >> isInstalled [
 
 	^ ScpInstrumentationRegistry instance includesKey: target
 ]
 
-{ #category : #accessing }
+{ #category : 'private' }
+ScpInstrumentation >> modification [
+
+	^ self subclassResponsibility
+]
+
+{ #category : 'private' }
+ScpInstrumentation >> target [
+
+	^ target
+]
+
+{ #category : 'services' }
 ScpInstrumentation >> target: anObjectOrClass [
 
 	target := anObjectOrClass.
@@ -45,8 +100,16 @@ ScpInstrumentation >> target: anObjectOrClass [
 	
 ]
 
-{ #category : #actions }
+{ #category : 'services' }
 ScpInstrumentation >> uninstall [
 
 	^ self subclassResponsibility
+]
+
+{ #category : 'private' }
+ScpInstrumentation >> uninstallHandlerVariableFrom: anObject [
+
+	(anObject hasClassVarNamed: self handlerVariableName) ifFalse: [ ^ self ].
+	anObject removeClassVarNamed: self handlerVariableName
+
 ]

@@ -1,10 +1,24 @@
 Class {
-	#name : #ScpClassSideMethodModification,
-	#superclass : #ScpModificationConfiguration,
-	#category : #'Scopeo-Instrumentation-ScopeoMethodModification'
+	#name : 'ScpClassSideMethodModification',
+	#superclass : 'ScpModificationConfiguration',
+	#category : 'Scopeo-Instrumentation-ScopeoMethodModification',
+	#package : 'Scopeo-Instrumentation',
+	#tag : 'ScopeoMethodModification'
 }
 
-{ #category : #accessing }
+{ #category : 'accessing' }
+ScpClassSideMethodModification >> hasMetaLevelGardClause [
+
+	^ true
+]
+
+{ #category : 'accessing' }
+ScpClassSideMethodModification >> hasProxy [
+
+	^ false
+]
+
+{ #category : 'accessing' }
 ScpClassSideMethodModification >> nodeForMetaLevelGardClause: aMethodNode [
 
 	^ RBMessageNode
@@ -27,7 +41,7 @@ ScpClassSideMethodModification >> nodeForMetaLevelGardClause: aMethodNode [
 								     (RBArrayNode statements: aMethodNode arguments) }) })) }
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpClassSideMethodModification >> nodeForSender [
 
 	^ RBMessageNode

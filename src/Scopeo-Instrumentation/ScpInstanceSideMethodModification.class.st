@@ -1,36 +1,30 @@
 Class {
-	#name : #ScpInstanceSideMethodModification,
-	#superclass : #ScpModificationConfiguration,
-	#category : #'Scopeo-Instrumentation-ScopeoMethodModification'
+	#name : 'ScpInstanceSideMethodModification',
+	#superclass : 'ScpModificationConfiguration',
+	#category : 'Scopeo-Instrumentation-ScopeoMethodModification',
+	#package : 'Scopeo-Instrumentation',
+	#tag : 'ScopeoMethodModification'
 }
 
-{ #category : #testing }
+{ #category : 'accessing' }
+ScpInstanceSideMethodModification >> hasMetaLevelGardClause [
+
+	^ false
+]
+
+{ #category : 'testing' }
 ScpInstanceSideMethodModification >> hasProxy [
 
  	^	true
 ]
 
-{ #category : #accessing }
-ScpInstanceSideMethodModification >> nodeForMetaLevelGardClause: aMethodNode [
-
-	^ RBMessageNode
-		  receiver:
-		  (RBMessageNode receiver: self nodeForHandler selector: #isEnabled)
-		  selector: #ifFalse:
-		  arguments:
-			  { (RBBlockNode body:
-				   (RBSequenceNode statements: { (RBMessageNode
-						     receiver: (RBVariableNode named: #super)
-						     selector: aMethodNode selector) })) }
-]
-
-{ #category : #'as yet unclassified' }
+{ #category : 'as yet unclassified' }
 ScpInstanceSideMethodModification >> nodeForProxy [
 
 	^ RBVariableNode named: #proxy
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpInstanceSideMethodModification >> nodeForSender [
 
 	^ RBMessageNode

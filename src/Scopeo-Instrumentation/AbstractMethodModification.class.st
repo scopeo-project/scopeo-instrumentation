@@ -1,6 +1,6 @@
 Class {
-	#name : #AbstractMethodModification,
-	#superclass : #RBProgramNodeVisitor,
+	#name : 'AbstractMethodModification',
+	#superclass : 'RBProgramNodeVisitor',
 	#traits : 'MethodModification',
 	#classTraits : 'MethodModification classTrait',
 	#instVars : [
@@ -8,100 +8,102 @@ Class {
 		'sequence',
 		'argumentIndex'
 	],
-	#category : #'Scopeo-Instrumentation-GenericMethodModification'
+	#category : 'Scopeo-Instrumentation-GenericMethodModification',
+	#package : 'Scopeo-Instrumentation',
+	#tag : 'GenericMethodModification'
 }
 
-{ #category : #applying }
+{ #category : 'applying' }
 AbstractMethodModification >> applyOn: aMethodNode [
 
 	^ self visitMethodNode: aMethodNode
 ]
 
-{ #category : #modifications }
+{ #category : 'modifications' }
 AbstractMethodModification >> modificationAfterAssignment: anAssignmentNode [
 
 	^ nil
 ]
 
-{ #category : #modifications }
+{ #category : 'modifications' }
 AbstractMethodModification >> modificationAfterMessage: aMessageNode [
 
 	^ nil
 ]
 
-{ #category : #modifications }
+{ #category : 'modifications' }
 AbstractMethodModification >> modificationBeforeAssignment: anAssignmentNode [
 
 	^ nil
 ]
 
-{ #category : #modifications }
+{ #category : 'modifications' }
 AbstractMethodModification >> modificationBeforeMessage: aMessageNode [
 
 	^ nil
 ]
 
-{ #category : #modifications }
+{ #category : 'modifications' }
 AbstractMethodModification >> modificationBeforeMethod: aMethodNode [
 
 	^ nil
 ]
 
-{ #category : #modifications }
+{ #category : 'modifications' }
 AbstractMethodModification >> modificationBeforeReturn: aReturnNode [
 
 	^ nil
 ]
 
-{ #category : #modifications }
+{ #category : 'modifications' }
 AbstractMethodModification >> modificationInsteadAssignment: anAssignmentNode [
 
 	^ nil
 ]
 
-{ #category : #modifications }
+{ #category : 'modifications' }
 AbstractMethodModification >> modificationInsteadMessage: aMessageNode [
 
 	^ nil
 ]
 
-{ #category : #modifications }
+{ #category : 'modifications' }
 AbstractMethodModification >> modificationInsteadMethod: aMethodNode [
 
 	^ nil
 ]
 
-{ #category : #modifications }
+{ #category : 'modifications' }
 AbstractMethodModification >> modificationInsteadReturn: aReturnNode [
 
 	^ nil
 ]
 
-{ #category : #modifications }
+{ #category : 'modifications' }
 AbstractMethodModification >> modificationInsteadSelfVariable: aMessageNode [
 
 	^ nil
 ]
 
-{ #category : #modifications }
+{ #category : 'modifications' }
 AbstractMethodModification >> modificationInsteadSuperVariable: aMessageNode [
 
 	^ nil
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 AbstractMethodModification >> modificationInsteadVariable: aVariableNode [
 
 	^ nil
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 AbstractMethodModification >> newArgumentIndex [
 
 	argumentIndex := 0
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 AbstractMethodModification >> nodeForNextArgument [
 
 	| argument |
@@ -116,25 +118,25 @@ AbstractMethodModification >> nodeForNextArgument [
 	^ RBVariableNode named: argument
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 AbstractMethodModification >> nodeForTemporaryVariable [
 
 	^ temporary ifNil: [ temporary := RBVariableNode named: #_tmp ]
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 AbstractMethodModification >> sequence [
 
 	^ sequence
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 AbstractMethodModification >> sequence: aSequence [
 
 	sequence := aSequence
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 AbstractMethodModification >> visitArguments: aNodeCollection [	
 
 	| temp arguments statements value |
@@ -164,7 +166,7 @@ AbstractMethodModification >> visitArguments: aNodeCollection [
 	^ { arguments . statements } 
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 AbstractMethodModification >> visitArrayNode: anArrayNode [
 
 	| statements arguments |
@@ -181,7 +183,7 @@ AbstractMethodModification >> visitArrayNode: anArrayNode [
 	^ statements 
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 AbstractMethodModification >> visitAssignmentNode: anAssignmentNode [
 
 	| statements value |
@@ -208,7 +210,7 @@ AbstractMethodModification >> visitAssignmentNode: anAssignmentNode [
 	^ statements
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 AbstractMethodModification >> visitBlockNode: aBlockNode [
 
 	self visitNode: aBlockNode body.
@@ -216,7 +218,7 @@ AbstractMethodModification >> visitBlockNode: aBlockNode [
 	^ aBlockNode
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 AbstractMethodModification >> visitCascadeNode: aCascadeNode [
 
 	| statements receiver |
@@ -237,19 +239,19 @@ AbstractMethodModification >> visitCascadeNode: aCascadeNode [
 	^ statements
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 AbstractMethodModification >> visitLiteralArrayNode: aRBLiteralArrayNode [
 
 	^ aRBLiteralArrayNode
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 AbstractMethodModification >> visitLiteralNode: aLiteralNode [
 
 	^ aLiteralNode
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 AbstractMethodModification >> visitMessageNode: aMessageNode [
 
 	| statements receiver arguments  |
@@ -289,7 +291,7 @@ AbstractMethodModification >> visitMessageNode: aMessageNode [
 
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 AbstractMethodModification >> visitMethodNode: aMethodNode [
 
 	(self modificationInsteadMethod: aMethodNode) ifNotNil: [ :n | ^ n ].
@@ -308,7 +310,7 @@ AbstractMethodModification >> visitMethodNode: aMethodNode [
 	^ aMethodNode
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 AbstractMethodModification >> visitReturnNode: aReturnNode [
 
 	| statements value |
@@ -332,7 +334,7 @@ AbstractMethodModification >> visitReturnNode: aReturnNode [
 	^ statements
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 AbstractMethodModification >> visitSelfNode: aSelfNode [
 
 	(self modificationInsteadSelfVariable: aSelfNode) 
@@ -343,7 +345,7 @@ AbstractMethodModification >> visitSelfNode: aSelfNode [
 	
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 AbstractMethodModification >> visitSequenceNode: aSequenceNode [
 
 	| oldStatements newStatements |
@@ -365,7 +367,7 @@ AbstractMethodModification >> visitSequenceNode: aSequenceNode [
 
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 AbstractMethodModification >> visitSuperNode: aSuperNode [
 
 	(self modificationInsteadSuperVariable: aSuperNode) 
@@ -376,7 +378,7 @@ AbstractMethodModification >> visitSuperNode: aSuperNode [
 	
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 AbstractMethodModification >> visitVariableNode: aVariableNode [
 
 	(self modificationInsteadVariable: aVariableNode)

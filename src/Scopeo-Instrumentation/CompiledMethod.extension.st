@@ -1,12 +1,12 @@
-Extension { #name : #CompiledMethod }
+Extension { #name : 'CompiledMethod' }
 
-{ #category : #'*Scopeo-Instrumentation' }
+{ #category : '*Scopeo-Instrumentation' }
 CompiledMethod >> applyModification: anASTModification [
 
 	^ self applyModification: anASTModification andInstallIn: self methodClass
 ]
 
-{ #category : #'*Scopeo-Instrumentation' }
+{ #category : '*Scopeo-Instrumentation' }
 CompiledMethod >> applyModification: anASTModification andIfAbsentInstallIn: aClass [
 
 	(aClass includesSelector: self selector) ifTrue: [ ^ aClass >> self selector ].
@@ -14,7 +14,7 @@ CompiledMethod >> applyModification: anASTModification andIfAbsentInstallIn: aCl
 	^ self applyModification: anASTModification andInstallIn: aClass
 ]
 
-{ #category : #'*Scopeo-Instrumentation' }
+{ #category : '*Scopeo-Instrumentation' }
 CompiledMethod >> applyModification: anASTModification andInstallIn: aClass [
 
 	| ast newMethod |
@@ -34,7 +34,7 @@ CompiledMethod >> applyModification: anASTModification andInstallIn: aClass [
 	^ newMethod
 ]
 
-{ #category : #'*Scopeo-Instrumentation' }
+{ #category : '*Scopeo-Instrumentation' }
 CompiledMethod >> executeOriginalMethodOn: aReceiver withArguments: anArguments [
 
 	^ MirrorPrimitives 
@@ -43,19 +43,19 @@ CompiledMethod >> executeOriginalMethodOn: aReceiver withArguments: anArguments 
 		execute: self originalMethod
 ]
 
-{ #category : #'*Scopeo-Instrumentation' }
+{ #category : '*Scopeo-Instrumentation' }
 CompiledMethod >> isOriginalMethod [
 
 	^ self originalMethod == self
 ]
 
-{ #category : #'*Scopeo-Instrumentation' }
+{ #category : '*Scopeo-Instrumentation' }
 CompiledMethod >> originalMethod [
 
 	^ self propertyAt: #original ifAbsent: [ ^ self ]
 ]
 
-{ #category : #'*Scopeo-Instrumentation' }
+{ #category : '*Scopeo-Instrumentation' }
 CompiledMethod >> revertModification [
 
 	self isOriginalMethod ifTrue: [ ^ self ].
