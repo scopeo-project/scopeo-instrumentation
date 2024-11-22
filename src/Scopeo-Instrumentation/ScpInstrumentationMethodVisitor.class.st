@@ -1,6 +1,6 @@
 Class {
-	#name : #ScpInstrumentationMethodVisitor,
-	#superclass : #RBProgramNodeVisitor,
+	#name : 'ScpInstrumentationMethodVisitor',
+	#superclass : 'RBProgramNodeVisitor',
 	#instVars : [
 		'sequences',
 		'temporary',
@@ -9,22 +9,23 @@ Class {
 		'sequence',
 		'argumentIndex'
 	],
-	#category : #'Scopeo-Instrumentation'
+	#category : 'Scopeo-Instrumentation',
+	#package : 'Scopeo-Instrumentation'
 }
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpInstrumentationMethodVisitor class >> transform: aMethod [
 
 	 ^ self new visitMethod: aMethod
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpInstrumentationMethodVisitor >> newArgumentIndex [
 
 	argumentIndex := 0
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpInstrumentationMethodVisitor >> nextArgument [
 
 	| argument |
@@ -39,7 +40,7 @@ ScpInstrumentationMethodVisitor >> nextArgument [
 	^ RBVariableNode named: argument
 ]
 
-{ #category : #instrumenting }
+{ #category : 'instrumenting' }
 ScpInstrumentationMethodVisitor >> nodeAfterMessage: aMessageNode [
 
 	aMessageNode receiver isBlock ifTrue: [ ^ nil ].
@@ -53,7 +54,7 @@ ScpInstrumentationMethodVisitor >> nodeAfterMessage: aMessageNode [
 			}
 ]
 
-{ #category : #instrumenting }
+{ #category : 'instrumenting' }
 ScpInstrumentationMethodVisitor >> nodeBeforeAssignment: anAssignmentNode [
 
 	anAssignmentNode variable isInstanceVariable ifFalse: [ ^ nil ].
@@ -69,7 +70,7 @@ ScpInstrumentationMethodVisitor >> nodeBeforeAssignment: anAssignmentNode [
 			}
 ]
 
-{ #category : #instrumenting }
+{ #category : 'instrumenting' }
 ScpInstrumentationMethodVisitor >> nodeBeforeMessage: aMessageNode [
 	
 	aMessageNode receiver isBlock ifTrue: [ ^ nil ].
@@ -90,7 +91,7 @@ ScpInstrumentationMethodVisitor >> nodeBeforeMessage: aMessageNode [
 		  }
 ]
 
-{ #category : #instrumenting }
+{ #category : 'instrumenting' }
 ScpInstrumentationMethodVisitor >> nodeBeforeReturn: aReturnNode [
 
 	^ RBMessageNode
@@ -102,7 +103,7 @@ ScpInstrumentationMethodVisitor >> nodeBeforeReturn: aReturnNode [
 		  }
 ]
 
-{ #category : #instrumenting }
+{ #category : 'instrumenting' }
 ScpInstrumentationMethodVisitor >> nodeBeforeSuperMessage: aMessageNode [
 
 	^ RBMessageNode
@@ -116,13 +117,13 @@ ScpInstrumentationMethodVisitor >> nodeBeforeSuperMessage: aMessageNode [
 		  }
 ]
 
-{ #category : #instrumenting }
+{ #category : 'instrumenting' }
 ScpInstrumentationMethodVisitor >> nodeHandler [
 
 	^ RBVariableNode named: #_SCOPEO
 ]
 
-{ #category : #instrumenting }
+{ #category : 'instrumenting' }
 ScpInstrumentationMethodVisitor >> nodeMethodEntry: aMethodNode [
 
 	^ RBMessageNode
@@ -137,7 +138,7 @@ ScpInstrumentationMethodVisitor >> nodeMethodEntry: aMethodNode [
 	
 ]
 
-{ #category : #instrumenting }
+{ #category : 'instrumenting' }
 ScpInstrumentationMethodVisitor >> nodeSender [
 
 	^ RBMessageNode
@@ -147,31 +148,31 @@ ScpInstrumentationMethodVisitor >> nodeSender [
 		  selector: #receiver
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpInstrumentationMethodVisitor >> sequence [
 
 	^ sequence
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpInstrumentationMethodVisitor >> sequence: aSequence [
 
 	sequence := aSequence
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpInstrumentationMethodVisitor >> temporary [
 
 	^ temporary
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 ScpInstrumentationMethodVisitor >> temporary: aName [
 
 	temporary := RBVariableNode named: aName
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitArguments: aNodeCollection [	
 
 	| temp arguments statements value |
@@ -201,7 +202,7 @@ ScpInstrumentationMethodVisitor >> visitArguments: aNodeCollection [
 	^ { arguments . statements } 
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitArrayNode: anArrayNode [
 
 	| statements arguments |
@@ -213,12 +214,19 @@ ScpInstrumentationMethodVisitor >> visitArrayNode: anArrayNode [
 	anArrayNode statements: arguments first.
 	
 	statements addAll: arguments second.
-	statements add: anArrayNode.
+	"statements add: anArrayNode."
 
-	^ statements 
+	statements add: (RBAssignmentNode 
+		variable: self temporary 
+		value: anArrayNode
+	).
+	
+	^ anArrayNode
+
+
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitAssignmentNode: anAssignmentNode [
 
 	| statements value |
@@ -240,7 +248,7 @@ ScpInstrumentationMethodVisitor >> visitAssignmentNode: anAssignmentNode [
 	^ statements
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitBlockNode: aBlockNode [
 
 	self visitNode: aBlockNode body.
@@ -248,7 +256,7 @@ ScpInstrumentationMethodVisitor >> visitBlockNode: aBlockNode [
 	^ aBlockNode
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitCascadeNode: aCascadeNode [
 
 	| statements receiver |
@@ -269,36 +277,36 @@ ScpInstrumentationMethodVisitor >> visitCascadeNode: aCascadeNode [
 	^ statements
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitLiteralArrayNode: aRBLiteralArrayNode [
 
 	^ aRBLiteralArrayNode
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitLiteralNode: aLiteralNode [
 
 	^ aLiteralNode
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitMessageNode: aMessageNode [
 
-	| statements receiver arguments  |
+	| statements receiver arguments inBlock |
 	
 	statements := OrderedCollection new.
+	inBlock := aMessageNode parent parent isBlock.
+	
+	arguments := self visitArguments: aMessageNode arguments.
+	aMessageNode arguments: arguments first.
+	statements addAll: arguments second.	
 	
 	receiver := self visitNode: aMessageNode receiver.
 	receiver isCollection ifTrue: [ 
 		aMessageNode receiver: self temporary.
 		statements addAll: receiver
-	].
-	
-	arguments := self visitArguments: aMessageNode arguments.
+	].	
 
-	aMessageNode arguments: arguments first.	
-	
-	statements addAll: arguments second.
 	(self nodeBeforeMessage: aMessageNode) ifNotNil: [ :n |
 		statements add: n.
 	].
@@ -310,11 +318,15 @@ ScpInstrumentationMethodVisitor >> visitMessageNode: aMessageNode [
 		statements add: n.
 	].
 	
+	inBlock ifTrue: [ 
+		statements add: self temporary.		
+	].
+	
 	^ statements
 
 ]
 
-{ #category : #services }
+{ #category : 'services' }
 ScpInstrumentationMethodVisitor >> visitMethod: aMethod [
 
 	self temporary: '_scp'.
@@ -323,7 +335,7 @@ ScpInstrumentationMethodVisitor >> visitMethod: aMethod [
 	^ self visit: aMethod ast copy.
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitMethodNode: aMethodNode [
 
 	self sequence: aMethodNode body.
@@ -339,12 +351,13 @@ ScpInstrumentationMethodVisitor >> visitMethodNode: aMethodNode [
 	^ aMethodNode
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitReturnNode: aReturnNode [
 
-	| statements value |
+	| statements value inBlock |
 
 	statements := OrderedCollection new.
+	inBlock := aReturnNode parent parent isBlock.
 	
 	value := self visit: aReturnNode value.
 	value isCollection ifTrue: [ 
@@ -357,10 +370,14 @@ ScpInstrumentationMethodVisitor >> visitReturnNode: aReturnNode [
 	].
 	statements add: aReturnNode.
 	
+	inBlock ifTrue: [ 
+		statements add: self temporary.		
+	].
+	
 	^ statements
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitSequenceNode: aSequenceNode [
 
 	| oldStatements newStatements |
@@ -382,7 +399,7 @@ ScpInstrumentationMethodVisitor >> visitSequenceNode: aSequenceNode [
 
 ]
 
-{ #category : #visiting }
+{ #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitVariableNode: aVariableNode [
 	
 	^ aVariableNode

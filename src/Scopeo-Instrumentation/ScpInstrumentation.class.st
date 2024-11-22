@@ -1,16 +1,17 @@
 Class {
-	#name : #ScpInstrumentation,
-	#superclass : #Object,
+	#name : 'ScpInstrumentation',
+	#superclass : 'Object',
 	#instVars : [
 		'handler',
 		'methodsToInstrument',
 		'visitor',
 		'enabled'
 	],
-	#category : 'Scopeo-Instrumentation'
+	#category : 'Scopeo-Instrumentation',
+	#package : 'Scopeo-Instrumentation'
 }
 
-{ #category : #private }
+{ #category : 'private' }
 ScpInstrumentation class >> uninstall [
 
 	<script: 'self uninstall'>
@@ -20,7 +21,7 @@ ScpInstrumentation class >> uninstall [
 
 ]
 
-{ #category : #services }
+{ #category : 'services' }
 ScpInstrumentation >> disable [
 
 	self isEnabled ifFalse: [ ^ self ].
@@ -28,7 +29,7 @@ ScpInstrumentation >> disable [
 	self useDefaultHandler
 ]
 
-{ #category : #services }
+{ #category : 'services' }
 ScpInstrumentation >> enable [
 
 	self isEnabled ifTrue: [ ^ self ].
@@ -36,13 +37,13 @@ ScpInstrumentation >> enable [
 	Smalltalk globals at: #'_SCOPEO' put: handler.
 ]
 
-{ #category : #services }
+{ #category : 'services' }
 ScpInstrumentation >> handler [
 
 	^ handler
 ]
 
-{ #category : #parameters }
+{ #category : 'parameters' }
 ScpInstrumentation >> handler: aHandler [
 
 	handler := aHandler
@@ -52,13 +53,13 @@ ScpInstrumentation >> handler: aHandler [
 	
 ]
 
-{ #category : #initialization }
+{ #category : 'initialization' }
 ScpInstrumentation >> initialize [
 
 	visitor := ScpInstrumentationMethodVisitor new
 ]
 
-{ #category : #services }
+{ #category : 'services' }
 ScpInstrumentation >> install [
 
 	| errors |
@@ -83,7 +84,7 @@ ScpInstrumentation >> install [
 	self logSummary: errors
 ]
 
-{ #category : #services }
+{ #category : 'services' }
 ScpInstrumentation >> isEnabled [
 	
 	self isInstalled ifFalse: [ ^ false ].
@@ -91,13 +92,13 @@ ScpInstrumentation >> isEnabled [
 	^ (Smalltalk globals at: #'_SCOPEO') class ~~ ScpInstrumentationHandler
 ]
 
-{ #category : #services }
+{ #category : 'services' }
 ScpInstrumentation >> isInstalled [
 
 	^ Smalltalk globals includesKey: #'_SCOPEO'
 ]
 
-{ #category : #private }
+{ #category : 'private' }
 ScpInstrumentation >> logSummary: aErrors [
 
 	| numberOfMethods |
@@ -116,19 +117,19 @@ ScpInstrumentation >> logSummary: aErrors [
 	]
 ]
 
-{ #category : #services }
+{ #category : 'services' }
 ScpInstrumentation >> methodsToInstrument [
 
 	^ methodsToInstrument
 ]
 
-{ #category : #parameters }
+{ #category : 'parameters' }
 ScpInstrumentation >> methodsToInstrument: aMethodCollection [
 
 	methodsToInstrument := aMethodCollection
 ]
 
-{ #category : #services }
+{ #category : 'services' }
 ScpInstrumentation >> uninstall [
 	
 	self disable.
@@ -140,7 +141,7 @@ ScpInstrumentation >> uninstall [
 	Smalltalk globals removeKey: #'_SCOPEO' ifAbsent: [ "Do nothing" ].
 ]
 
-{ #category : #private }
+{ #category : 'private' }
 ScpInstrumentation >> useDefaultHandler [
 
 	Smalltalk globals at: #'_SCOPEO' put: ScpInstrumentationHandler new.
