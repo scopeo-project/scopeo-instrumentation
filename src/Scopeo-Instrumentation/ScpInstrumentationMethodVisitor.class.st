@@ -7,7 +7,8 @@ Class {
 		'nodeIdentifierIndex',
 		'indirection',
 		'sequence',
-		'argumentIndex'
+		'argumentIndex',
+		'inBlock'
 	],
 	#category : 'Scopeo-Instrumentation',
 	#package : 'Scopeo-Instrumentation'
@@ -250,31 +251,41 @@ ScpInstrumentationMethodVisitor >> visitAssignmentNode: anAssignmentNode [
 
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitBlockNode: aBlockNode [
-
+	inBlock := true.
 	self visitNode: aBlockNode body.
-	
+	inBlock := false.
 	^ aBlockNode
 ]
 
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitCascadeNode: aCascadeNode [
 
-	| statements receiver |
+	| statements receiver receiverVariable blockStatements |
 
 	statements := OrderedCollection new.
+	blockStatements := OrderedCollection new.
 
-	receiver := self visitNode: aCascadeNode receiver.
+	receiver := aCascadeNode receiver.
+	receiver := self visitNode: receiver.
 	receiver isCollection ifTrue: [
 		statements addAll: receiver.
 		receiver := self temporary.
 	].
+	
+	receiverVariable := RBVariableNode named: #receiver, Time now asMilliSeconds asString.
 
-	statements addAll: (aCascadeNode messages flatCollect: [ :m |
-		m receiver: receiver. 
-		self visitNode: m
-	]).
+	blockStatements add: (RBAssignmentNode variable: receiverVariable value: receiver).	
+	blockStatements addAll: (aCascadeNode messages collect: [ :m | m receiver: receiverVariable ]).
+	"blockStatements := blockStatements flatCollect: [ :s | self visitNode: s ]."
+
+	statements addAll: (self visitNode: (RBMessageNode
+		  receiver: (RBBlockNode body: (RBSequenceNode
+					    temporaries: { receiverVariable }
+					    statements: blockStatements))
+		  selector: #value)).
 
 	^ statements
+	
 ]
 
 { #category : 'visiting' }
@@ -292,10 +303,9 @@ ScpInstrumentationMethodVisitor >> visitLiteralNode: aLiteralNode [
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitMessageNode: aMessageNode [
 
-	| statements receiver arguments inBlock |
+	| statements receiver arguments |
 	
 	statements := OrderedCollection new.
-	inBlock := aMessageNode parent parent isBlock.
 	
 	arguments := self visitArguments: aMessageNode arguments.
 	aMessageNode arguments: arguments first.
@@ -354,15 +364,14 @@ ScpInstrumentationMethodVisitor >> visitMethodNode: aMethodNode [
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitReturnNode: aReturnNode [
 
-	| statements value inBlock |
+	| statements value |
 
 	statements := OrderedCollection new.
-	inBlock := aReturnNode parent parent isBlock.
-	
+
 	value := self visit: aReturnNode value.
 	value isCollection ifTrue: [ 
 		aReturnNode value: self temporary.
-		statements addAll: value.
+		statements addAll: value 
 	].
 
 	(self nodeBeforeReturn: aReturnNode) ifNotNil: [ :n |
