@@ -31,8 +31,6 @@ ScpInstrumentationHandler >> handleBeforeMethod: aSelector executedOn: aReceiver
 
 { #category : 'events handling' }
 ScpInstrumentationHandler >> handleBeforeReturn: aReturn [
-
-	^ aReturn
 ]
 
 { #category : 'events handling' }
