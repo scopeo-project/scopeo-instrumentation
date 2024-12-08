@@ -1,39 +1,20 @@
 Trait {
 	#name : 'ScpInstrumentationHandler',
-	#instVars : [
-		'enabled'
-	],
-	#category : 'Scopeo-Instrumentation-ScopeoMethodInstrumentation',
+	#category : 'Scopeo-Instrumentation-GenericMethodModification',
 	#package : 'Scopeo-Instrumentation',
-	#tag : 'ScopeoMethodInstrumentation'
+	#tag : 'GenericMethodModification'
 }
 
 { #category : 'hooks' }
-ScpInstrumentationHandler >> assignment: aVariable object: anObject value: aValue [
-]
-
-{ #category : 'services' }
-ScpInstrumentationHandler >> disable [
-
-	enabled := false
-]
-
-{ #category : 'services' }
-ScpInstrumentationHandler >> enable [
-
-	enabled := true
-]
-
-{ #category : 'services' }
-ScpInstrumentationHandler >> isEnabled [
-
-	^ enabled ifNil: [ false ]
+ScpInstrumentationHandler >> onAssignmentEvent: aAssignmentEvent [
 ]
 
 { #category : 'hooks' }
-ScpInstrumentationHandler >> message: aSelector sender: aSender receiver: aReceiver arguments: anArguments [
+ScpInstrumentationHandler >> onMessageEvent: aMessageEvent [
+
+	
 ]
 
 { #category : 'hooks' }
-ScpInstrumentationHandler >> return: aValue [
+ScpInstrumentationHandler >> onMethodEvent: aMethodEvent [
 ]
