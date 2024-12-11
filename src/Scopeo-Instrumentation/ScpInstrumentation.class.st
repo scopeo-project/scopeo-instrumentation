@@ -74,11 +74,12 @@ ScpInstrumentation >> install [
 
 	errors := OrderedCollection new.
 	self methodsToInstrument do: [ :method |
-		| ast |
+		| ast  |
 		ast := visitor visitMethod: method.
-		[ method methodClass compile: ast formattedCode ]
-			on: Error
-			do: [ :e | errors add: e. ].
+		[ 
+			method methodClass compile: ast formattedCode.
+			ScpASTDictionary instance at: (method methodClass >> method selector) put: ast
+		] on: Error do: [ :e | errors add: e. ].
 	].
 
 	self logSummary: errors

@@ -43,7 +43,7 @@ ScpInstrumentationMethodVisitor >> visitAssignmentNode: anAssignmentNode [
 
 	anAssignmentNode variable isInstanceVariable ifFalse: [ ^ anAssignmentNode ].
 
-	^ RBMessageNode
+	^ (RBMessageNode
 		  receiver: self nodeHandler
 		  selector: (ScpInstrumentationHandler >> #node:assignment:variable:object:value:) selector
 		  arguments: {
@@ -56,7 +56,9 @@ ScpInstrumentationMethodVisitor >> visitAssignmentNode: anAssignmentNode [
 								     value: (RBVariableNode named: #v)) })).
 				  (RBLiteralValueNode value: anAssignmentNode variable name).
 				  (RBVariableNode selfNode).
-				  (self visitNode: anAssignmentNode value) }
+				  (self visitNode: anAssignmentNode value) })
+		  beScopeoNodeFor: anAssignmentNode; 
+		  yourself
 ]
 
 { #category : 'visiting' }
@@ -81,11 +83,13 @@ ScpInstrumentationMethodVisitor >> visitCascadeNode: aCascadeNode [
 	statements addAll: (aCascadeNode messages collect: [ :m | m receiver: receiverNodeVariable ]).
 	statements := statements collect: [ :s | s acceptVisitor: self ].
 
-	^ RBMessageNode
+	^ (RBMessageNode
 		  receiver: (RBBlockNode body: (RBSequenceNode
 					    temporaries: { receiverNodeVariable }
 					    statements: statements))
-		  selector: #value
+		  selector: #value)
+		  beScopeoNodeFor: aCascadeNode; 
+		  yourself
 ]
 
 { #category : 'visiting' }
@@ -115,7 +119,7 @@ ScpInstrumentationMethodVisitor >> visitMessageNode: aMessageNode [
 			]).
 	].
 
-	^ RBMessageNode
+	^ (RBMessageNode
 		  receiver: self nodeHandler
 		  selector: (ScpInstrumentationHandler >> #node:message:sender:receiver:arguments:) selector
 		  arguments: {
@@ -123,13 +127,15 @@ ScpInstrumentationMethodVisitor >> visitMessageNode: aMessageNode [
 				  (RBLiteralValueNode value: aMessageNode selector).
 				  RBVariableNode selfNode.
 				  self visitNode: aMessageNode receiver.
-				  (RBArrayNode statements: (aMessageNode arguments collect: [ :each | self visitNode: each ])) }
+				  (RBArrayNode statements: (aMessageNode arguments collect: [ :each | self visitNode: each ])) }) 
+		  beScopeoNodeFor: aMessageNode; 
+		  yourself
 ]
 
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitMessageToSuperNode: aMessageNode [
 
-	^ RBMessageNode
+	^ (RBMessageNode
 			  receiver: self nodeHandler
            selector: (ScpInstrumentationHandler >> #node:super:sender:arguments:class:) selector
 			  arguments: {
@@ -138,13 +144,17 @@ ScpInstrumentationMethodVisitor >> visitMessageToSuperNode: aMessageNode [
 					  RBVariableNode selfNode.
 					  (RBArrayNode statements: (aMessageNode arguments collect: [ :each | self visitNode: each ])).
 					  (RBVariableNode named: currentMethod methodClass asString) 
-			  }
+			  })
+			beScopeoNodeFor: aMessageNode;
+			yourself
 ]
 
 { #category : 'services' }
 ScpInstrumentationMethodVisitor >> visitMethod: aMethod [
-
-	^ self visitNode: aMethod ast copy.
+	|newAST|
+	newAST := self visitNode: aMethod parseTree.
+	^newAST 
+	
 ]
 
 { #category : 'visiting' }
@@ -158,7 +168,7 @@ ScpInstrumentationMethodVisitor >> visitMethodNode: aMethodNode [
 
 	aMethodNode body: (self visitNode: aMethodNode body).
 
-	aMethodNode body addNodeFirst: (RBMessageNode
+	aMethodNode body addNodeFirst: ((RBMessageNode
 		receiver: self nodeHandler 
 		selector: (ScpInstrumentationHandler >> #handleBeforeMethod:executedOn:withArguments:onCallFrom:) selector
 		arguments: {
@@ -166,7 +176,7 @@ ScpInstrumentationMethodVisitor >> visitMethodNode: aMethodNode [
 			RBVariableNode selfNode.
 			(RBArrayNode statements: aMethodNode arguments).
 			self nodeSender
-		}).
+		}) beScopeoNodeFor: aMethodNode; yourself).
 
 	^ aMethodNode
 ]
@@ -174,13 +184,14 @@ ScpInstrumentationMethodVisitor >> visitMethodNode: aMethodNode [
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitReturnNode: aReturnNode [
 
-	^ aReturnNode value: (RBMessageNode
+	^ aReturnNode value: ((RBMessageNode
 			receiver: self nodeHandler
 			selector: #node:return:
 			arguments: { 
 				(RBLiteralValueNode value: aReturnNode start).
 				(self visitNode: aReturnNode value) . 
-			})
+			}) beScopeoNodeFor: aReturnNode value; yourself)
+			
 ]
 
 { #category : 'visiting' }
