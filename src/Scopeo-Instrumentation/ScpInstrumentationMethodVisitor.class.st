@@ -41,7 +41,10 @@ ScpInstrumentationMethodVisitor >> visitArrayNode: anArrayNode [
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitAssignmentNode: anAssignmentNode [
 
-	anAssignmentNode variable isInstanceVariable ifFalse: [ ^ anAssignmentNode ].
+	anAssignmentNode variable isInstanceVariable ifFalse: [ 
+		anAssignmentNode value: (self visitNode: anAssignmentNode value).
+		^ anAssignmentNode 
+	].
 
 	^ (RBMessageNode
 		  receiver: self nodeHandler
