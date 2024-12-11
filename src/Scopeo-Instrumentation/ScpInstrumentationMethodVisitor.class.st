@@ -14,13 +14,13 @@ ScpInstrumentationMethodVisitor class >> transform: aMethod [
 	 ^ self new visitMethod: aMethod
 ]
 
-{ #category : 'instrumenting' }
+{ #category : 'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> nodeHandler [
 
 	^ RBVariableNode named: #_SCOPEO
 ]
 
-{ #category : 'instrumenting' }
+{ #category : 'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> nodeSender [
 
 	^ RBMessageNode
@@ -30,7 +30,7 @@ ScpInstrumentationMethodVisitor >> nodeSender [
 		  selector: #receiver
 ]
 
-{ #category : 'visiting' }
+{ #category : 'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitArrayNode: anArrayNode [
 
 	^ anArrayNode 
@@ -41,12 +41,14 @@ ScpInstrumentationMethodVisitor >> visitArrayNode: anArrayNode [
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitAssignmentNode: anAssignmentNode [
 
+	| assignmentNode |
+	
 	anAssignmentNode variable isInstanceVariable ifFalse: [ 
 		anAssignmentNode value: (self visitNode: anAssignmentNode value).
 		^ anAssignmentNode 
 	].
-
-	^ (RBMessageNode
+	
+	assignmentNode := (RBMessageNode
 		  receiver: self nodeHandler
 		  selector: (ScpInstrumentationHandler >> #node:assignment:variable:object:value:) selector
 		  arguments: {
@@ -59,12 +61,13 @@ ScpInstrumentationMethodVisitor >> visitAssignmentNode: anAssignmentNode [
 								     value: (RBVariableNode named: #v)) })).
 				  (RBLiteralValueNode value: anAssignmentNode variable name).
 				  (RBVariableNode selfNode).
-				  (self visitNode: anAssignmentNode value) })
-		  beScopeoNodeFor: anAssignmentNode; 
-		  yourself
+				  (self visitNode: anAssignmentNode value) }).
+				
+	ScpASTDictionary instance at: currentMethod at: assignmentNode put: anAssignmentNode.
+	^ assignmentNode 
 ]
 
-{ #category : 'visiting' }
+{ #category : 'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitBlockNode: aBlockNode [
 
 	^ aBlockNode
@@ -75,7 +78,7 @@ ScpInstrumentationMethodVisitor >> visitBlockNode: aBlockNode [
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitCascadeNode: aCascadeNode [
 
-	| receiverNode receiverNodeVariable statements |
+	| receiverNode receiverNodeVariable statements cascadeNode |
 
 	receiverNode := aCascadeNode receiver.
 	receiverNodeVariable := RBVariableNode named: #receiver.
@@ -86,22 +89,22 @@ ScpInstrumentationMethodVisitor >> visitCascadeNode: aCascadeNode [
 	statements addAll: (aCascadeNode messages collect: [ :m | m receiver: receiverNodeVariable ]).
 	statements := statements collect: [ :s | s acceptVisitor: self ].
 
-	^ (RBMessageNode
+	cascadeNode := (RBMessageNode
 		  receiver: (RBBlockNode body: (RBSequenceNode
 					    temporaries: { receiverNodeVariable }
 					    statements: statements))
-		  selector: #value)
-		  beScopeoNodeFor: aCascadeNode; 
-		  yourself
+		  selector: #value).
+	ScpASTDictionary instance at: currentMethod at: cascadeNode put: aCascadeNode.
+	^ cascadeNode 
 ]
 
-{ #category : 'visiting' }
+{ #category : 'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitLiteralArrayNode: aRBLiteralArrayNode [
 
 	^ aRBLiteralArrayNode
 ]
 
-{ #category : 'visiting' }
+{ #category : 'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitLiteralNode: aLiteralNode [
 
 	^ aLiteralNode
@@ -109,6 +112,7 @@ ScpInstrumentationMethodVisitor >> visitLiteralNode: aLiteralNode [
 
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitMessageNode: aMessageNode [
+	|messageNode |
 
 	aMessageNode receiver isSuperVariable ifTrue: [
 		^ self visitMessageToSuperNode: aMessageNode
@@ -122,7 +126,7 @@ ScpInstrumentationMethodVisitor >> visitMessageNode: aMessageNode [
 			]).
 	].
 
-	^ (RBMessageNode
+	messageNode  := (RBMessageNode
 		  receiver: self nodeHandler
 		  selector: (ScpInstrumentationHandler >> #node:message:sender:receiver:arguments:) selector
 		  arguments: {
@@ -130,15 +134,16 @@ ScpInstrumentationMethodVisitor >> visitMessageNode: aMessageNode [
 				  (RBLiteralValueNode value: aMessageNode selector).
 				  RBVariableNode selfNode.
 				  self visitNode: aMessageNode receiver.
-				  (RBArrayNode statements: (aMessageNode arguments collect: [ :each | self visitNode: each ])) }) 
-		  beScopeoNodeFor: aMessageNode; 
-		  yourself
+				  (RBArrayNode statements: (aMessageNode arguments collect: [ :each | self visitNode: each ])) }).
+	
+	ScpASTDictionary instance at: currentMethod at: messageNode put: aMessageNode.
+	^ messageNode 
 ]
 
-{ #category : 'visiting' }
+{ #category : 'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitMessageToSuperNode: aMessageNode [
-
-	^ (RBMessageNode
+	| messageNode |
+	messageNode := (RBMessageNode
 			  receiver: self nodeHandler
            selector: (ScpInstrumentationHandler >> #node:super:sender:arguments:class:) selector
 			  arguments: {
@@ -147,23 +152,26 @@ ScpInstrumentationMethodVisitor >> visitMessageToSuperNode: aMessageNode [
 					  RBVariableNode selfNode.
 					  (RBArrayNode statements: (aMessageNode arguments collect: [ :each | self visitNode: each ])).
 					  (RBVariableNode named: currentMethod methodClass asString) 
-			  })
-			beScopeoNodeFor: aMessageNode;
-			yourself
+			  }).
+	ScpASTDictionary instance at: currentMethod at: messageNode put: aMessageNode.
+
+	^messageNode 
 ]
 
-{ #category : 'services' }
+{ #category : 'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitMethod: aMethod [
-	|newAST|
-	newAST := self visitNode: aMethod parseTree.
-	^newAST 
+
+	^ self visitNode: aMethod parseTree 
 	
 ]
 
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitMethodNode: aMethodNode [
 
+	| beforeNode |
+
 	currentMethod := aMethodNode compiledMethod.
+	ScpASTDictionary instance at: currentMethod put: Dictionary new.
 
 	aMethodNode lastIsReturn ifFalse: [
 		aMethodNode addSelfReturn
@@ -171,7 +179,8 @@ ScpInstrumentationMethodVisitor >> visitMethodNode: aMethodNode [
 
 	aMethodNode body: (self visitNode: aMethodNode body).
 
-	aMethodNode body addNodeFirst: ((RBMessageNode
+
+	beforeNode := (RBMessageNode
 		receiver: self nodeHandler 
 		selector: (ScpInstrumentationHandler >> #handleBeforeMethod:executedOn:withArguments:onCallFrom:) selector
 		arguments: {
@@ -179,7 +188,10 @@ ScpInstrumentationMethodVisitor >> visitMethodNode: aMethodNode [
 			RBVariableNode selfNode.
 			(RBArrayNode statements: aMethodNode arguments).
 			self nodeSender
-		}) beScopeoNodeFor: aMethodNode; yourself).
+		}).
+
+	aMethodNode body addNodeFirst: beforeNode.
+	ScpASTDictionary instance at: currentMethod at: beforeNode put: aMethodNode.
 
 	^ aMethodNode
 ]
@@ -187,13 +199,19 @@ ScpInstrumentationMethodVisitor >> visitMethodNode: aMethodNode [
 { #category : 'visiting' }
 ScpInstrumentationMethodVisitor >> visitReturnNode: aReturnNode [
 
-	^ aReturnNode value: ((RBMessageNode
+	| returnNodeValue |
+
+	returnNodeValue := (RBMessageNode
 			receiver: self nodeHandler
 			selector: #node:return:
 			arguments: { 
 				(RBLiteralValueNode value: aReturnNode start).
 				(self visitNode: aReturnNode value) . 
-			}) beScopeoNodeFor: aReturnNode value; yourself)
+			}).
+
+	ScpASTDictionary instance at: currentMethod at: returnNodeValue put: aReturnNode value.
+
+	^ aReturnNode value: returnNodeValue
 			
 ]
 
@@ -207,7 +225,7 @@ ScpInstrumentationMethodVisitor >> visitSequenceNode: aSequenceNode [
 	^ aSequenceNode
 ]
 
-{ #category : 'visiting' }
+{ #category : 'as yet unclassified' }
 ScpInstrumentationMethodVisitor >> visitVariableNode: aVariableNode [
 	
 	^ aVariableNode

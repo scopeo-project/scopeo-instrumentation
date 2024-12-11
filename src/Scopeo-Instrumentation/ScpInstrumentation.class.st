@@ -78,7 +78,7 @@ ScpInstrumentation >> install [
 		ast := visitor visitMethod: method.
 		[ 
 			method methodClass compile: ast formattedCode.
-			ScpASTDictionary instance at: (method methodClass >> method selector) put: ast
+			(method methodClass >> method selector) propertyAt: #sourceMethod put: method.
 		] on: Error do: [ :e | errors add: e. ].
 	].
 
