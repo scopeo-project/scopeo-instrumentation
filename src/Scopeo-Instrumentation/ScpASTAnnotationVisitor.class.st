@@ -26,27 +26,32 @@ ScpASTAnnotationVisitor class >> transform: aMethod [
 { #category : 'visiting' }
 ScpASTAnnotationVisitor >> visitAssignmentNode: anAssignmentNode [
 
-	(ScpASTDictionary instance at: currentMethod) at: anAssignmentNode 
-		ifPresent: [:node | anAssignmentNode beScopeoNodeFor: node].
+	ScpASTDictionary instance at: currentMethod ifPresent: [ :m |
+		m
+			at: anAssignmentNode
+			ifPresent: [ :node | anAssignmentNode beScopeoNodeFor: node ] ].
 		
 	super visitAssignmentNode: anAssignmentNode 
 ]
 
 { #category : 'visiting' }
 ScpASTAnnotationVisitor >> visitCascadeNode: aCascadeNode [
-	
-	(ScpASTDictionary instance at: currentMethod) at: aCascadeNode 
-		ifPresent: [:node | aCascadeNode beScopeoNodeFor: node].
 
-	super visitCascadeNode: aCascadeNode 
+	ScpASTDictionary instance at: currentMethod ifPresent: [ :m |
+		m
+			at: aCascadeNode
+			ifPresent: [ :node | aCascadeNode beScopeoNodeFor: node ] ].
+
+	super visitCascadeNode: aCascadeNode
 ]
 
 { #category : 'visiting' }
 ScpASTAnnotationVisitor >> visitMessageNode: aMessageNode [
 
-	(ScpASTDictionary instance at: currentMethod)
-		at: aMessageNode
-		ifPresent: [ :node | aMessageNode beScopeoNodeFor: node ].
+	ScpASTDictionary instance at: currentMethod ifPresent: [ :m |
+		m
+			at: aMessageNode
+			ifPresent: [ :node | aMessageNode beScopeoNodeFor: node ] ].
 
 	super visitMessageNode: aMessageNode
 ]
@@ -55,17 +60,17 @@ ScpASTAnnotationVisitor >> visitMessageNode: aMessageNode [
 ScpASTAnnotationVisitor >> visitMethodNode: aMethodNode [
 
 	currentMethod := aMethodNode compiledMethod propertyAt: #sourceMethod.
-	self halt.
 	super visitMethodNode: aMethodNode
 ]
 
 { #category : 'visiting' }
 ScpASTAnnotationVisitor >> visitReturnNode: aReturnNode [
 
-	(ScpASTDictionary instance at: currentMethod)
-		at: aReturnNode value
-		ifPresent: [ :node | aReturnNode value beScopeoNodeFor: node ].
-		
+	ScpASTDictionary instance at: currentMethod ifPresent: [ :m |
+		m
+			at: aReturnNode value
+			ifPresent: [ :node | aReturnNode value beScopeoNodeFor: node ] ].
+
 	super visitReturnNode: aReturnNode
 ]
 
@@ -73,7 +78,6 @@ ScpASTAnnotationVisitor >> visitReturnNode: aReturnNode [
 ScpASTAnnotationVisitor >> visitSequenceNode: aSequenceNode [
 
 	aSequenceNode statements do: [ :s | 
-		self halt.
 		self visitNode: s.
 	].
 

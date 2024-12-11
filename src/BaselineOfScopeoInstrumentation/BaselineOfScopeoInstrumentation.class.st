@@ -17,19 +17,18 @@ BaselineOfScopeoInstrumentation >> baseline: spec [
 { #category : 'actions' }
 BaselineOfScopeoInstrumentation >> postload: loader package: packageSpec [
 
-	| ast |
-	ast := (CompiledMethod >> #ast) parseTree.
-	ast body addNodeFirst: (RBMessageNode
-			 receiver: (RBMessageNode
-					  receiver: (RBVariableNode named: #ScpASTDictionary)
-					  selector: #instance)
-			 selector: #at:ifPresent:
-			 arguments: {
-					 (RBVariableNode named: #self).
-					 (RBBlockNode
-						  arguments: { (RBVariableNode named: #ast) }
-						  body: (RBSequenceNode statements:
-								   { (RBReturnNode value: (RBVariableNode named: #ast)) })) }).
-								
-	CompiledMethod compile: ast formattedCode.
+	CompiledMethod compile: 'ast
+	"return an AST for this method. The AST is cached. see class comment of ASTCache"
+
+	"Workaround, see https://github.com/pharo-project/pharo/issues/14871
+	We force recompile to make sure the next call creates a correct BC to AST mapping"
+
+	|ast|
+	((self hasLiteral: #runtimeUndeclaredReadInContext:) or: [
+		 self hasLiteral: #runtimeUndeclaredWrite:inContext: ]) ifTrue: [
+		self isInstalled ifTrue: [ self recompile ] ].
+	ast:=  (ASTCache at: self).
+	ScpASTAnnotationVisitor instance visit: ast.
+
+	^ ast'
 ]
