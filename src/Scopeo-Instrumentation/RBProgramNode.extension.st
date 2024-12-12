@@ -7,6 +7,12 @@ RBProgramNode >> beScopeoNodeFor: aNode [
 ]
 
 { #category : '*Scopeo-Instrumentation' }
+RBProgramNode >> findSourceNode [
+
+	^ self
+]
+
+{ #category : '*Scopeo-Instrumentation' }
 RBProgramNode >> isScopeoNode [
 
 	^ self sourceNode ~~ self
@@ -15,5 +21,5 @@ RBProgramNode >> isScopeoNode [
 { #category : '*Scopeo-Instrumentation' }
 RBProgramNode >> sourceNode [
 
-	^ self propertyAt: #sourceNode ifAbsent: [ ^ self ]
+	^ self propertyAt: #sourceNode ifAbsent: [ ^ self findSourceNode]
 ]
