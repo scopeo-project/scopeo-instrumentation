@@ -4,3 +4,8 @@ Extension { #name : 'RBArrayNode' }
 RBArrayNode >> findSourceNode [
 	^self statements first sourceNode
 ]
+
+{ #category : '*Scopeo-Instrumentation' }
+RBArrayNode >> findSourceNodePosition [
+	^self statements first sourceNodePosition
+]
