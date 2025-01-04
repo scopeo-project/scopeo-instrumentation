@@ -25,8 +25,6 @@ ScpMethodUpdater class >> stop [
 { #category : 'system annoucements' }
 ScpMethodUpdater >> handleMethodModified: aMethodModified [
 
-	self halt.
-
 	aMethodModified oldMethod isInstrumented ifTrue: [ 
 		 aMethodModified oldMethod instrumentation 
 			method: aMethodModified newMethod;

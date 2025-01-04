@@ -12,39 +12,13 @@ Class {
 	#tag : 'Core'
 }
 
-{ #category : 'accessing' }
-ScpMethodInstrumented >> ast [
-
-	^ ast
-]
-
-{ #category : 'accessing' }
-ScpMethodInstrumented >> ast: anAst [
-
-	ast := anAst
-]
-
-{ #category : 'class membership' }
-ScpMethodInstrumented >> class [
-
-	^ instrumentation method class
-]
-
-{ #category : 'accessing' }
-ScpMethodInstrumented >> compiledMethod [
-
-	 ^ self
-]
-
 { #category : 'reflective operations' }
 ScpMethodInstrumented >> doesNotUnderstand: aMessage [
 
 	| result |
 	
-	thisContext sender crTrace.
-
-	result := aMessage sendTo: instrumentation method.
-	(result == instrumentation method) ifTrue: [ ^ self ].
+	result := aMessage sendTo: method.
+	(result == method) ifTrue: [ ^ self ].
 	
 	^ result
 ]
@@ -67,12 +41,6 @@ ScpMethodInstrumented >> instrumentation: anInstrumentation [
 	instrumentation := anInstrumentation
 ]
 
-{ #category : 'testing' }
-ScpMethodInstrumented >> isInstrumented [
-
-	^ true
-]
-
 { #category : 'accessing' }
 ScpMethodInstrumented >> method: aMethod [
 
@@ -87,10 +55,4 @@ ScpMethodInstrumented >> run: aSelector with: aArguments in: aReceiver [
 			   receiver: aReceiver;
 			   arguments: aArguments;
 			   yourself)
-]
-
-{ #category : 'accessing' }
-ScpMethodInstrumented >> yourself [
-
-	^ self
 ]

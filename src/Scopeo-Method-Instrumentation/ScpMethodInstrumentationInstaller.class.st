@@ -32,13 +32,16 @@ ScpMethodInstrumentationInstaller >> install [
 		methodClass compiler 
 		compile: ast source.
 
+	ScpModifiedMethod adoptInstance: modifiedMethod.
+	
+	modifiedMethod ast: ast.
+	
 	originalMethod methodClass
 		addAndClassifySelector: originalMethod selector
 		withMethod: (ScpMethodInstrumented new
-			instrumentation: self;
 			handler: methodHandler;
 			method: modifiedMethod;
-			ast: ast;
+ 		   instrumentation: self;
 			yourself
 		)
 		inProtocol: originalMethod protocol
