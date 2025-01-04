@@ -4,15 +4,16 @@ Class {
 	#classInstVars : [
 		'instance'
 	],
-	#category : 'Scopeo-Instrumentation-GenericMethodModification',
-	#package : 'Scopeo-Instrumentation',
-	#tag : 'GenericMethodModification'
+	#category : 'Scopeo-Method-Instrumentation-Core',
+	#package : 'Scopeo-Method-Instrumentation',
+	#tag : 'Core'
 }
 
 { #category : 'accessing' }
 ScpMethodUpdater class >> start [
 
-	instance ifNil: [ instance := self new ]
+	instance ifNil: [ instance := self new ].
+	instance start
 ]
 
 { #category : 'accessing' }
@@ -24,15 +25,17 @@ ScpMethodUpdater class >> stop [
 { #category : 'system annoucements' }
 ScpMethodUpdater >> handleMethodModified: aMethodModified [
 
-	aMethodModified oldMethod isModifiedMethod ifTrue: [ 
-		 aMethodModified oldMethod modification 
+	self halt.
+
+	aMethodModified oldMethod isInstrumented ifTrue: [ 
+		 aMethodModified oldMethod instrumentation 
 			method: aMethodModified newMethod;
 			install
 	]
 ]
 
-{ #category : 'initialization' }
-ScpMethodUpdater >> initialize [
+{ #category : 'accessing' }
+ScpMethodUpdater >> start [
 
 	self class codeChangeAnnouncer
 		when: MethodModified

@@ -7,23 +7,10 @@ Class {
 		'messageIndirection',
 		'returnIndirection'
 	],
-	#category : 'Scopeo-Instrumentation-GenericMethodModification',
-	#package : 'Scopeo-Instrumentation',
-	#tag : 'GenericMethodModification'
+	#category : 'Scopeo-Method-Instrumentation-Core',
+	#package : 'Scopeo-Method-Instrumentation',
+	#tag : 'Core'
 }
-
-{ #category : 'parameters' }
-ScpMethodModifier >> addAssignmentIndirection: anIndirection [
-
-	assignmentIndirection add: anIndirection
-
-]
-
-{ #category : 'parameters' }
-ScpMethodModifier >> addMessageIndirection: anIndirection [
-
-	messageIndirection add: anIndirection
-]
 
 { #category : 'parameters' }
 ScpMethodModifier >> addReturnIndirection: anIndirection [
@@ -41,6 +28,19 @@ ScpMethodModifier >> initialize [
 	
 ]
 
+{ #category : 'parameters' }
+ScpMethodModifier >> registerAssignmentInstrumentation: anIndirection [
+
+	assignmentIndirection add: anIndirection
+
+]
+
+{ #category : 'parameters' }
+ScpMethodModifier >> registerMessageInstrumentation: anIndirection [
+
+	messageIndirection add: anIndirection
+]
+
 { #category : 'visiting' }
 ScpMethodModifier >> visitArrayNode: anArrayNode [
 
@@ -56,7 +56,9 @@ ScpMethodModifier >> visitAssignmentNode: anAssignmentNode [
 		detect: [ :in | in isApplicableFor: anAssignmentNode ]
 		ifFound: [ :in | ^ in generateFor: anAssignmentNode usingModifier: self ].
 
-	^ super visitAssignmentNode: anAssignmentNode
+	super visitAssignmentNode: anAssignmentNode.
+	
+	^ anAssignmentNode
 ]
 
 { #category : 'visiting' }
@@ -109,7 +111,9 @@ ScpMethodModifier >> visitMessageNode: aMessageNode [
 		detect: [ :in | in isApplicableFor: aMessageNode ]
 		ifFound: [ :in | ^ in generateFor: aMessageNode usingModifier: self ].
 
-	^ super visitMessageNode: aMessageNode
+	super visitMessageNode: aMessageNode.
+	
+	^ aMessageNode
 ]
 
 { #category : 'visiting' }
@@ -118,6 +122,8 @@ ScpMethodModifier >> visitMethod: aMethod [
 	
 	ast := aMethod parseTree.
 	self visitNode: ast.
+	ast source: ast formattedCode.
+	
 	^ ast 
 	
 ]
@@ -125,21 +131,17 @@ ScpMethodModifier >> visitMethod: aMethod [
 { #category : 'visiting' }
 ScpMethodModifier >> visitMethodNode: aMethodNode [
 
-	aMethodNode lastIsReturn ifFalse: [
-		aMethodNode addSelfReturn
-	].
-
-	^ super visitMethodNode: aMethodNode 
+	super visitMethodNode: aMethodNode.
+	
+	^ aMethodNode 
 ]
 
 { #category : 'visiting' }
 ScpMethodModifier >> visitReturnNode: aReturnNode [
 
-	returnIndirection
-		detect: [ :in | in isApplicableFor: aReturnNode ]
-		ifFound: [ :in | ^ in generateFor: aReturnNode usingModifier: self ].
-
-	^ super visitReturnNode: aReturnNode
+	super visitReturnNode: aReturnNode.
+	
+	^ aReturnNode 
 ]
 
 { #category : 'visiting' }

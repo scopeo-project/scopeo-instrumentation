@@ -4,9 +4,9 @@ Class {
 	#classInstVars : [
 		'handlers'
 	],
-	#category : 'Scopeo-Instrumentation-GenericMethodModification',
-	#package : 'Scopeo-Instrumentation',
-	#tag : 'GenericMethodModification'
+	#category : 'Scopeo-Method-Instrumentation-Handlers',
+	#package : 'Scopeo-Method-Instrumentation',
+	#tag : 'Handlers'
 }
 
 { #category : 'services' }
