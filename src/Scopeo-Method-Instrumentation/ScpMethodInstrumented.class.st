@@ -30,18 +30,6 @@ ScpMethodInstrumented >> handler: aHandler [
 ]
 
 { #category : 'accessing' }
-ScpMethodInstrumented >> instrumentation [
-
-	^ instrumentation
-]
-
-{ #category : 'accessing' }
-ScpMethodInstrumented >> instrumentation: anInstrumentation [
-
-	instrumentation := anInstrumentation
-]
-
-{ #category : 'accessing' }
 ScpMethodInstrumented >> method: aMethod [
 
 	method := aMethod
@@ -55,4 +43,10 @@ ScpMethodInstrumented >> run: aSelector with: aArguments in: aReceiver [
 			   receiver: aReceiver;
 			   arguments: aArguments;
 			   yourself)
+]
+
+{ #category : 'accessing' }
+ScpMethodInstrumented >> yourself [
+
+	^ self
 ]

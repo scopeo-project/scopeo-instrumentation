@@ -27,22 +27,22 @@ ScpMethodInstrumentationInstaller >> install [
 	| ast |
 
 	ast := modifier visitMethod: originalMethod.
-
+	
 	modifiedMethod := originalMethod 
 		methodClass compiler 
 		compile: ast source.
-
-	ScpModifiedMethod adoptInstance: modifiedMethod.
 	
+	ScpModifiedMethod adoptInstance: modifiedMethod.
 	modifiedMethod ast: ast.
+	modifiedMethod sourceCode: originalMethod sourceCode.
+	modifiedMethod instrumentation: self.
 	
 	originalMethod methodClass
 		addAndClassifySelector: originalMethod selector
 		withMethod: (ScpMethodInstrumented new
 			handler: methodHandler;
 			method: modifiedMethod;
- 		   instrumentation: self;
-			yourself
+ 			yourself
 		)
 		inProtocol: originalMethod protocol
 		
@@ -57,8 +57,7 @@ ScpMethodInstrumentationInstaller >> method [
 { #category : 'parameters' }
 ScpMethodInstrumentationInstaller >> method: aMethod [
 
-	originalMethod := aMethod.
-	modifiedMethod := aMethod
+	originalMethod := aMethod
 ]
 
 { #category : 'parameters' }

@@ -19,8 +19,32 @@ ScpModifiedMethod >> ast: anAst [
 	^ self propertyAt: #ast put: anAst
 ]
 
+{ #category : 'accessing' }
+ScpModifiedMethod >> instrumentation [
+
+	^ self propertyAt: #instrumentation
+]
+
+{ #category : 'accessing' }
+ScpModifiedMethod >> instrumentation: anInstrumentation [
+
+	self propertyAt: #instrumentation put: anInstrumentation
+]
+
 { #category : 'testing' }
 ScpModifiedMethod >> isInstrumented [
 
 	^ true
+]
+
+{ #category : 'accessing' }
+ScpModifiedMethod >> sourceCode [
+
+	^ self propertyAt: #sourceCode
+]
+
+{ #category : 'accessing' }
+ScpModifiedMethod >> sourceCode: aSourceCode [
+
+	self propertyAt: #sourceCode put: aSourceCode
 ]

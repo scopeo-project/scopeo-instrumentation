@@ -139,9 +139,8 @@ ScpMethodModifier >> visitMethodNode: aMethodNode [
 { #category : 'visiting' }
 ScpMethodModifier >> visitReturnNode: aReturnNode [
 
-	super visitReturnNode: aReturnNode.
-	
-	^ aReturnNode 
+	aReturnNode value: (self visitNode: aReturnNode value).
+	^ aReturnNode
 ]
 
 { #category : 'visiting' }
