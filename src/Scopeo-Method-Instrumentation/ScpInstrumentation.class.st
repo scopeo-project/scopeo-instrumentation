@@ -18,6 +18,8 @@ ScpInstrumentation class >> isAbstract [
 { #category : 'comparing' }
 ScpInstrumentation >> = anInstrumentation [
 
+	self == anInstrumentation ifTrue: [ ^ true ].
+
 	 ^ anInstrumentation class = self class and: [
 		   anInstrumentation handler = handler ]
 ]

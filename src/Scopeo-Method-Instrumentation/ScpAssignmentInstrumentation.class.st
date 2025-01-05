@@ -31,6 +31,10 @@ ScpAssignmentInstrumentation >> generateFor: anAssignmentNode usingModifier: aMo
 					  { (RBLiteralValueNode value: anAssignmentNode variable name) }).
 				 (RBMessageNode
 					  receiver: cascade
+					  selector: #oldValue:
+					  arguments: { anAssignmentNode variable }).
+				 (RBMessageNode
+					  receiver: cascade
 					  selector: #newValue:
 					  arguments: { (aModifier visitNode: anAssignmentNode value) }).
 				 (RBMessageNode receiver: cascade selector: #yourself) }) }.

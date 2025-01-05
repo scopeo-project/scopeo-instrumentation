@@ -12,6 +12,8 @@ Class {
 { #category : 'comparing' }
 ScpHandler >> = aHandler [	
 
+	self == aHandler ifTrue: [ ^ true ].
+
 	^ (aHandler class = self class) and: [ aHandler block = block ] 
 ]
 

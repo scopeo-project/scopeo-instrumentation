@@ -4,7 +4,8 @@ Class {
 	#instVars : [
 		'variable',
 		'object',
-		'newValue'
+		'newValue',
+		'oldValue'
 	],
 	#category : 'Scopeo-Method-Instrumentation-Operations',
 	#package : 'Scopeo-Method-Instrumentation',
@@ -50,7 +51,13 @@ ScpAssignmentOperation >> object: anObject [
 { #category : 'accessing' }
 ScpAssignmentOperation >> oldValue [
 
-	^ object instVarNamed: variable 
+	^ oldValue
+]
+
+{ #category : 'accessing' }
+ScpAssignmentOperation >> oldValue: anObject [
+
+	oldValue := anObject
 ]
 
 { #category : 'accessing' }

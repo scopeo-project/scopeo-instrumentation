@@ -2,16 +2,36 @@ Class {
 	#name : 'ScpMethodInstrumentationTest',
 	#superclass : 'TestCase',
 	#instVars : [
-		'instVar'
+		'#instVar',
+		'#observableInstVar => ObservableSlot'
 	],
 	#category : 'Scopeo-Method-Instrumentation-Tests',
 	#package : 'Scopeo-Method-Instrumentation-Tests'
 }
 
+{ #category : 'initialization' }
+ScpMethodInstrumentationTest >> initialize [
+
+	self class initializeSlots: self.
+	super initialize.
+]
+
 { #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithAssignment [
 
 	instVar := 42
+]
+
+{ #category : 'helpers' }
+ScpMethodInstrumentationTest >> methodWithAssignmentObservable [
+
+	observableInstVar := 42
+]
+
+{ #category : 'helpers' }
+ScpMethodInstrumentationTest >> methodWithAssignmentWithMessage [
+
+	instVar := 42 asFloat
 ]
 
 { #category : 'helpers' }
@@ -40,17 +60,22 @@ ScpMethodInstrumentationTest >> methodWithReturn [
 	^ 42
 ]
 
+{ #category : 'helpers' }
+ScpMethodInstrumentationTest >> methodWithReturnWithMessage [
+
+	^ 42 asFloat
+]
+
 { #category : 'running' }
 ScpMethodInstrumentationTest >> tearDown [
 
 	instVar := nil.
+	observableInstVar := nil.
 
-	(self class >> #methodWithCascadeMessage) instrumentation uninstall.
-	(self class >> #methodWithAssignment) instrumentation uninstall.
-	(self class >> #methodWithMessage) instrumentation uninstall.
-	(self class >> #methodWithMessageWithArgument) instrumentation uninstall.
-	(self class >> #methodWithReturn) instrumentation uninstall.
-	
+	(self class protocolNamed: #helpers) methodSelectors do: [ :s |
+		(self class >> s) instrumentation uninstall 
+	].
+
 	super tearDown
 ]
 
@@ -76,6 +101,101 @@ ScpMethodInstrumentationTest >> testAfterHandler [
 	"Assert"
 	self assert: after equals: 42.
 	self assert: instVar equals: 42
+]
+
+{ #category : 'tests' }
+ScpMethodInstrumentationTest >> testAssignment [
+
+	| operation |
+	
+	"Arrange"
+	operation := nil.
+	
+	(self class >> #methodWithAssignment) instrumentation
+		 register: (ScpAssignmentInstrumentation new
+				handler: (ScpBeforeHandler new
+					evaluate: [ :op | operation := op ];
+					yourself);
+				yourself);
+	 	 install.
+	
+	"Act"
+	self methodWithAssignment.
+	
+	"Assert"
+	self assert: operation isAssignment.
+	self assert: operation object equals: self.
+	self assert: operation variable equals: #instVar.
+	self assert: operation oldValue equals: nil.
+	self assert: operation newValue equals: 42
+]
+
+{ #category : 'tests' }
+ScpMethodInstrumentationTest >> testAssignmentObservable [
+
+	| operation |
+	
+	"Arrange"
+	operation := nil.
+	
+	(self class >> #methodWithAssignmentObservable) instrumentation
+		 register: (ScpAssignmentInstrumentation new
+				handler: (ScpBeforeHandler new
+					evaluate: [ :op | operation := op ];
+					yourself);
+				yourself);
+	 	 install.
+	
+	"Act"
+	self methodWithAssignmentObservable.
+	
+	"Assert"
+	self assert: operation isAssignment.
+	self assert: operation object equals: self.
+	self assert: operation variable equals: #observableInstVar.
+	self assert: operation oldValue equals: nil.
+	self assert: operation newValue equals: 42
+]
+
+{ #category : 'tests' }
+ScpMethodInstrumentationTest >> testAssignmentWithMessage [
+
+	| assignment message |
+	
+	"Arrange"
+	assignment := nil.
+	message := nil.
+	
+	(self class >> #methodWithAssignmentWithMessage) instrumentation
+		 register: (ScpAssignmentInstrumentation new
+				handler: (ScpBeforeHandler new
+					evaluate: [ :op | assignment := op ];
+					yourself);
+				yourself);
+	 	 install.
+	
+	(self class >> #methodWithAssignmentWithMessage) instrumentation
+		 register: (ScpMessageInstrumentation new
+				handler: (ScpBeforeHandler new
+					evaluate: [ :op | message := op ];
+					yourself);
+				yourself);
+	 	 install.
+
+	"Act"
+	self methodWithAssignmentWithMessage.
+	
+	"Assert"
+	self assert: assignment isAssignment.
+	self assert: assignment object equals: self.
+	self assert: assignment variable equals: #instVar.
+	self assert: assignment oldValue equals: nil.
+	self assert: assignment newValue equals: 42.0.
+	
+	self assert: message isMessage.
+	self assert: message receiver equals: 42.
+	self assert: message selector equals: #asFloat.
+	self assert: message arguments isEmpty.
 ]
 
 { #category : 'tests' }
@@ -212,4 +332,65 @@ ScpMethodInstrumentationTest >> testMessageWithArgument [
 	self assert: (operation receiver isKindOf: Collection).
 	self assert: operation selector equals: #at:.
 	self assert: operation arguments first equals: 4
+]
+
+{ #category : 'tests' }
+ScpMethodInstrumentationTest >> testReturn [
+
+	| operation |
+	
+	"Arrange"
+	operation := nil.
+	
+	(self class >> #methodWithReturn) instrumentation
+		 register: (ScpMethodInstrumentation new
+				handler: (ScpAfterHandler new
+					evaluate: [ :op | operation := op ];
+					yourself);
+				yourself);
+	 	 install.
+	
+	"Act"
+	self methodWithReturn.
+	
+	"Assert"
+	self assert: operation result equals: 42
+]
+
+{ #category : 'tests' }
+ScpMethodInstrumentationTest >> testReturnWithMessage [
+
+	| return message |
+	
+	"Arrange"
+	return := nil.
+	message := nil.
+	
+	(self class >> #methodWithReturnWithMessage) instrumentation
+		 register: (ScpMethodInstrumentation new
+				handler: (ScpAfterHandler new
+					evaluate: [ :op | return := op ];
+					yourself);
+				yourself);
+	 	 install.
+
+	(self class >> #methodWithReturnWithMessage) instrumentation
+		 register: (ScpMessageInstrumentation new
+				handler: (ScpAfterHandler new
+					evaluate: [ :op | message := op ];
+					yourself);
+				yourself);
+	 	 install.
+	
+	"Act"
+	self methodWithReturnWithMessage.
+	
+	"Assert"
+	self assert: message isMessage.
+	self assert: message receiver equals: 42.
+	self assert: message selector equals: #asFloat.
+	self assert: message arguments isEmpty.
+	
+	self assert: return isMethod.
+	self assert: return result equals: 42.0
 ]

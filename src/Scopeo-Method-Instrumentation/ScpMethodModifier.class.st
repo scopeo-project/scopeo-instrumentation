@@ -56,7 +56,7 @@ ScpMethodModifier >> visitAssignmentNode: anAssignmentNode [
 		detect: [ :in | in isApplicableFor: anAssignmentNode ]
 		ifFound: [ :in | ^ in generateFor: anAssignmentNode usingModifier: self ].
 
-	super visitAssignmentNode: anAssignmentNode.
+	anAssignmentNode value: (self visitNode: anAssignmentNode value).
 	
 	^ anAssignmentNode
 ]
