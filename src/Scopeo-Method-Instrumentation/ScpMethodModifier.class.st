@@ -1,6 +1,6 @@
 Class {
 	#name : 'ScpMethodModifier',
-	#superclass : 'OCProgramNodeVisitor',
+	#superclass : 'RBProgramNodeVisitor',
 	#instVars : [
 		'currentMethod',
 		'assignmentIndirection',
