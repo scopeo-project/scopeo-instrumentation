@@ -1,39 +1,40 @@
 Class {
-	#name : #ScpMethodInstrumentationTest,
-	#superclass : #TestCase,
+	#name : 'ScpMethodInstrumentationTest',
+	#superclass : 'TestCase',
 	#instVars : [
 		'#instVar',
 		'#observableInstVar => ObservableSlot'
 	],
-	#category : #'Scopeo-Method-Instrumentation-Tests'
+	#category : 'Scopeo-Method-Instrumentation-Tests',
+	#package : 'Scopeo-Method-Instrumentation-Tests'
 }
 
-{ #category : #initialization }
+{ #category : 'initialization' }
 ScpMethodInstrumentationTest >> initialize [
 
 	self class initializeSlots: self.
 	super initialize.
 ]
 
-{ #category : #helpers }
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithAssignment [
 
 	instVar := 42
 ]
 
-{ #category : #helpers }
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithAssignmentObservable [
 
 	observableInstVar := 42
 ]
 
-{ #category : #helpers }
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithAssignmentWithMessage [
 
 	instVar := 42 asFloat
 ]
 
-{ #category : #helpers }
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithCascadeMessage [
 
 	Transcript
@@ -41,31 +42,31 @@ ScpMethodInstrumentationTest >> methodWithCascadeMessage [
 		yourself
 ]
 
-{ #category : #helpers }
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithMessage [
 
 	42 printString
 ]
 
-{ #category : #helpers }
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithMessageWithArgument [
 
 	#( 1 2 3 4 ) at: 4
 ]
 
-{ #category : #helpers }
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithReturn [
 
 	^ 42
 ]
 
-{ #category : #helpers }
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithReturnWithMessage [
 
 	^ 42 asFloat
 ]
 
-{ #category : #running }
+{ #category : 'running' }
 ScpMethodInstrumentationTest >> tearDown [
 
 	instVar := nil.
@@ -77,7 +78,7 @@ ScpMethodInstrumentationTest >> tearDown [
 	super tearDown
 ]
 
-{ #category : #tests }
+{ #category : 'tests' }
 ScpMethodInstrumentationTest >> testAfterHandler [
 
 	| after |
@@ -101,7 +102,7 @@ ScpMethodInstrumentationTest >> testAfterHandler [
 	self assert: instVar equals: 42
 ]
 
-{ #category : #tests }
+{ #category : 'tests' }
 ScpMethodInstrumentationTest >> testAssignment [
 
 	| operation |
@@ -128,7 +129,7 @@ ScpMethodInstrumentationTest >> testAssignment [
 	self assert: operation newValue equals: 42
 ]
 
-{ #category : #tests }
+{ #category : 'tests' }
 ScpMethodInstrumentationTest >> testAssignmentObservable [
 
 	| operation |
@@ -155,7 +156,7 @@ ScpMethodInstrumentationTest >> testAssignmentObservable [
 	self assert: operation newValue equals: 42
 ]
 
-{ #category : #tests }
+{ #category : 'tests' }
 ScpMethodInstrumentationTest >> testAssignmentWithMessage [
 
 	| assignment message |
@@ -196,7 +197,7 @@ ScpMethodInstrumentationTest >> testAssignmentWithMessage [
 	self assert: message arguments isEmpty.
 ]
 
-{ #category : #tests }
+{ #category : 'tests' }
 ScpMethodInstrumentationTest >> testBeforeHandler [
 	
 	"Arrange"	
@@ -220,7 +221,7 @@ ScpMethodInstrumentationTest >> testBeforeHandler [
 	self assert: instVar equals: 42
 ]
 
-{ #category : #tests }
+{ #category : 'tests' }
 ScpMethodInstrumentationTest >> testCascadeMessage [
 
 	| operations |
@@ -251,7 +252,7 @@ ScpMethodInstrumentationTest >> testCascadeMessage [
 	self assert: operations second arguments isEmpty
 ]
 
-{ #category : #tests }
+{ #category : 'tests' }
 ScpMethodInstrumentationTest >> testInsteadHandler [
 
 	| operations |
@@ -282,7 +283,7 @@ ScpMethodInstrumentationTest >> testInsteadHandler [
 	self assert: operations second arguments isEmpty
 ]
 
-{ #category : #tests }
+{ #category : 'tests' }
 ScpMethodInstrumentationTest >> testMessage [
 
 	| operation |
@@ -307,7 +308,7 @@ ScpMethodInstrumentationTest >> testMessage [
 	self assert: operation arguments isEmpty
 ]
 
-{ #category : #tests }
+{ #category : 'tests' }
 ScpMethodInstrumentationTest >> testMessageWithArgument [
 
 	| operation |
@@ -332,7 +333,7 @@ ScpMethodInstrumentationTest >> testMessageWithArgument [
 	self assert: operation arguments first equals: 4
 ]
 
-{ #category : #tests }
+{ #category : 'tests' }
 ScpMethodInstrumentationTest >> testReturn [
 
 	| operation |
@@ -355,7 +356,7 @@ ScpMethodInstrumentationTest >> testReturn [
 	self assert: operation result equals: 42
 ]
 
-{ #category : #tests }
+{ #category : 'tests' }
 ScpMethodInstrumentationTest >> testReturnWithMessage [
 
 	| return message |

@@ -42,8 +42,7 @@ ScpMethodInstrumentationInstaller >> install [
 		withMethod: (ScpMethodInstrumented new
 			handler: methodHandler;
 			method: modifiedMethod;
- 			yourself
-		)
+ 			yourself)
 		inProtocol: originalMethod protocol
 		
 ]

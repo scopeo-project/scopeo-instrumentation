@@ -2,10 +2,8 @@ Class {
 	#name : 'ScpMethodInstrumented',
 	#superclass : 'ProtoObject',
 	#instVars : [
-		'ast',
 		'method',
-		'handler',
-		'instrumentation'
+		'handler'
 	],
 	#category : 'Scopeo-Method-Instrumentation-Core',
 	#package : 'Scopeo-Method-Instrumentation',

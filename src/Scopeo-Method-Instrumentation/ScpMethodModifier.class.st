@@ -1,6 +1,6 @@
 Class {
 	#name : 'ScpMethodModifier',
-	#superclass : 'RBProgramNodeVisitor',
+	#superclass : 'OCProgramNodeVisitor',
 	#instVars : [
 		'currentMethod',
 		'assignmentIndirection',
@@ -122,6 +122,8 @@ ScpMethodModifier >> visitMethod: aMethod [
 	
 	ast := aMethod parseTree.
 	self visitNode: ast.
+	
+	ast doSemanticAnalysis.
 	ast source: ast formattedCode.
 	
 	^ ast 
