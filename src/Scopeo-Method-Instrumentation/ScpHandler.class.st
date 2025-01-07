@@ -9,14 +9,6 @@ Class {
 	#tag : 'Handlers'
 }
 
-{ #category : 'comparing' }
-ScpHandler >> = aHandler [	
-
-	self == aHandler ifTrue: [ ^ true ].
-
-	^ (aHandler class = self class) and: [ aHandler block = block ] 
-]
-
 { #category : 'private' }
 ScpHandler >> block [
 

@@ -111,13 +111,17 @@ ScpMethodModifier >> visitMessageNode: aMessageNode [
 		detect: [ :in | in isApplicableFor: aMessageNode ]
 		ifFound: [ :in | ^ in generateFor: aMessageNode usingModifier: self ].
 
-	super visitMessageNode: aMessageNode.
+	aMessageNode receiver: (self visitNode: aMessageNode receiver).
+	aMessageNode arguments: (aMessageNode arguments collect: [ :each | 
+		self visitNode: each 
+	]).
 	
 	^ aMessageNode
 ]
 
 { #category : 'visiting' }
 ScpMethodModifier >> visitMethod: aMethod [
+
 	| ast |
 	
 	ast := aMethod parseTree.
@@ -142,6 +146,7 @@ ScpMethodModifier >> visitMethodNode: aMethodNode [
 ScpMethodModifier >> visitReturnNode: aReturnNode [
 
 	aReturnNode value: (self visitNode: aReturnNode value).
+	
 	^ aReturnNode
 ]
 

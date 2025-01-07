@@ -16,12 +16,6 @@ ScpNodeInstrumentation class >> isAbstract [
 	^ self == ScpNodeInstrumentation
 ]
 
-{ #category : 'comparing' }
-ScpNodeInstrumentation >> = anInstrumentation [
-
-	^ super = anInstrumentation and: [ anInstrumentation condition = condition ]
-]
-
 { #category : 'private' }
 ScpNodeInstrumentation >> condition [
 

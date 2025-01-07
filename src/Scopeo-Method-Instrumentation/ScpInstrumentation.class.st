@@ -15,15 +15,6 @@ ScpInstrumentation class >> isAbstract [
 	^ self == ScpInstrumentation
 ]
 
-{ #category : 'comparing' }
-ScpInstrumentation >> = anInstrumentation [
-
-	self == anInstrumentation ifTrue: [ ^ true ].
-
-	 ^ anInstrumentation class = self class and: [
-		   anInstrumentation handler = handler ]
-]
-
 { #category : 'accessing' }
 ScpInstrumentation >> handler [
 

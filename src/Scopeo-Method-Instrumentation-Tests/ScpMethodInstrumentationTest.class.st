@@ -49,6 +49,24 @@ ScpMethodInstrumentationTest >> methodWithMessage [
 ]
 
 { #category : 'helpers' }
+ScpMethodInstrumentationTest >> methodWithMessageInBlock [
+
+	[ :v | v printString ] value: 42
+]
+
+{ #category : 'helpers' }
+ScpMethodInstrumentationTest >> methodWithMessageInBlockInBlock [
+
+	 [ [ :v | v printString ] value: 42 ] value 
+]
+
+{ #category : 'helpers' }
+ScpMethodInstrumentationTest >> methodWithMessageToBlock [
+
+	[ ] value
+]
+
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithMessageWithArgument [
 
 	#( 1 2 3 4 ) at: 4
@@ -305,6 +323,83 @@ ScpMethodInstrumentationTest >> testMessage [
 	"Assert"
 	self assert: operation receiver equals: 42.
 	self assert: operation selector equals: #printString.
+	self assert: operation arguments isEmpty
+]
+
+{ #category : 'tests' }
+ScpMethodInstrumentationTest >> testMessageInBlock [
+
+	| operation |
+	
+	"Arrange"
+	operation := nil.
+	
+	(self class >> #methodWithMessageInBlock) instrumentation
+		 register: (ScpMessageInstrumentation new
+				handler: (ScpBeforeHandler new
+					evaluate: [ :op | operation := op ];
+					yourself);
+				condition: [ :n | n receiver isBlock not ]
+				yourself);
+	 	 install.
+	
+	"Act"
+	self methodWithMessageInBlock.
+	
+	"Assert"
+	self assert: operation receiver equals: 42.
+	self assert: operation selector equals: #printString.
+	self assert: operation arguments isEmpty
+]
+
+{ #category : 'tests' }
+ScpMethodInstrumentationTest >> testMessageInBlockInBlock [
+
+	| operation |
+	
+	"Arrange"
+	operation := nil.
+	
+	(self class >> #methodWithMessageInBlockInBlock) instrumentation
+		 register: (ScpMessageInstrumentation new
+				handler: (ScpBeforeHandler new
+					evaluate: [ :op | operation := op ];
+					yourself);
+				condition: [ :n | n receiver isBlock not ]
+				yourself);
+	 	 install.
+	
+	"Act"
+	self methodWithMessageInBlockInBlock.
+	
+	"Assert"
+	self assert: operation receiver equals: 42.
+	self assert: operation selector equals: #printString.
+	self assert: operation arguments isEmpty
+]
+
+{ #category : 'tests' }
+ScpMethodInstrumentationTest >> testMessageToBlock [
+
+	| operation |
+	
+	"Arrange"
+	operation := nil.
+	
+	(self class >> #methodWithMessageToBlock) instrumentation
+		 register: (ScpMessageInstrumentation new
+				handler: (ScpBeforeHandler new
+					evaluate: [ :op | operation := op ];
+					yourself);
+				yourself);
+	 	 install.
+	
+	"Act"
+	self methodWithMessageToBlock.
+	
+	"Assert"
+	self assert: operation receiver isBlock.
+	self assert: operation selector equals: #value.
 	self assert: operation arguments isEmpty
 ]
 
