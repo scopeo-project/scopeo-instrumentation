@@ -3,7 +3,6 @@ Class {
 	#superclass : 'Object',
 	#instVars : [
 		'instrumentation',
-		'modifiedMethod',
 		'originalMethod',
 		'modifier',
 		'methodHandler',
@@ -14,17 +13,10 @@ Class {
 	#tag : 'Core'
 }
 
-{ #category : 'initialization' }
-ScpMethodInstrumentationInstaller >> initialize [
+{ #category : 'compiling' }
+ScpMethodInstrumentationInstaller >> compile [
 
-	modifier := ScpMethodModifier new.
-	methodHandler := ScpDefaultHandler new
-]
-
-{ #category : 'services' }
-ScpMethodInstrumentationInstaller >> install [
-
-	| ast |
+	| ast modifiedMethod |
 
 	ast := modifier visitMethod: originalMethod.
 	
@@ -37,11 +29,24 @@ ScpMethodInstrumentationInstaller >> install [
 	modifiedMethod sourceCode: originalMethod sourceCode.
 	modifiedMethod instrumentation: self.
 	
+	^ modifiedMethod
+]
+
+{ #category : 'initialization' }
+ScpMethodInstrumentationInstaller >> initialize [
+
+	modifier := ScpMethodModifier new.
+	methodHandler := ScpDefaultHandler new
+]
+
+{ #category : 'services' }
+ScpMethodInstrumentationInstaller >> install [
+	
 	originalMethod methodClass
 		addAndClassifySelector: originalMethod selector
 		withMethod: (ScpMethodInstrumented new
 			handler: methodHandler;
-			method: modifiedMethod;
+			method: self compile;
  			yourself)
 		inProtocol: originalMethod protocol
 		
