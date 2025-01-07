@@ -1,8 +1,8 @@
 Class {
 	#name : 'ScpBeforeHandler',
 	#superclass : 'ScpHandler',
-	#category : 'Scopeo-Method-Instrumentation-Handlers',
-	#package : 'Scopeo-Method-Instrumentation',
+	#category : 'Scopeo-Instrumentation-Handlers',
+	#package : 'Scopeo-Instrumentation',
 	#tag : 'Handlers'
 }
 

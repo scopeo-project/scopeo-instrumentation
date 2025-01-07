@@ -1,8 +1,8 @@
 Class {
 	#name : 'ScpAssignmentInstrumentation',
 	#superclass : 'ScpNodeInstrumentation',
-	#category : 'Scopeo-Method-Instrumentation-Instrumentations',
-	#package : 'Scopeo-Method-Instrumentation',
+	#category : 'Scopeo-Instrumentation-Instrumentations',
+	#package : 'Scopeo-Instrumentation',
 	#tag : 'Instrumentations'
 }
 

@@ -7,8 +7,8 @@ Class {
 		'method',
 		'arguments'
 	],
-	#category : 'Scopeo-Method-Instrumentation-Operations',
-	#package : 'Scopeo-Method-Instrumentation',
+	#category : 'Scopeo-Instrumentation-Operations',
+	#package : 'Scopeo-Instrumentation',
 	#tag : 'Operations'
 }
 

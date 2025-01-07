@@ -1,6 +1,6 @@
 Extension { #name : 'CompiledMethod' }
 
-{ #category : '*Scopeo-Method-Instrumentation' }
+{ #category : '*Scopeo-Instrumentation' }
 CompiledMethod >> instrumentation [
 
 	^ ScpMethodInstrumentationInstaller new
@@ -8,7 +8,7 @@ CompiledMethod >> instrumentation [
 		  yourself
 ]
 
-{ #category : '*Scopeo-Method-Instrumentation' }
+{ #category : '*Scopeo-Instrumentation' }
 CompiledMethod >> isInstrumented [
 
 	^ false

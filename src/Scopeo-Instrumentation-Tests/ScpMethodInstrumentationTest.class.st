@@ -5,8 +5,8 @@ Class {
 		'#instVar',
 		'#observableInstVar => ObservableSlot'
 	],
-	#category : 'Scopeo-Method-Instrumentation-Tests',
-	#package : 'Scopeo-Method-Instrumentation-Tests'
+	#category : 'Scopeo-Instrumentation-Tests',
+	#package : 'Scopeo-Instrumentation-Tests'
 }
 
 { #category : 'initialization' }

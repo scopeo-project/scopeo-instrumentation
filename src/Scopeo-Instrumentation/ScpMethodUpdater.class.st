@@ -4,8 +4,8 @@ Class {
 	#classInstVars : [
 		'instance'
 	],
-	#category : 'Scopeo-Method-Instrumentation-Core',
-	#package : 'Scopeo-Method-Instrumentation',
+	#category : 'Scopeo-Instrumentation-Core',
+	#package : 'Scopeo-Instrumentation',
 	#tag : 'Core'
 }
 
