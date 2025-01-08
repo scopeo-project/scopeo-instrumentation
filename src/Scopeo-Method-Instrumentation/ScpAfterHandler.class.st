@@ -10,7 +10,10 @@ Class {
 ScpAfterHandler >> handle: anOperation [
 
 	anOperation execute.
-	block value: anOperation.
-
+	
+	self isEnabled ifTrue: [ 
+		block value: anOperation
+	].
+	
 	^ anOperation result
 ]

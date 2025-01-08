@@ -9,6 +9,9 @@ Class {
 { #category : 'enumerating' }
 ScpBeforeHandler >> handle: anOperation [
 
-	block value: anOperation.
+	self isEnabled ifTrue: [ 
+		block value: anOperation
+	].
+
 	^ anOperation execute
 ]

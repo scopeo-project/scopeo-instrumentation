@@ -9,6 +9,10 @@ Class {
 { #category : 'enumerating' }
 ScpInsteadHandler >> handle: anOperation [
 
-	^ block value: anOperation
+	self isEnabled ifTrue: [ 
+		^ block value: anOperation
+	].
 
+	^ anOperation execute
+	
 ]

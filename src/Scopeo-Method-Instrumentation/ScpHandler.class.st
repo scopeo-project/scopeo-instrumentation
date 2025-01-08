@@ -2,7 +2,8 @@ Class {
 	#name : 'ScpHandler',
 	#superclass : 'Object',
 	#instVars : [
-		'block'
+		'block',
+		'enabled'
 	],
 	#category : 'Scopeo-Method-Instrumentation-Handlers',
 	#package : 'Scopeo-Method-Instrumentation',
@@ -15,6 +16,18 @@ ScpHandler >> block [
 	^ block
 ]
 
+{ #category : 'testing' }
+ScpHandler >> disable [
+
+	enabled := false
+]
+
+{ #category : 'testing' }
+ScpHandler >> enable [
+
+	enabled := true
+]
+
 { #category : 'parameters' }
 ScpHandler >> evaluate: aBlock [
 
@@ -25,4 +38,16 @@ ScpHandler >> evaluate: aBlock [
 ScpHandler >> handle: anOperation [
 
 	self subclassResponsibility
+]
+
+{ #category : 'initialization' }
+ScpHandler >> initialize [
+
+	self enable
+]
+
+{ #category : 'testing' }
+ScpHandler >> isEnabled [
+
+	^ enabled
 ]

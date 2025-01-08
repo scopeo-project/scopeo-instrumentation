@@ -3,33 +3,34 @@ Class {
 	#superclass : 'Object',
 	#instVars : [
 		'instrumentation',
-		'originalMethod',
 		'modifier',
 		'methodHandler',
-		'handler'
+		'handler',
+		'methodOriginal',
+		'methodModified'
 	],
 	#category : 'Scopeo-Method-Instrumentation-Core',
 	#package : 'Scopeo-Method-Instrumentation',
 	#tag : 'Core'
 }
 
-{ #category : 'compiling' }
+{ #category : 'services' }
 ScpMethodInstrumentationInstaller >> compile [
 
-	| ast modifiedMethod |
+	| ast |
 
-	ast := modifier visitMethod: originalMethod.
+	ast := modifier visitMethod: methodOriginal.
 	
-	modifiedMethod := originalMethod 
+	methodModified := methodOriginal 
 		methodClass compiler 
 		compile: ast source.
 	
-	ScpModifiedMethod adoptInstance: modifiedMethod.
-	modifiedMethod ast: ast.
-	modifiedMethod sourceCode: originalMethod sourceCode.
-	modifiedMethod instrumentation: self.
+	ScpModifiedMethod adoptInstance: methodModified.
+	methodModified ast: ast.
+	methodModified sourceCode: methodOriginal sourceCode.
+	methodModified instrumentation: self.
 	
-	^ modifiedMethod
+	^ methodModified
 ]
 
 { #category : 'initialization' }
@@ -42,26 +43,37 @@ ScpMethodInstrumentationInstaller >> initialize [
 { #category : 'services' }
 ScpMethodInstrumentationInstaller >> install [
 	
-	originalMethod methodClass
-		addAndClassifySelector: originalMethod selector
-		withMethod: (ScpMethodInstrumented new
-			handler: methodHandler;
-			method: self compile;
- 			yourself)
-		inProtocol: originalMethod protocol
+	self compile.
+	
+	methodOriginal methodClass ifNotNil: [ :class | 
+		class addAndClassifySelector: methodOriginal selector
+			withMethod: (ScpMethodInstrumented new
+				handler: methodHandler;
+				method: methodModified;
+ 				yourself)
+			inProtocol: methodOriginal protocol.
+	].
+	
+	^ methodModified
 		
-]
-
-{ #category : 'accessing' }
-ScpMethodInstrumentationInstaller >> method [
-
-	^ originalMethod
 ]
 
 { #category : 'parameters' }
 ScpMethodInstrumentationInstaller >> method: aMethod [
 
-	originalMethod := aMethod
+	methodOriginal := aMethod
+]
+
+{ #category : 'accessing' }
+ScpMethodInstrumentationInstaller >> methodModified [
+
+	^ methodModified
+]
+
+{ #category : 'accessing' }
+ScpMethodInstrumentationInstaller >> methodOriginal [
+
+	^ methodOriginal 
 ]
 
 { #category : 'parameters' }
@@ -91,9 +103,13 @@ ScpMethodInstrumentationInstaller >> registerMethodInstrumentation: aMethod [
 { #category : 'services' }
 ScpMethodInstrumentationInstaller >> uninstall [
 
-	originalMethod methodClass
-		addAndClassifySelector: originalMethod selector
-		withMethod: originalMethod
-		inProtocol: originalMethod protocol
+	methodOriginal methodClass ifNotNil: [ :class |
+		class
+			addAndClassifySelector: methodOriginal selector
+			withMethod: methodOriginal
+			inProtocol: methodOriginal protocol
+	]
+
+	
 		
 ]
