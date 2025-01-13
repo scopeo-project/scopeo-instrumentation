@@ -1,6 +1,6 @@
 Extension { #name : 'CompiledMethod' }
 
-{ #category : '*Scopeo-Instrumentation' }
+{ #category : '*Scopeo-Method-Instrumentation' }
 CompiledMethod >> isInstrumented [
 
 	^ false

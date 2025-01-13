@@ -5,8 +5,8 @@ Class {
 		'method',
 		'indirection'
 	],
-	#category : 'Scopeo-Instrumentation',
-	#package : 'Scopeo-Instrumentation'
+	#category : 'Scopeo-Method-Instrumentation',
+	#package : 'Scopeo-Method-Instrumentation'
 }
 
 { #category : 'reflective operations' }
@@ -24,12 +24,6 @@ ScpMethodInstrumented >> doesNotUnderstand: aMessage [
 ScpMethodInstrumented >> indirection: aMethodIndirection [
 
 	indirection := aMethodIndirection
-]
-
-{ #category : 'initialization' }
-ScpMethodInstrumented >> initialize [
-
-	indirection := ScpMethodIndirection class >> #run:on:arguments: 
 ]
 
 { #category : 'accessing' }

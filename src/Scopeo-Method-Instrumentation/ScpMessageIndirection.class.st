@@ -1,9 +1,8 @@
 Class {
 	#name : 'ScpMessageIndirection',
 	#superclass : 'ScpNodeIndirection',
-	#category : 'Scopeo-Instrumentation-GenericMethodModification',
-	#package : 'Scopeo-Instrumentation',
-	#tag : 'GenericMethodModification'
+	#category : 'Scopeo-Method-Instrumentation',
+	#package : 'Scopeo-Method-Instrumentation'
 }
 
 { #category : 'private - services' }

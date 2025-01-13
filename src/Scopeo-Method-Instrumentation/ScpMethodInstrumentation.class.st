@@ -1,33 +1,43 @@
 Class {
-	#name : 'ScpInstrumentation',
+	#name : 'ScpMethodInstrumentation',
 	#superclass : 'Object',
 	#instVars : [
 		'modifier',
 		'methodIndirection',
 		'instrumented'
 	],
-	#category : 'Scopeo-Instrumentation-ScopeoMethodInstrumentation',
-	#package : 'Scopeo-Instrumentation',
-	#tag : 'ScopeoMethodInstrumentation'
+	#category : 'Scopeo-Method-Instrumentation',
+	#package : 'Scopeo-Method-Instrumentation'
 }
 
-{ #category : 'parameters' }
-ScpInstrumentation >> addIndirection: anIndirection [
+{ #category : 'cleanup' }
+ScpMethodInstrumentation class >> uninstallAll [
 
-	anIndirection registerInModifier: modifier
+	self class allInstancesDo: [ :i |
+		i uninstall	
+	]
+]
+
+{ #category : 'parameters' }
+ScpMethodInstrumentation >> addIndirection: anIndirection [
+
+	anIndirection register: self
 ]
 
 { #category : 'initialization' }
-ScpInstrumentation >> initialize [
+ScpMethodInstrumentation >> initialize [
 
 	modifier := ScpMethodModifier new.
-	instrumented := IdentitySet new
+	instrumented := IdentitySet new.
+	methodIndirection := ScpMethodIndirection class >> #run:on:arguments:.
 ]
 
 { #category : 'services' }
-ScpInstrumentation >> installOn: aMethod [
+ScpMethodInstrumentation >> installOn: aMethod [
 	
 	| ast modifiedMethod |
+	
+	self halt.
 	
 	ast := modifier visitMethod: aMethod.
 	
@@ -56,25 +66,25 @@ ScpInstrumentation >> installOn: aMethod [
 ]
 
 { #category : 'private' }
-ScpInstrumentation >> registerAssignmentIndirection: anIndirection [
+ScpMethodInstrumentation >> registerAssignmentIndirection: anIndirection [
 
 	modifier addAssignmentIndirection: anIndirection
 ]
 
 { #category : 'private' }
-ScpInstrumentation >> registerMessageIndirection: anIndirection [
+ScpMethodInstrumentation >> registerMessageIndirection: anIndirection [
 
 	modifier addMessageIndirection: anIndirection
 ]
 
 { #category : 'private' }
-ScpInstrumentation >> registerMethodIndirection: anIndirection [
+ScpMethodInstrumentation >> registerMethodIndirection: anIndirection [
 
-	methodIndirection := anIndirection
+	methodIndirection := anIndirection generate
 ]
 
 { #category : 'services' }
-ScpInstrumentation >> uninstall [
+ScpMethodInstrumentation >> uninstall [
 
 	instrumented do: [ :m |
 		m methodClass ifNotNil: [ :class |

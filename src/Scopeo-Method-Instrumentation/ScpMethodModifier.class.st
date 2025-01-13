@@ -7,9 +7,8 @@ Class {
 		'messageIndirection',
 		'returnIndirection'
 	],
-	#category : 'Scopeo-Instrumentation-GenericMethodModification',
-	#package : 'Scopeo-Instrumentation',
-	#tag : 'GenericMethodModification'
+	#category : 'Scopeo-Method-Instrumentation',
+	#package : 'Scopeo-Method-Instrumentation'
 }
 
 { #category : 'parameters' }

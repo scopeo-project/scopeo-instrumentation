@@ -1,8 +1,8 @@
 Class {
 	#name : 'ScpNodeIndirection',
 	#superclass : 'ScpIndirection',
-	#category : 'Scopeo-Instrumentation',
-	#package : 'Scopeo-Instrumentation'
+	#category : 'Scopeo-Method-Instrumentation',
+	#package : 'Scopeo-Method-Instrumentation'
 }
 
 { #category : 'private - services' }
