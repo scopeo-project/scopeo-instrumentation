@@ -1,6 +1,6 @@
 Class {
 	#name : 'ScpAssignmentIndirection',
-	#superclass : 'ScpIndirection',
+	#superclass : 'ScpNodeIndirection',
 	#category : 'Scopeo-Instrumentation-GenericMethodModification',
 	#package : 'Scopeo-Instrumentation',
 	#tag : 'GenericMethodModification'
@@ -9,20 +9,35 @@ Class {
 { #category : 'private - services' }
 ScpAssignmentIndirection >> generateFor: anAssignmentNode usingModifier: aModifier argument: anArgument [
 	
+	anArgument = #node ifTrue: [ 
+		^ RBLiteralValueNode value: anAssignmentNode
+	].
+	anArgument = #operation ifTrue: [ 
+		^  RBBlockNode
+				arguments: { RBVariableNode named: #v }
+				body: (RBSequenceNode statements: { 
+					RBAssignmentNode
+						variable: anAssignmentNode variable
+						value: (RBVariableNode named: #v) 
+				})
+	].
 	anArgument = #object ifTrue: [ 
 		^ RBVariableNode selfNode 
 	].
 	anArgument = #variable ifTrue: [ 
 		^ RBLiteralValueNode value: anAssignmentNode variable name 
 	].
+	anArgument = #oldValue ifTrue: [ 
+		^ anAssignmentNode variable
+	].
 	anArgument = #newValue ifTrue: [ 
 		^ aModifier visitNode: anAssignmentNode value 
 	].
-	self error: 'Unrecognized argument for an assignment indirection: ', anArgument asString
+	self error: 'Unrecognized argument for an variable assignment indirection: ', anArgument asString
 ]
 
 { #category : 'private - services' }
-ScpAssignmentIndirection >> registerInModifier: aMethodModifier [
+ScpAssignmentIndirection >> register: anInstrumentation [
 
-	aMethodModifier addAssignmentIndirection: self
+	anInstrumentation registerAssignmentIndirection: self
 ]

@@ -1,6 +1,6 @@
 Class {
 	#name : 'ScpMessageIndirection',
-	#superclass : 'ScpIndirection',
+	#superclass : 'ScpNodeIndirection',
 	#category : 'Scopeo-Instrumentation-GenericMethodModification',
 	#package : 'Scopeo-Instrumentation',
 	#tag : 'GenericMethodModification'
@@ -9,6 +9,14 @@ Class {
 { #category : 'private - services' }
 ScpMessageIndirection >> generateFor: aMessageNode usingModifier: aModifier argument: anArgument [
 
+	anArgument = #node ifTrue: [ 
+		^ RBLiteralValueNode value: aMessageNode
+	].
+	anArgument = #operation ifTrue: [ 
+		^  RBBlockNode body: (RBSequenceNode statements: { 
+				aMessageNode
+			})
+	].
 	anArgument = #selector ifTrue: [ 
 		^ RBLiteralValueNode value: aMessageNode selector 
 	].
@@ -27,7 +35,7 @@ ScpMessageIndirection >> generateFor: aMessageNode usingModifier: aModifier argu
 ]
 
 { #category : 'private - services' }
-ScpMessageIndirection >> registerInModifier: aMethodModifier [
+ScpMessageIndirection >> register: anInstrumentation [
 
-	aMethodModifier addMessageIndirection: self
+	anInstrumentation registerMessageIndirection: self
 ]

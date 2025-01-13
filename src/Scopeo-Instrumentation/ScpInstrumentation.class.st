@@ -2,114 +2,89 @@ Class {
 	#name : 'ScpInstrumentation',
 	#superclass : 'Object',
 	#instVars : [
-		'target',
-		'handler',
-		'handlerVariableName'
-	],
-	#classInstVars : [
-		'instance',
-		'enabled'
+		'modifier',
+		'methodIndirection',
+		'instrumented'
 	],
 	#category : 'Scopeo-Instrumentation-ScopeoMethodInstrumentation',
 	#package : 'Scopeo-Instrumentation',
 	#tag : 'ScopeoMethodInstrumentation'
 }
 
-{ #category : 'testing' }
-ScpInstrumentation class >> disable [
+{ #category : 'parameters' }
+ScpInstrumentation >> addIndirection: anIndirection [
 
-	enabled := false
+	anIndirection registerInModifier: modifier
 ]
 
-{ #category : 'testing' }
-ScpInstrumentation class >> enable [
+{ #category : 'initialization' }
+ScpInstrumentation >> initialize [
 
-	enabled := true
+	modifier := ScpMethodModifier new.
+	instrumented := IdentitySet new
 ]
 
-{ #category : 'testing' }
-ScpInstrumentation class >> isEnabled [
-
-	^ enabled ifNil: [ false ]
-]
-
-{ #category : 'cleanup' }
-ScpInstrumentation class >> uninstallAll [
-
-	<script: 'self uninstallAll'>
+{ #category : 'services' }
+ScpInstrumentation >> installOn: aMethod [
 	
-	ScpInstrumentationRegistry instance valuesDo: [ :i | i uninstall ]
-]
-
-{ #category : 'private' }
-ScpInstrumentation >> handler [
-
-	^ handler
-]
-
-{ #category : 'services' }
-ScpInstrumentation >> handler: aHandler [
-
-	handler := aHandler
-]
-
-{ #category : 'private' }
-ScpInstrumentation >> handlerVariableName [
-
-	^ handlerVariableName
-]
-
-{ #category : 'services' }
-ScpInstrumentation >> install [
-
-	^ self subclassResponsibility
-]
-
-{ #category : 'private' }
-ScpInstrumentation >> installHandlerVariableOn: anObject [
-
-	(anObject hasClassVarNamed: self handlerVariableName) ifTrue: [ ^ self ].
-	anObject addClassVarNamed: self handlerVariableName.	
-	anObject classVarNamed: self handlerVariableName put: self handler
-]
-
-{ #category : 'services' }
-ScpInstrumentation >> isInstalled [
-
-	^ ScpInstrumentationRegistry instance includesKey: target
-]
-
-{ #category : 'private' }
-ScpInstrumentation >> modification [
-
-	^ self subclassResponsibility
-]
-
-{ #category : 'private' }
-ScpInstrumentation >> target [
-
-	^ target
-]
-
-{ #category : 'services' }
-ScpInstrumentation >> target: anObjectOrClass [
-
-	target := anObjectOrClass.
+	| ast modifiedMethod |
 	
-	handlerVariableName := #handler, target hash asString
+	ast := modifier visitMethod: aMethod.
 	
+	modifiedMethod := aMethod 
+		methodClass compiler 
+		compile: ast source.
+	
+	ScpModifiedMethod adoptInstance: modifiedMethod.
+	modifiedMethod ast: ast.
+	modifiedMethod sourceCode: aMethod sourceCode.
+	modifiedMethod instrumentation: self.
+	
+	instrumented add: modifiedMethod.
+	
+	aMethod methodClass ifNotNil: [ :class | 
+		class addAndClassifySelector: aMethod selector
+			withMethod: (ScpMethodInstrumented new
+				indirection: methodIndirection;
+				method: modifiedMethod;
+ 				yourself)
+			inProtocol: aMethod protocol.
+	].
+	
+	^ modifiedMethod
+		
+]
+
+{ #category : 'private' }
+ScpInstrumentation >> registerAssignmentIndirection: anIndirection [
+
+	modifier addAssignmentIndirection: anIndirection
+]
+
+{ #category : 'private' }
+ScpInstrumentation >> registerMessageIndirection: anIndirection [
+
+	modifier addMessageIndirection: anIndirection
+]
+
+{ #category : 'private' }
+ScpInstrumentation >> registerMethodIndirection: anIndirection [
+
+	methodIndirection := anIndirection
 ]
 
 { #category : 'services' }
 ScpInstrumentation >> uninstall [
 
-	^ self subclassResponsibility
-]
-
-{ #category : 'private' }
-ScpInstrumentation >> uninstallHandlerVariableFrom: anObject [
-
-	(anObject hasClassVarNamed: self handlerVariableName) ifFalse: [ ^ self ].
-	anObject removeClassVarNamed: self handlerVariableName
+	instrumented do: [ :m |
+		m methodClass ifNotNil: [ :class |
+			class
+				addAndClassifySelector: m selector
+				withMethod: m original
+				inProtocol: m protocol
+		]
+	]
+	
+	
 
 ]
