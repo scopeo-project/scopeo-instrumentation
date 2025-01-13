@@ -7,7 +7,7 @@ Class {
 
 { #category : 'private' }
 ScpMethodIndirection class >> run: aMethod on: aReceiver arguments: aArguments [
-	self halt.
+	
 	^ aReceiver withArgs: aArguments executeMethod: aMethod 
 ]
 

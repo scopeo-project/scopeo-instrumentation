@@ -124,11 +124,7 @@ ScpMethodModifier >> visitMethod: aMethod [
 { #category : 'visiting' }
 ScpMethodModifier >> visitMethodNode: aMethodNode [
 
-	aMethodNode lastIsReturn ifFalse: [
-		aMethodNode addSelfReturn
-	].
-
-	^ super visitMethodNode: aMethodNode 
+	^ aMethodNode 
 ]
 
 { #category : 'visiting' }

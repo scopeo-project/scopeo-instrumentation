@@ -34,35 +34,29 @@ ScpMethodInstrumentation >> initialize [
 
 { #category : 'services' }
 ScpMethodInstrumentation >> installOn: aMethod [
-	
+
 	| ast modifiedMethod |
-	
-	self halt.
-	
 	ast := modifier visitMethod: aMethod.
-	
-	modifiedMethod := aMethod 
-		methodClass compiler 
-		compile: ast source.
-	
+
+	modifiedMethod := ast doSemanticAnalysis generateMethod.
+
 	ScpModifiedMethod adoptInstance: modifiedMethod.
 	modifiedMethod ast: ast.
 	modifiedMethod sourceCode: aMethod sourceCode.
 	modifiedMethod instrumentation: self.
-	
+
 	instrumented add: modifiedMethod.
-	
-	aMethod methodClass ifNotNil: [ :class | 
-		class addAndClassifySelector: aMethod selector
+
+	aMethod methodClass ifNotNil: [ :class |
+		class
+			addAndClassifySelector: aMethod selector
 			withMethod: (ScpMethodInstrumented new
-				indirection: methodIndirection;
-				method: modifiedMethod;
- 				yourself)
-			inProtocol: aMethod protocol.
-	].
-	
+					 indirection: methodIndirection;
+					 method: modifiedMethod;
+					 yourself)
+			inProtocol: aMethod protocol ].
+
 	^ modifiedMethod
-		
 ]
 
 { #category : 'private' }
