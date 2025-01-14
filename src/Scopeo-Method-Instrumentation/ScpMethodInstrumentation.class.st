@@ -28,7 +28,7 @@ ScpMethodInstrumentation >> addIndirection: anIndirection [
 ScpMethodInstrumentation >> initialize [
 
 	modifier := ScpMethodModifier new.
-	instrumented := IdentitySet new.
+	instrumented := WeakValueDictionary new.
 	methodIndirection := ScpMethodIndirection class >> #run:on:arguments:.
 ]
 
@@ -45,7 +45,7 @@ ScpMethodInstrumentation >> installOn: aMethod [
 	modifiedMethod instrumentation: self.
 	modifiedMethod original: aMethod.
 
-	instrumented add: modifiedMethod.
+	instrumented at: aMethod name put: modifiedMethod.
 
 	aMethod methodClass ifNotNil: [ :class |
 		class
@@ -77,10 +77,18 @@ ScpMethodInstrumentation >> registerMethodIndirection: anIndirection [
 	methodIndirection := anIndirection generate
 ]
 
+{ #category : 'as yet unclassified' }
+ScpMethodInstrumentation >> reinstall [
+
+	instrumented valuesDo: [ :m | 
+		self installOn: m original 
+	]
+]
+
 { #category : 'services' }
 ScpMethodInstrumentation >> uninstall [
 
-	instrumented do: [ :m |
+	instrumented valuesDo: [ :m |
 		m methodClass ifNotNil: [ :class |
 			class
 				addAndClassifySelector: m selector
