@@ -11,7 +11,8 @@ Class {
 { #category : 'accessing' }
 ScpMethodUpdater class >> start [
 
-	instance ifNil: [ instance := self new ]
+	instance ifNil: [ instance := self new ].
+	instance start
 ]
 
 { #category : 'accessing' }
@@ -30,7 +31,7 @@ ScpMethodUpdater >> handleMethodModified: aMethodModified [
 ]
 
 { #category : 'initialization' }
-ScpMethodUpdater >> initialize [
+ScpMethodUpdater >> start [
 
 	self class codeChangeAnnouncer
 		when: MethodModified
