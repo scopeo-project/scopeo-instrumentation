@@ -13,7 +13,7 @@ Class {
 { #category : 'cleanup' }
 ScpMethodInstrumentation class >> uninstallAll [
 
-	self class allInstancesDo: [ :i |
+	self allInstancesDo: [ :i |
 		i uninstall	
 	]
 ]
@@ -37,13 +37,13 @@ ScpMethodInstrumentation >> installOn: aMethod [
 
 	| ast modifiedMethod |
 	ast := modifier visitMethod: aMethod.
-
-	modifiedMethod := ast doSemanticAnalysis generateMethod.
+	modifiedMethod := ast generateMethod.
 
 	ScpModifiedMethod adoptInstance: modifiedMethod.
 	modifiedMethod ast: ast.
 	modifiedMethod sourceCode: aMethod sourceCode.
 	modifiedMethod instrumentation: self.
+	modifiedMethod original: aMethod.
 
 	instrumented add: modifiedMethod.
 

@@ -29,6 +29,26 @@ ScpMethodInstrumentationTest >> methodWithAssignmentObservable [
 ]
 
 { #category : 'helpers' }
+ScpMethodInstrumentationTest >> methodWithAssignmentWithMessage [ 
+
+	instVar := 42 asFloat
+]
+
+{ #category : 'helpers' }
+ScpMethodInstrumentationTest >> methodWithCascadeMessage [
+
+	Transcript
+		show: 42;
+		yourself
+]
+
+{ #category : 'helpers' }
+ScpMethodInstrumentationTest >> methodWithMessage [
+
+	42 printString
+]
+
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithMessageInBlock [
 
 	[ :v | v printString ] value: 42
@@ -37,7 +57,7 @@ ScpMethodInstrumentationTest >> methodWithMessageInBlock [
 { #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithMessageInBlockInBlock [
 
-	 [ [ :v | v printString ] value: 42 ] value 
+	 [ [ :v | v printString ] value: 42 ] value
 ]
 
 { #category : 'helpers' }
@@ -266,103 +286,123 @@ ScpMethodInstrumentationTest >> testMessage [
 { #category : 'tests' }
 ScpMethodInstrumentationTest >> testMessageInBlock [
 
-	| operation |
+	| sender selector receiver arguments |
 	
 	"Arrange"
-	operation := nil.
-	
-	(self class >> #methodWithMessageInBlock) instrumentation
-		 register: (ScpMessageInstrumentation new
-				handler: (ScpBeforeHandler new
-					evaluate: [ :op | operation := op ];
-					yourself);
-				condition: [ :n | n receiver isBlock not ]
-				yourself);
-	 	 install.
+	ScpMethodInstrumentation new
+		addIndirection: (ScpMessageIndirection new
+			handler: [ :snd :sct :rcv :args | 
+				sender	 := snd.
+				selector := sct.
+				receiver := rcv.
+				arguments := args.
+			];
+			condition: [ :n | n receiver isBlock not ];
+			selector: #value:value:value:value:;
+			arguments: #( sender selector receiver arguments );
+			yourself
+		);
+		installOn: (self class >> #methodWithMessageInBlock).
 	
 	"Act"
 	self methodWithMessageInBlock.
 	
 	"Assert"
-	self assert: operation receiver equals: 42.
-	self assert: operation selector equals: #printString.
-	self assert: operation arguments isEmpty
+	self assert: sender equals: self.
+	self assert: receiver equals: 42.
+	self assert: selector equals: #printString.
+	self assert: arguments isEmpty
 ]
 
 { #category : 'tests' }
 ScpMethodInstrumentationTest >> testMessageInBlockInBlock [
 
-	| operation |
+	| sender selector receiver arguments |
 	
 	"Arrange"
-	operation := nil.
-	
-	(self class >> #methodWithMessageInBlockInBlock) instrumentation
-		 register: (ScpMessageInstrumentation new
-				handler: (ScpBeforeHandler new
-					evaluate: [ :op | operation := op ];
-					yourself);
-				condition: [ :n | n receiver isBlock not ]
-				yourself);
-	 	 install.
+	ScpMethodInstrumentation new
+		addIndirection: (ScpMessageIndirection new
+			handler: [ :snd :sct :rcv :args | 
+				sender	 := snd.
+				selector := sct.
+				receiver := rcv.
+				arguments := args.
+			];
+			condition: [ :n | n receiver isBlock not ];
+			selector: #value:value:value:value:;
+			arguments: #( sender selector receiver arguments );
+			yourself
+		);
+		installOn: (self class >> #methodWithMessageInBlockInBlock).
 	
 	"Act"
 	self methodWithMessageInBlockInBlock.
 	
 	"Assert"
-	self assert: operation receiver equals: 42.
-	self assert: operation selector equals: #printString.
-	self assert: operation arguments isEmpty
+	self assert: sender equals: self.
+	self assert: receiver equals: 42.
+	self assert: selector equals: #printString.
+	self assert: arguments isEmpty
 ]
 
 { #category : 'tests' }
 ScpMethodInstrumentationTest >> testMessageToBlock [
 
-	| operation |
+	| sender selector receiver arguments |
 	
 	"Arrange"
-	operation := nil.
-	
-	(self class >> #methodWithMessageToBlock) instrumentation
-		 register: (ScpMessageInstrumentation new
-				handler: (ScpBeforeHandler new
-					evaluate: [ :op | operation := op ];
-					yourself);
-				yourself);
-	 	 install.
+	ScpMethodInstrumentation new
+		addIndirection: (ScpMessageIndirection new
+			handler: [ :snd :sct :rcv :args | 
+				sender	 := snd.
+				selector := sct.
+				receiver := rcv.
+				arguments := args.
+			];
+			selector: #value:value:value:value:;
+			arguments: #( sender selector receiver arguments );
+			yourself
+		);
+		installOn: (self class >> #methodWithMessageToBlock).
 	
 	"Act"
 	self methodWithMessageToBlock.
 	
 	"Assert"
-	self assert: operation receiver isBlock.
-	self assert: operation selector equals: #value.
-	self assert: operation arguments isEmpty
+	self assert: sender equals: self.
+	self assert: receiver isBlock.
+	self assert: selector equals: #value.
+	self assert: arguments isEmpty
 ]
 
 { #category : 'tests' }
 ScpMethodInstrumentationTest >> testMessageWithArgument [
 
-	| operation |
+	| sender selector receiver arguments |
 	
 	"Arrange"
-	operation := nil.
-	
-	(self class >> #methodWithMessageWithArgument) instrumentation
-		 register: (ScpMessageInstrumentation new
-				handler: (ScpBeforeHandler new
-					evaluate: [ :op | operation := op ];
-					yourself);
-				yourself);
-	 	 install.
-	
+	ScpMethodInstrumentation new
+		addIndirection: (ScpMessageIndirection new
+			handler: [ :snd :sct :rcv :args | 
+				sender	 := snd.
+				selector := sct.
+				receiver := rcv.
+				arguments := args.
+			];
+			selector: #value:value:value:value:;
+			arguments: #( sender selector receiver arguments );
+			yourself
+		);
+		installOn: (self class >> #methodWithMessageWithArgument).
+		
 	"Act"
 	self methodWithMessageWithArgument.
 	
 	"Assert"
-	self assert: (operation receiver isKindOf: Collection).
-	self assert: operation selector equals: #at:.
-	self assert: operation arguments first equals: 4
+	self assert: sender equals: self.
+	self assert: (receiver isKindOf: Collection).
+	self assert: selector equals: #at:.
+	self assert: arguments first equals: 4
 ]
 
 { #category : 'tests' }
@@ -371,57 +411,61 @@ ScpMethodInstrumentationTest >> testReturn [
 	| operation |
 	
 	"Arrange"
-	operation := nil.
+	ScpMethodInstrumentation new
+		addIndirection: (ScpMethodIndirection new
+			handler: [ :op | operation := op ];
+			selector: #value:;
+			arguments: #( operation );
+			yourself
+		);
+		installOn: (self class >> #methodWithReturn).
 	
-	(self class >> #methodWithReturn) instrumentation
-		 register: (ScpMethodInstrumentation new
-				handler: (ScpAfterHandler new
-					evaluate: [ :op | operation := op ];
-					yourself);
-				yourself);
-	 	 install.
 	
 	"Act"
 	self methodWithReturn.
 	
 	"Assert"
-	self assert: operation result equals: 42
+	self assert: operation value equals: 42
 ]
 
 { #category : 'tests' }
 ScpMethodInstrumentationTest >> testReturnWithMessage [
 
-	| return message |
+	| instrumentation selector receiver arguments result |
 	
 	"Arrange"
-	return := nil.
-	message := nil.
+	instrumentation := ScpMethodInstrumentation new.
 	
-	(self class >> #methodWithReturnWithMessage) instrumentation
-		 register: (ScpMethodInstrumentation new
-				handler: (ScpAfterHandler new
-					evaluate: [ :op | return := op ];
-					yourself);
-				yourself);
-	 	 install.
+	instrumentation addIndirection: (ScpMessageIndirection new
+			handler: [ :op :sct :rcv :args | 
+				selector := sct.
+				receiver := rcv.
+				arguments := args.
+				op value
+			];
+			selector: #value:value:value:value:;
+			arguments: #( operation selector receiver arguments );
+			yourself
+		).
 
-	(self class >> #methodWithReturnWithMessage) instrumentation
-		 register: (ScpMessageInstrumentation new
-				handler: (ScpAfterHandler new
-					evaluate: [ :op | message := op ];
-					yourself);
-				yourself);
-	 	 install.
-	
+	instrumentation addIndirection: (ScpMethodIndirection new
+			handler: [ :op | 
+				result	 := op value.
+			];
+			selector: #value:;
+			arguments: #( operation );
+			yourself
+		).
+
+	instrumentation installOn: (self class >> #methodWithReturnWithMessage).
+		
 	"Act"
 	self methodWithReturnWithMessage.
 	
 	"Assert"
-	self assert: message isMessage.
-	self assert: message receiver equals: 42.
-	self assert: message selector equals: #asFloat.
-	self assert: message arguments isEmpty.
+	self assert: receiver equals: 42.
+	self assert: selector equals: #asFloat.
+	self assert: arguments isEmpty.
 	
-	self assert: return isMethod.
-	self assert: return result equals: 42.0
+	self assert: result equals: 42.0
 ]

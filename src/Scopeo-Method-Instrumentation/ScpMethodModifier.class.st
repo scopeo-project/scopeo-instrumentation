@@ -55,7 +55,10 @@ ScpMethodModifier >> visitAssignmentNode: anAssignmentNode [
 		detect: [ :in | in isApplicableFor: anAssignmentNode ]
 		ifFound: [ :in | ^ in generateFor: anAssignmentNode usingModifier: self ].
 
-	^ super visitAssignmentNode: anAssignmentNode
+	anAssignmentNode variable: (self visitNode: anAssignmentNode variable).
+	anAssignmentNode value: (self visitNode: anAssignmentNode value).
+
+	^ anAssignmentNode
 ]
 
 { #category : 'visiting' }
@@ -78,7 +81,7 @@ ScpMethodModifier >> visitCascadeNode: aCascadeNode [
 	statements add: ((RBAssignmentNode variable: receiverNodeVariable value: receiverNode) acceptVisitor: self).
 	
 	statements addAll: (aCascadeNode messages collect: [ :m | m receiver: receiverNodeVariable ]).
-	statements := statements collect: [ :s | s acceptVisitor: self ].
+	statements := statements collect: [ :s | self visitNode: s ].
 
 	cascadeNode := (RBMessageNode
 		  receiver: (RBBlockNode body: (RBSequenceNode
@@ -108,15 +111,25 @@ ScpMethodModifier >> visitMessageNode: aMessageNode [
 		detect: [ :in | in isApplicableFor: aMessageNode ]
 		ifFound: [ :in | ^ in generateFor: aMessageNode usingModifier: self ].
 
-	^ super visitMessageNode: aMessageNode
+	aMessageNode receiver: (self visitNode: aMessageNode receiver).
+	aMessageNode arguments: (aMessageNode arguments collect: [ :a | 
+		self visitNode: a.
+	]).
+
+	^ aMessageNode
 ]
 
 { #category : 'visiting' }
 ScpMethodModifier >> visitMethod: aMethod [
+
 	| ast |
 	
 	ast := aMethod parseTree.
 	self visitNode: ast.
+	
+	ast doSemanticAnalysis.
+	ast source: ast formattedCode.
+	
 	^ ast 
 	
 ]
@@ -124,17 +137,17 @@ ScpMethodModifier >> visitMethod: aMethod [
 { #category : 'visiting' }
 ScpMethodModifier >> visitMethodNode: aMethodNode [
 
+	 aMethodNode body: (self visit: aMethodNode body). 
+
 	^ aMethodNode 
 ]
 
 { #category : 'visiting' }
 ScpMethodModifier >> visitReturnNode: aReturnNode [
 
-	returnIndirection
-		detect: [ :in | in isApplicableFor: aReturnNode ]
-		ifFound: [ :in | ^ in generateFor: aReturnNode usingModifier: self ].
-
-	^ super visitReturnNode: aReturnNode
+	aReturnNode value: (self visitNode: aReturnNode value).
+	
+	^ aReturnNode
 ]
 
 { #category : 'visiting' }

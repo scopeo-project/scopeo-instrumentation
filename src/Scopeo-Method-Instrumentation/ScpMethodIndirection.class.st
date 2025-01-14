@@ -15,20 +15,19 @@ ScpMethodIndirection class >> run: aMethod on: aReceiver arguments: aArguments [
 ScpMethodIndirection >> generate [
 
 	^ (RBMethodNode
-		selector: #run:on:withArguments:
-		arguments: {
-				(RBVariableNode named: #aMethod).
-				(RBVariableNode named: #aReceiver).
-				(RBVariableNode named: #aArguments) 
-		}
-		body: (RBSequenceNode statements: { 
-			(RBReturnNode value: (RBMessageNode
-					receiver: (RBLiteralValueNode value: handler)
-					selector: selector
-					arguments: (arguments collect: [ :a | self generateArgument: a ])
-				)
-			) 	
-		})) generate
+		   selector: #run:on:arguments:
+		   arguments: {
+				   (RBVariableNode named: #aMethod).
+				   (RBVariableNode named: #aReceiver).
+				   (RBVariableNode named: #aArguments) }
+		   body:
+			   (RBSequenceNode statements:
+				    { (RBReturnNode value: (RBMessageNode
+						      receiver: (RBLiteralValueNode value: handler)
+						      selector: selector
+						      arguments:
+						      (arguments collect: [ :a | self generateArgument: a ]))) }))
+		  generateMethod
 ]
 
 { #category : 'private - services' }
@@ -40,13 +39,11 @@ ScpMethodIndirection >> generateArgument: anArgument [
 	anArgument = #operation ifTrue: [ 
 		^ RBBlockNode body: (RBSequenceNode statements: { (RBMessageNode
 			    receiver: (RBVariableNode named: #aReceiver)
-			    selector: #perform:withArgs:
+			    selector: #withArgs:executeMethod:
 			    arguments: {
-					    (RBMessageNode
-						     receiver: (RBVariableNode named: #aMethod)
-						     selector: #selector).
-					    (RBVariableNode named: #aArguments)
-				}) 
+						RBVariableNode named: #aArguments.
+						RBVariableNode named: #aMethod
+				 }) 
 		  })
 	].
 	anArgument = #sender ifTrue: [ 
