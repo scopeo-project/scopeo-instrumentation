@@ -24,9 +24,13 @@ ScpMethodUpdater class >> stop [
 { #category : 'system annoucements' }
 ScpMethodUpdater >> handleMethodModified: aMethodModified [
 
-	aMethodModified oldMethod isInstrumented ifTrue: [ 
-		 aMethodModified oldMethod instrumentation 
-			installOn: aMethodModified newMethod
+	| oldMethod newMethod |
+	
+	oldMethod := aMethodModified oldMethod.
+	newMethod := aMethodModified newMethod.
+
+	(oldMethod isInstrumented and: [ newMethod isInstrumented not ]) ifTrue: [ 
+		 oldMethod instrumentation installOn: newMethod
 	]
 ]
 
