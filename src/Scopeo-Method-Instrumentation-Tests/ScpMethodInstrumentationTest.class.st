@@ -125,7 +125,7 @@ ScpMethodInstrumentationTest >> testAssignment [
 	
 	"Assert"
 	self assert: object equals: self.
-	self assert: variable equals: #instVar.
+	self assert: variable name equals: #instVar.
 	self assert: oldValue equals: nil.
 	self assert: newValue equals: 42.
 	self assert: instVar equals: nil.
@@ -156,7 +156,7 @@ ScpMethodInstrumentationTest >> testAssignmentObservable [
 	
 	"Assert"
 	self assert: object equals: self.
-	self assert: variable equals: #observableInstVar.
+	self assert: variable name equals: #observableInstVar.
 	self assert: oldValue equals: nil.
 	self assert: newValue equals: 42
 ]
@@ -201,7 +201,7 @@ ScpMethodInstrumentationTest >> testAssignmentWithMessage [
 	
 	"Assert"
 	self assert: object equals: self.
-	self assert: variable equals: #instVar.
+	self assert: variable name equals: #instVar.
 	self assert: oldValue equals: nil.
 	self assert: newValue equals: 84.
 	

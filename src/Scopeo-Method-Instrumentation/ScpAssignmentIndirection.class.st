@@ -24,7 +24,7 @@ ScpAssignmentIndirection >> generateFor: anAssignmentNode usingModifier: aModifi
 		^ RBVariableNode selfNode 
 	].
 	anArgument = #variable ifTrue: [ 
-		^ RBLiteralValueNode value: anAssignmentNode variable name 
+		^ RBLiteralValueNode value: anAssignmentNode variable variable
 	].
 	anArgument = #oldValue ifTrue: [ 
 		^ anAssignmentNode variable

@@ -77,7 +77,7 @@ ScpMethodInstrumentation >> registerMethodIndirection: anIndirection [
 	methodIndirection := anIndirection generate
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'services' }
 ScpMethodInstrumentation >> reinstall [
 
 	instrumented valuesDo: [ :m | 
