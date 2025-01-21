@@ -1,6 +1,6 @@
 # Scopeo instrumentation
 
-![Unit tests badge](https://img.shields.io/github/actions/workflow/status/scopeo-project/scopeo-instrumentation/tests.yml?label=Unit%20tests)
+![Unit tests badge](https://img.shields.io/github/actions/workflow/status/scopeo-project/scopeo-instrumentation/tests.yml?label=Unit%20tests&branch=main)
 
 A library to install instrumentation on Pharo smalltalk methods.
 
