@@ -124,7 +124,7 @@ ScpMethodModifier >> visitMethod: aMethod [
 
 	| ast |
 	
-	ast := aMethod parseTree.
+	ast := aMethod ast copy.
 	self visitNode: ast.
 	
 	ast doSemanticAnalysis.

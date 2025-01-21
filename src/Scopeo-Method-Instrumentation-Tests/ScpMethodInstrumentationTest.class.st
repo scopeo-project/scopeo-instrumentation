@@ -61,6 +61,12 @@ ScpMethodInstrumentationTest >> methodWithMessageInBlockInBlock [
 ]
 
 { #category : 'helpers' }
+ScpMethodInstrumentationTest >> methodWithMessageReceiver [
+
+	42 printString crTrace
+]
+
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithMessageToBlock [
 
 	[ ] value
@@ -343,6 +349,35 @@ ScpMethodInstrumentationTest >> testMessageInBlockInBlock [
 	self assert: receiver equals: 42.
 	self assert: selector equals: #printString.
 	self assert: arguments isEmpty
+]
+
+{ #category : 'tests' }
+ScpMethodInstrumentationTest >> testMessageReceiver [ 
+	
+	| selectors |
+	
+	"Arrange"
+	selectors := OrderedCollection new.
+	
+	ScpMethodInstrumentation new
+		addIndirection: (ScpMessageIndirection new
+			handler: [ :op :sct | 
+				selectors add: sct.
+				op value
+			];
+			selector: #value:value:;
+			arguments: #( operation selector );
+			yourself
+		);
+		installOn: (self class >> #methodWithMessageReceiver).
+	
+	"Act"
+	self methodWithMessageReceiver.
+	
+	"Assert"
+	self assert: selectors size equals: 2.
+	self assert: selectors first equals: #crTrace.
+	self assert: selectors second equals: #printString
 ]
 
 { #category : 'tests' }

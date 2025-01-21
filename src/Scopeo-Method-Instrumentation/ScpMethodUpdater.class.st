@@ -25,7 +25,7 @@ ScpMethodUpdater class >> stop [
 ScpMethodUpdater >> handleMethodModified: aMethodModified [
 
 	| oldMethod newMethod |
-	
+
 	oldMethod := aMethodModified oldMethod.
 	newMethod := aMethodModified newMethod.
 

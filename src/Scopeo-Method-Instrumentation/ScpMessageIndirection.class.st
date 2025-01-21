@@ -13,7 +13,12 @@ ScpMessageIndirection >> generateFor: aMessageNode usingModifier: aModifier argu
 	].
 	anArgument = #operation ifTrue: [ 
 		^  RBBlockNode body: (RBSequenceNode statements: { 
-				aMessageNode
+				RBMessageNode
+					receiver: (aModifier visitNode: aMessageNode receiver) 
+					selector: aMessageNode selector 
+					arguments: (aMessageNode arguments collect: [ :a | 
+						aModifier visitNode: a.
+					]) 
 			})
 	].
 	anArgument = #selector ifTrue: [ 

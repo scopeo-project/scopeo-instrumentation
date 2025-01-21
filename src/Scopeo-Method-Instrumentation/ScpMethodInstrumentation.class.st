@@ -24,6 +24,22 @@ ScpMethodInstrumentation >> addIndirection: anIndirection [
 	anIndirection register: self
 ]
 
+{ #category : 'services' }
+ScpMethodInstrumentation >> applyOn: aMethod [
+
+	| ast modifiedMethod |
+	ast := modifier visitMethod: aMethod.
+	modifiedMethod := ast generateMethod.
+
+	ScpModifiedMethod adoptInstance: modifiedMethod.
+	modifiedMethod ast: ast.
+	modifiedMethod sourceCode: aMethod sourceCode.
+	modifiedMethod instrumentation: self.
+	modifiedMethod original: aMethod.
+	
+	^ modifiedMethod
+]
+
 { #category : 'initialization' }
 ScpMethodInstrumentation >> initialize [
 
@@ -35,15 +51,9 @@ ScpMethodInstrumentation >> initialize [
 { #category : 'services' }
 ScpMethodInstrumentation >> installOn: aMethod [
 
-	| ast modifiedMethod |
-	ast := modifier visitMethod: aMethod.
-	modifiedMethod := ast generateMethod.
+	| modifiedMethod |
 
-	ScpModifiedMethod adoptInstance: modifiedMethod.
-	modifiedMethod ast: ast.
-	modifiedMethod sourceCode: aMethod sourceCode.
-	modifiedMethod instrumentation: self.
-	modifiedMethod original: aMethod.
+	modifiedMethod := self applyOn: aMethod.
 
 	instrumented at: aMethod name put: modifiedMethod.
 
@@ -54,7 +64,8 @@ ScpMethodInstrumentation >> installOn: aMethod [
 					 indirection: methodIndirection;
 					 method: modifiedMethod;
 					 yourself)
-			inProtocol: aMethod protocol ].
+			inProtocol: aMethod protocol 
+	].
 
 	^ modifiedMethod
 ]
@@ -90,6 +101,7 @@ ScpMethodInstrumentation >> uninstall [
 
 	instrumented valuesDo: [ :m |
 		m methodClass ifNotNil: [ :class |
+			class removeSelectorSilently: m selector.
 			class
 				addAndClassifySelector: m selector
 				withMethod: m original
