@@ -222,8 +222,7 @@ ScpMethodInstrumentationTest >> testCascadeMessage [
 
 	| operations |
 	
-	"Arrange"
-	
+	"Arrange"	
 	operations := OrderedCollection new.
 	
 	ScpMethodInstrumentation new

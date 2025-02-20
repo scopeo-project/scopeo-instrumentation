@@ -72,22 +72,21 @@ ScpMethodModifier >> visitBlockNode: aBlockNode [
 { #category : 'visiting' }
 ScpMethodModifier >> visitCascadeNode: aCascadeNode [
 
-	"
-	
+	"	
 	Replace cascade messages with a block containing all the messages statements to enable message modification later on.
 	Using a block makes it easier to ""flatten"" the cascade. 
 	We avoid the need to insert the new nodes directly to the body of the method or to lookout for temporary variables conflicts.   
 	However we might loose efficiency at runtime, maybe well need to benchmark and think about a smarter way to modify cascades in the future.
 	
 	Example:
-		
+	
 		aReceiver                [ | receiver |    
 			selector: arg;   ->     receiver := aReceiver.												 
 			yourself                receiver selector: arg. 
 			                        receiver yourself ] value
 	"
 	| receiverNode receiverNodeVariable statements |
-
+	
 	"Extract the cascade receiver into a new node (visit the receiver to modify it if it is a message)."
 	receiverNode := self visitNode: aCascadeNode receiver.
 	receiverNodeVariable := RBVariableNode named: 'receiver_' , aCascadeNode hash asString.
@@ -96,10 +95,11 @@ ScpMethodModifier >> visitCascadeNode: aCascadeNode [
 	statements := OrderedCollection new.
 	statements add: (RBAssignmentNode variable: receiverNodeVariable value: receiverNode).
 	statements addAll: (aCascadeNode messages collect: [ :m | 
-		m receiver: receiverNodeVariable.
-		
-		"Visit all the newly created messages to apply modifications if needed."
-		self visitNode: m
+		"Create new messages and apply modifications if needed."
+		self visitNode: (RBMessageNode
+			receiver: receiverNodeVariable 
+			selector: m selector 
+			arguments: m arguments)
 	]).
 
 	^ RBMessageNode
@@ -155,11 +155,12 @@ ScpMethodModifier >> visitMethod: aMethod [
 ScpMethodModifier >> visitMethodNode: aMethodNode [
 
 	^ (RBMethodNode
-		selector: aMethodNode selector 
-		arguments: aMethodNode arguments
-		body: (self visitNode: aMethodNode body))
-		methodClass: aMethodNode methodClass;
-		pragmas: aMethodNode pragmas
+			selector: aMethodNode selector 
+			arguments: aMethodNode arguments
+			body: (self visitNode: aMethodNode body))
+			methodClass: aMethodNode methodClass;
+			pragmas: aMethodNode pragmas;
+			yourself
 ]
 
 { #category : 'visiting' }
