@@ -28,9 +28,10 @@ ScpMethodInstrumentation >> addIndirection: anIndirection [
 ScpMethodInstrumentation >> applyOn: aMethod [
 
 	| ast modifiedMethod |
+
 	ast := modifier visitMethod: aMethod.
 	modifiedMethod := ast generateMethod.
-
+	
 	ScpModifiedMethod adoptInstance: modifiedMethod.
 	modifiedMethod ast: ast.
 	modifiedMethod sourceCode: aMethod sourceCode.

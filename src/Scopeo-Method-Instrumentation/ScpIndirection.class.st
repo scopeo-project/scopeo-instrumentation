@@ -19,16 +19,16 @@ ScpIndirection >> arguments: aCollection [
 ]
 
 { #category : 'parameters' }
-ScpIndirection >> condition: aConditionBlock [
-
-	condition := aConditionBlock
-]
-
-{ #category : 'parameters' }
 ScpIndirection >> handler: anObject [
 
 	handler := anObject.
 	handlerASTNode := RBLiteralValueNode value: handler
+]
+
+{ #category : 'initialization' }
+ScpIndirection >> initialize [
+
+	arguments := OrderedCollection new
 ]
 
 { #category : 'parameters' }

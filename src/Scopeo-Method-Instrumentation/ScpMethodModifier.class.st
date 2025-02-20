@@ -43,7 +43,7 @@ ScpMethodModifier >> initialize [
 { #category : 'visiting' }
 ScpMethodModifier >> visitArrayNode: anArrayNode [
 
-	^ anArrayNode 
+	^ RBArrayNode 
 		statements: (anArrayNode statements collect: [ :each | self visitNode: each ]);
 		yourself
 ]
@@ -55,47 +55,65 @@ ScpMethodModifier >> visitAssignmentNode: anAssignmentNode [
 		detect: [ :in | in isApplicableFor: anAssignmentNode ]
 		ifFound: [ :in | ^ in generateFor: anAssignmentNode usingModifier: self ].
 
-	anAssignmentNode variable: (self visitNode: anAssignmentNode variable).
-	anAssignmentNode value: (self visitNode: anAssignmentNode value).
-
-	^ anAssignmentNode
+	^ RBAssignmentNode
+		variable: (self visitNode: anAssignmentNode variable) 
+		value: (self visitNode: anAssignmentNode value)
 ]
 
 { #category : 'visiting' }
 ScpMethodModifier >> visitBlockNode: aBlockNode [
 
-	^ aBlockNode
-		body: (self visitNode: aBlockNode body);
-		yourself
+	^ RBBlockNode 
+		arguments: aBlockNode arguments 
+		body: (self visitNode: aBlockNode body)
+
 ]
 
 { #category : 'visiting' }
 ScpMethodModifier >> visitCascadeNode: aCascadeNode [
 
-	| receiverNode receiverNodeVariable statements cascadeNode |
-
-	receiverNode := aCascadeNode receiver.
-	receiverNodeVariable := RBVariableNode named: #receiver.
-
-	statements := OrderedCollection new.
-	statements add: ((RBAssignmentNode variable: receiverNodeVariable value: receiverNode) acceptVisitor: self).
+	"
 	
-	statements addAll: (aCascadeNode messages collect: [ :m | m receiver: receiverNodeVariable ]).
-	statements := statements collect: [ :s | self visitNode: s ].
+	Replace cascade messages with a block containing all the messages statements to enable message modification later on.
+	Using a block makes it easier to ""flatten"" the cascade. 
+	We avoid the need to insert the new nodes directly to the body of the method or to lookout for temporary variables conflicts.   
+	However we might loose efficiency at runtime, maybe well need to benchmark and think about a smarter way to modify cascades in the future.
+	
+	Example:
+		
+		aReceiver                [ | receiver |    
+			selector: arg;   ->     receiver := aReceiver.												 
+			yourself                receiver selector: arg. 
+			                        receiver yourself ] value
+	"
+	| receiverNode receiverNodeVariable statements |
 
-	cascadeNode := (RBMessageNode
-		  receiver: (RBBlockNode body: (RBSequenceNode
-					    temporaries: { receiverNodeVariable }
-					    statements: statements))
-		  selector: #value).
+	"Extract the cascade receiver into a new node (visit the receiver to modify it if it is a message)."
+	receiverNode := self visitNode: aCascadeNode receiver.
+	receiverNodeVariable := RBVariableNode named: 'receiver_' , aCascadeNode hash asString.
 
-	^ cascadeNode 
+	"Transform cascading messages into a list of statment messages."
+	statements := OrderedCollection new.
+	statements add: (RBAssignmentNode variable: receiverNodeVariable value: receiverNode).
+	statements addAll: (aCascadeNode messages collect: [ :m | 
+		m receiver: receiverNodeVariable.
+		
+		"Visit all the newly created messages to apply modifications if needed."
+		self visitNode: m
+	]).
+
+	^ RBMessageNode
+		receiver: (RBBlockNode 
+			body: (RBSequenceNode
+				temporaries: { receiverNodeVariable }
+				statements: statements))
+		selector: #value 
 ]
 
 { #category : 'visiting' }
 ScpMethodModifier >> visitLiteralArrayNode: aRBLiteralArrayNode [
 
-	^ aRBLiteralArrayNode
+	^ aRBLiteralArrayNode 
 ]
 
 { #category : 'visiting' }
@@ -111,12 +129,12 @@ ScpMethodModifier >> visitMessageNode: aMessageNode [
 		detect: [ :in | in isApplicableFor: aMessageNode ]
 		ifFound: [ :in | ^ in generateFor: aMessageNode usingModifier: self ].
 
-	aMessageNode receiver: (self visitNode: aMessageNode receiver).
-	aMessageNode arguments: (aMessageNode arguments collect: [ :a | 
-		self visitNode: a.
-	]).
-
-	^ aMessageNode
+	^ RBMessageNode 
+		receiver: (self visitNode: aMessageNode receiver) 
+		selector: aMessageNode selector
+		arguments: (aMessageNode arguments collect: [ :a | 
+			self visitNode: a.
+		]) 
 ]
 
 { #category : 'visiting' }
@@ -124,8 +142,7 @@ ScpMethodModifier >> visitMethod: aMethod [
 
 	| ast |
 	
-	ast := aMethod ast copy.
-	self visitNode: ast.
+	ast := self visitNode: aMethod ast.
 	
 	ast doSemanticAnalysis.
 	ast source: ast formattedCode.
@@ -137,27 +154,29 @@ ScpMethodModifier >> visitMethod: aMethod [
 { #category : 'visiting' }
 ScpMethodModifier >> visitMethodNode: aMethodNode [
 
-	 aMethodNode body: (self visit: aMethodNode body). 
-
-	^ aMethodNode 
+	^ (RBMethodNode
+		selector: aMethodNode selector 
+		arguments: aMethodNode arguments
+		body: (self visitNode: aMethodNode body))
+		methodClass: aMethodNode methodClass;
+		pragmas: aMethodNode pragmas
 ]
 
 { #category : 'visiting' }
 ScpMethodModifier >> visitReturnNode: aReturnNode [
 
-	aReturnNode value: (self visitNode: aReturnNode value).
-	
-	^ aReturnNode
+	^ RBReturnNode
+		value: (self visitNode: aReturnNode value)
 ]
 
 { #category : 'visiting' }
 ScpMethodModifier >> visitSequenceNode: aSequenceNode [
 
-	aSequenceNode statements: (aSequenceNode statements collect: [ :s | 
-		self visitNode: s.
-	]).
-
-	^ aSequenceNode
+	^ RBSequenceNode 
+		temporaries: aSequenceNode temporaries 
+		statements: (aSequenceNode statements collect: [ :s | 
+			self visitNode: s.
+		])
 ]
 
 { #category : 'visiting' }

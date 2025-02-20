@@ -5,6 +5,12 @@ Class {
 	#package : 'Scopeo-Method-Instrumentation'
 }
 
+{ #category : 'parameters' }
+ScpNodeIndirection >> condition: aConditionBlock [
+
+	condition := aConditionBlock
+]
+
 { #category : 'private - services' }
 ScpNodeIndirection >> generateFor: aNode usingModifier: aModifier [
 
