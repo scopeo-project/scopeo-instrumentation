@@ -2,10 +2,8 @@ Class {
 	#name : 'ScpMethodInstrumenter',
 	#superclass : 'RBProgramNodeVisitor',
 	#instVars : [
-		'currentMethod',
 		'assignmentIndirection',
 		'messageIndirection',
-		'returnIndirection',
 		'methodIndirection',
 		'instrumentation'
 	],
@@ -32,16 +30,27 @@ ScpMethodInstrumenter >> addMethodIndirection: aMethodIndirection [
 	methodIndirection := aMethodIndirection
 ]
 
+{ #category : 'testing' }
+ScpMethodInstrumenter >> hasIndirectionForBody [
+
+	^ messageIndirection isNotEmpty or: [ assignmentIndirection isNotEmpty ]
+]
+
+{ #category : 'testing' }
+ScpMethodInstrumenter >> hasIndirectionForMethod [
+
+	^ methodIndirection isNotNil 
+]
+
 { #category : 'initialization' }
 ScpMethodInstrumenter >> initialize [
 
-	returnIndirection := Set new.
 	messageIndirection := Set new.
 	assignmentIndirection := Set new
 	
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'services' }
 ScpMethodInstrumenter >> instrument: aMethod [
 
 	| ast instrumented |
@@ -68,6 +77,12 @@ ScpMethodInstrumenter >> instrumentation: anInstrumentation [
 ]
 
 { #category : 'visiting' }
+ScpMethodInstrumenter >> visitArgumentNodes: anArgumentCollection [
+
+	^ anArgumentCollection collect: [ :each | self visitVariableNode: each ]
+]
+
+{ #category : 'visiting' }
 ScpMethodInstrumenter >> visitArrayNode: anArrayNode [
 
 	^ RBArrayNode 
@@ -91,7 +106,7 @@ ScpMethodInstrumenter >> visitAssignmentNode: anAssignmentNode [
 ScpMethodInstrumenter >> visitBlockNode: aBlockNode [
 
 	^ RBBlockNode 
-		arguments: aBlockNode arguments 
+		arguments: (self visitArgumentNodes: aBlockNode arguments)
 		body: (self visitNode: aBlockNode body)
 
 ]
@@ -146,7 +161,7 @@ ScpMethodInstrumenter >> visitLiteralArrayNode: aRBLiteralArrayNode [
 { #category : 'visiting' }
 ScpMethodInstrumenter >> visitLiteralNode: aLiteralNode [
 
-	^ aLiteralNode
+	^ aLiteralNode copy
 ]
 
 { #category : 'visiting' }
@@ -169,13 +184,13 @@ ScpMethodInstrumenter >> visitMethodNode: aMethodNode [
 
 	| methodNode indirection |
 
-	methodIndirection ifNil: [
+	self hasIndirectionForMethod ifFalse: [
 		^ (RBMethodNode
 				selector: aMethodNode selector 
-				arguments: aMethodNode arguments
+				arguments: (self visitArgumentNodes: aMethodNode arguments)
 				body: (self visitNode: aMethodNode body))
 				methodClass: aMethodNode methodClass;
-				pragmas: aMethodNode pragmas;
+				pragmas: (self visitPragmaNodes: aMethodNode pragmas);
 				yourself		
 	].
 	
@@ -191,6 +206,21 @@ ScpMethodInstrumenter >> visitMethodNode: aMethodNode [
 ]
 
 { #category : 'visiting' }
+ScpMethodInstrumenter >> visitPragmaNode: aPragmaNode [
+	
+	^ RBPragmaNode 
+		selector: aPragmaNode selector
+		arguments: (self visitArgumentNodes: aPragmaNode arguments)
+	
+]
+
+{ #category : 'visiting' }
+ScpMethodInstrumenter >> visitPragmaNodes: aNodeCollection [
+
+	^ aNodeCollection collect: [ :each | self visitPragmaNode: each ].
+]
+
+{ #category : 'visiting' }
 ScpMethodInstrumenter >> visitReturnNode: aReturnNode [
 
 	^ RBReturnNode
@@ -201,14 +231,20 @@ ScpMethodInstrumenter >> visitReturnNode: aReturnNode [
 ScpMethodInstrumenter >> visitSequenceNode: aSequenceNode [
 
 	^ RBSequenceNode 
-		temporaries: aSequenceNode temporaries 
+		temporaries: (self visitTemporaryNodes: aSequenceNode temporaries) 
 		statements: (aSequenceNode statements collect: [ :s | 
 			self visitNode: s.
 		])
 ]
 
 { #category : 'visiting' }
+ScpMethodInstrumenter >> visitTemporaryNodes: anTemporaryCollection [
+
+	^ anTemporaryCollection collect: [ :each | self visitVariableNode: each ]
+]
+
+{ #category : 'visiting' }
 ScpMethodInstrumenter >> visitVariableNode: aVariableNode [
 	
-	^ aVariableNode
+	^ aVariableNode copy
 ]

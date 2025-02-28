@@ -29,8 +29,14 @@ ScpMethodIndirection >> generateFor: aMethodNode usingModifier: aModifier [
 { #category : 'private - services' }
 ScpMethodIndirection >> generateFor: aMethodNode usingModifier: aModifier argument: anArgument [
 
+	| method |
+	
+	method := aModifier hasIndirectionForBody 
+		ifTrue: [ aModifier instrument: aMethodNode compiledMethod ]
+		ifFalse: [ aMethodNode compiledMethod ].
+
 	anArgument = #method ifTrue: [ 
-		^ RBLiteralValueNode value: (aModifier instrument: aMethodNode compiledMethod)
+		^ RBLiteralValueNode value: method
 	].
 
 	anArgument = #operation ifTrue: [ 
@@ -39,7 +45,7 @@ ScpMethodIndirection >> generateFor: aMethodNode usingModifier: aModifier argume
 			    selector: #withArgs:executeMethod:
 			    arguments: {
 						RBArrayNode statements: aMethodNode arguments.
-						RBLiteralValueNode value: (aModifier instrument: aMethodNode compiledMethod)
+						RBLiteralValueNode value: method
 				 }) 
 		  })
 	].
