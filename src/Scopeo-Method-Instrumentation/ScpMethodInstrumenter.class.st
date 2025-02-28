@@ -1,38 +1,39 @@
 Class {
-	#name : 'ScpMethodModifier',
+	#name : 'ScpMethodInstrumenter',
 	#superclass : 'RBProgramNodeVisitor',
 	#instVars : [
 		'currentMethod',
 		'assignmentIndirection',
 		'messageIndirection',
-		'returnIndirection'
+		'returnIndirection',
+		'methodIndirection',
+		'instrumentation'
 	],
 	#category : 'Scopeo-Method-Instrumentation',
 	#package : 'Scopeo-Method-Instrumentation'
 }
 
 { #category : 'parameters' }
-ScpMethodModifier >> addAssignmentIndirection: anIndirection [
+ScpMethodInstrumenter >> addAssignmentIndirection: anIndirection [
 
 	assignmentIndirection add: anIndirection
 
 ]
 
 { #category : 'parameters' }
-ScpMethodModifier >> addMessageIndirection: anIndirection [
+ScpMethodInstrumenter >> addMessageIndirection: anIndirection [
 
 	messageIndirection add: anIndirection
 ]
 
-{ #category : 'parameters' }
-ScpMethodModifier >> addReturnIndirection: anIndirection [
+{ #category : 'adding' }
+ScpMethodInstrumenter >> addMethodIndirection: aMethodIndirection [
 
-	returnIndirection add: anIndirection.
-	anIndirection visitor: self
+	methodIndirection := aMethodIndirection
 ]
 
 { #category : 'initialization' }
-ScpMethodModifier >> initialize [
+ScpMethodInstrumenter >> initialize [
 
 	returnIndirection := Set new.
 	messageIndirection := Set new.
@@ -40,8 +41,34 @@ ScpMethodModifier >> initialize [
 	
 ]
 
+{ #category : 'as yet unclassified' }
+ScpMethodInstrumenter >> instrument: aMethod [
+
+	| ast instrumented |
+	
+	ast := self visitNode: aMethod ast.
+	
+	ast doSemanticAnalysis.
+	ast source: ast formattedCode.
+	
+	instrumented := ast generateMethod.
+	
+	ScpMethodInstrumented adoptInstance: instrumented.
+	instrumented instrumentation: instrumentation.
+	instrumented instrumentedAst: ast.
+	instrumented original: aMethod.
+	
+	^ instrumented 
+]
+
+{ #category : 'accessing' }
+ScpMethodInstrumenter >> instrumentation: anInstrumentation [
+
+	instrumentation := anInstrumentation
+]
+
 { #category : 'visiting' }
-ScpMethodModifier >> visitArrayNode: anArrayNode [
+ScpMethodInstrumenter >> visitArrayNode: anArrayNode [
 
 	^ RBArrayNode 
 		statements: (anArrayNode statements collect: [ :each | self visitNode: each ]);
@@ -49,7 +76,7 @@ ScpMethodModifier >> visitArrayNode: anArrayNode [
 ]
 
 { #category : 'visiting' }
-ScpMethodModifier >> visitAssignmentNode: anAssignmentNode [
+ScpMethodInstrumenter >> visitAssignmentNode: anAssignmentNode [
 
 	assignmentIndirection
 		detect: [ :in | in isApplicableFor: anAssignmentNode ]
@@ -61,7 +88,7 @@ ScpMethodModifier >> visitAssignmentNode: anAssignmentNode [
 ]
 
 { #category : 'visiting' }
-ScpMethodModifier >> visitBlockNode: aBlockNode [
+ScpMethodInstrumenter >> visitBlockNode: aBlockNode [
 
 	^ RBBlockNode 
 		arguments: aBlockNode arguments 
@@ -70,7 +97,7 @@ ScpMethodModifier >> visitBlockNode: aBlockNode [
 ]
 
 { #category : 'visiting' }
-ScpMethodModifier >> visitCascadeNode: aCascadeNode [
+ScpMethodInstrumenter >> visitCascadeNode: aCascadeNode [
 
 	"	
 	Replace cascade messages with a block containing all the messages statements to enable message modification later on.
@@ -111,19 +138,19 @@ ScpMethodModifier >> visitCascadeNode: aCascadeNode [
 ]
 
 { #category : 'visiting' }
-ScpMethodModifier >> visitLiteralArrayNode: aRBLiteralArrayNode [
+ScpMethodInstrumenter >> visitLiteralArrayNode: aRBLiteralArrayNode [
 
 	^ aRBLiteralArrayNode 
 ]
 
 { #category : 'visiting' }
-ScpMethodModifier >> visitLiteralNode: aLiteralNode [
+ScpMethodInstrumenter >> visitLiteralNode: aLiteralNode [
 
 	^ aLiteralNode
 ]
 
 { #category : 'visiting' }
-ScpMethodModifier >> visitMessageNode: aMessageNode [
+ScpMethodInstrumenter >> visitMessageNode: aMessageNode [
 	
 	messageIndirection
 		detect: [ :in | in isApplicableFor: aMessageNode ]
@@ -138,40 +165,40 @@ ScpMethodModifier >> visitMessageNode: aMessageNode [
 ]
 
 { #category : 'visiting' }
-ScpMethodModifier >> visitMethod: aMethod [
+ScpMethodInstrumenter >> visitMethodNode: aMethodNode [
 
-	| ast |
+	| methodNode indirection |
+
+	methodIndirection ifNil: [
+		^ (RBMethodNode
+				selector: aMethodNode selector 
+				arguments: aMethodNode arguments
+				body: (self visitNode: aMethodNode body))
+				methodClass: aMethodNode methodClass;
+				pragmas: aMethodNode pragmas;
+				yourself		
+	].
 	
-	ast := self visitNode: aMethod ast.
+	"Avoid infinite recursion in case there is a method indirection."
+	indirection := methodIndirection.
+	methodIndirection := nil.
 	
-	ast doSemanticAnalysis.
-	ast source: ast formattedCode.
+	methodNode := indirection generateFor: aMethodNode usingModifier: self.
 	
-	^ ast 
+	methodIndirection := indirection.
 	
+	^ methodNode 
 ]
 
 { #category : 'visiting' }
-ScpMethodModifier >> visitMethodNode: aMethodNode [
-
-	^ (RBMethodNode
-			selector: aMethodNode selector 
-			arguments: aMethodNode arguments
-			body: (self visitNode: aMethodNode body))
-			methodClass: aMethodNode methodClass;
-			pragmas: aMethodNode pragmas;
-			yourself
-]
-
-{ #category : 'visiting' }
-ScpMethodModifier >> visitReturnNode: aReturnNode [
+ScpMethodInstrumenter >> visitReturnNode: aReturnNode [
 
 	^ RBReturnNode
 		value: (self visitNode: aReturnNode value)
 ]
 
 { #category : 'visiting' }
-ScpMethodModifier >> visitSequenceNode: aSequenceNode [
+ScpMethodInstrumenter >> visitSequenceNode: aSequenceNode [
 
 	^ RBSequenceNode 
 		temporaries: aSequenceNode temporaries 
@@ -181,7 +208,7 @@ ScpMethodModifier >> visitSequenceNode: aSequenceNode [
 ]
 
 { #category : 'visiting' }
-ScpMethodModifier >> visitVariableNode: aVariableNode [
+ScpMethodInstrumenter >> visitVariableNode: aVariableNode [
 	
 	^ aVariableNode
 ]

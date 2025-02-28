@@ -12,40 +12,38 @@ ScpMethodIndirection class >> run: aMethod on: aReceiver arguments: aArguments [
 ]
 
 { #category : 'private - services' }
-ScpMethodIndirection >> generate [
+ScpMethodIndirection >> generateFor: aMethodNode usingModifier: aModifier [
 
+	| message |
+	
+	message := super generateFor: aMethodNode usingModifier: aModifier.
+	
 	^ (RBMethodNode
-		   selector: #run:on:arguments:
-		   arguments: {
-				   (RBVariableNode named: #aMethod).
-				   (RBVariableNode named: #aReceiver).
-				   (RBVariableNode named: #aArguments) }
-		   body:
-			   (RBSequenceNode statements:
-				    { (RBReturnNode value: (RBMessageNode
-						      receiver: (RBLiteralValueNode value: handler)
-						      selector: selector
-						      arguments:
-						      (arguments collect: [ :a | self generateArgument: a ]))) }))
-		  generateMethod
+			selector: aMethodNode selector 
+			arguments: aMethodNode arguments
+			body: (RBSequenceNode statements: { RBReturnNode value: message }))
+			methodClass: aMethodNode methodClass;
+			yourself
 ]
 
 { #category : 'private - services' }
-ScpMethodIndirection >> generateArgument: anArgument [
+ScpMethodIndirection >> generateFor: aMethodNode usingModifier: aModifier argument: anArgument [
 
 	anArgument = #method ifTrue: [ 
-		^ RBVariableNode named: #aMethod
+		^ RBLiteralValueNode value: (aModifier instrument: aMethodNode compiledMethod)
 	].
+
 	anArgument = #operation ifTrue: [ 
 		^ RBBlockNode body: (RBSequenceNode statements: { (RBMessageNode
-			    receiver: (RBVariableNode named: #aReceiver)
+			    receiver: RBVariableNode selfNode
 			    selector: #withArgs:executeMethod:
 			    arguments: {
-						RBVariableNode named: #aArguments.
-						RBVariableNode named: #aMethod
+						RBArrayNode statements: aMethodNode arguments.
+						RBLiteralValueNode value: (aModifier instrument: aMethodNode compiledMethod)
 				 }) 
 		  })
 	].
+
 	anArgument = #sender ifTrue: [ 
 		^ RBMessageNode
 			receiver: (RBMessageNode
@@ -53,16 +51,18 @@ ScpMethodIndirection >> generateArgument: anArgument [
 			 	selector: #sender)
 			selector: #receiver
 	].
+
 	anArgument = #receiver ifTrue: [ 
-		^ RBVariableNode named: #aReceiver
+		^ RBVariableNode selfNode
 	].
+
 	anArgument = #arguments ifTrue: [ 
-		^ RBVariableNode named: #aArguments
-	]	
+		^ RBArrayNode statements: aMethodNode arguments
+	]
 ]
 
 { #category : 'private - services' }
-ScpMethodIndirection >> register: anInstrumentation [
+ScpMethodIndirection >> register: anInstrumenter [
 
-	anInstrumentation registerMethodIndirection: self
+	anInstrumenter addMethodIndirection: self
 ]

@@ -1,6 +1,6 @@
 Class {
 	#name : 'ScpMessageIndirection',
-	#superclass : 'ScpNodeIndirection',
+	#superclass : 'ScpIndirection',
 	#category : 'Scopeo-Method-Instrumentation',
 	#package : 'Scopeo-Method-Instrumentation'
 }
@@ -39,7 +39,7 @@ ScpMessageIndirection >> generateFor: aMessageNode usingModifier: aModifier argu
 ]
 
 { #category : 'private - services' }
-ScpMessageIndirection >> register: anInstrumentation [
+ScpMessageIndirection >> register: anInstrumenter [
 
-	anInstrumentation registerMessageIndirection: self
+	anInstrumenter addMessageIndirection: self
 ]

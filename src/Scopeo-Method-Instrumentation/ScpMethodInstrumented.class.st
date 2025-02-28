@@ -1,47 +1,74 @@
 Class {
 	#name : 'ScpMethodInstrumented',
-	#superclass : 'ProtoObject',
-	#instVars : [
-		'method',
-		'indirection'
-	],
+	#superclass : 'CompiledMethod',
+	#type : 'compiledMethod',
 	#category : 'Scopeo-Method-Instrumentation',
 	#package : 'Scopeo-Method-Instrumentation'
 }
 
-{ #category : 'reflective operations' }
-ScpMethodInstrumented >> doesNotUnderstand: aMessage [
+{ #category : 'instance creation' }
+ScpMethodInstrumented class >> fromCompiledMethod: aMethod [
 
-	| result |
-	
-	result := aMessage sendTo: method.
-	(result == method) ifTrue: [ ^ self ].
-	
-	^ result
+	self adoptInstance: aMethod.
+	^ aMethod
 ]
 
 { #category : 'accessing' }
-ScpMethodInstrumented >> indirection: aMethodIndirection [
+ScpMethodInstrumented >> ast [
 
-	indirection := aMethodIndirection
+	^ self original ast
 ]
 
 { #category : 'accessing' }
-ScpMethodInstrumented >> method: aMethod [
+ScpMethodInstrumented >> instrumentation [
 
-	method := aMethod
+	^ self propertyAt: #instrumentation
 ]
 
-{ #category : 'evaluation' }
-ScpMethodInstrumented >> run: aSelector with: aArguments in: aReceiver [
+{ #category : 'parameters' }
+ScpMethodInstrumented >> instrumentation: anInstrumentation [
 
-	^ self 
-		withArgs: { method . aReceiver . aArguments } 
-		executeMethod: indirection 
+	self propertyAt: #instrumentation put: anInstrumentation
+]
+
+{ #category : 'parameters' }
+ScpMethodInstrumented >> instrumentedAst [
+
+	^ self propertyAt: #instrumentedAst
+]
+
+{ #category : 'parameters' }
+ScpMethodInstrumented >> instrumentedAst: anAst [
+
+	^ self propertyAt: #instrumentedAst put: anAst
+]
+
+{ #category : 'testing' }
+ScpMethodInstrumented >> isInstrumented [
+
+	^ true
 ]
 
 { #category : 'accessing' }
-ScpMethodInstrumented >> yourself [
+ScpMethodInstrumented >> original [
 
-	^ self
+	^ self propertyAt: #original 
+]
+
+{ #category : 'accessing' }
+ScpMethodInstrumented >> original: aMethod [
+
+	^ self propertyAt: #original put: aMethod
+]
+
+{ #category : 'accessing' }
+ScpMethodInstrumented >> sourceCode [
+
+	^ self original sourceCode
+]
+
+{ #category : 'accessing' }
+ScpMethodInstrumented >> symbolicBytecodes [
+
+	^ SymbolicBytecodeBuilder decode: self original 
 ]

@@ -2,9 +2,9 @@ Class {
 	#name : 'ScpMethodInstrumentation',
 	#superclass : 'Object',
 	#instVars : [
-		'modifier',
 		'methodIndirection',
-		'instrumented'
+		'instrumented',
+		'instrumenter'
 	],
 	#category : 'Scopeo-Method-Instrumentation',
 	#package : 'Scopeo-Method-Instrumentation'
@@ -21,72 +21,52 @@ ScpMethodInstrumentation class >> uninstallAll [
 { #category : 'parameters' }
 ScpMethodInstrumentation >> addIndirection: anIndirection [
 
-	anIndirection register: self
+	"Ask the indirection to register itself in the instrumenter"
+
+	instrumenter ifNil: [ 
+		self error: 'Instrumenter not initialized.' 
+	].
+
+	anIndirection register: instrumenter
 ]
 
 { #category : 'services' }
 ScpMethodInstrumentation >> applyOn: aMethod [
-
-	| ast modifiedMethod |
-
-	ast := modifier visitMethod: aMethod.
-	modifiedMethod := ast generateMethod.
 	
-	ScpModifiedMethod adoptInstance: modifiedMethod.
-	modifiedMethod ast: ast.
-	modifiedMethod sourceCode: aMethod sourceCode.
-	modifiedMethod instrumentation: self.
-	modifiedMethod original: aMethod.
-	
-	^ modifiedMethod
+	"Apply instrumentation on the method and return a new compiled method with the behavioral changes."
+
+	^ instrumenter instrument: aMethod
 ]
 
 { #category : 'initialization' }
 ScpMethodInstrumentation >> initialize [
 
-	modifier := ScpMethodModifier new.
-	instrumented := WeakValueDictionary new.
-	methodIndirection := ScpMethodIndirection class >> #run:on:arguments:.
+	instrumenter := ScpMethodInstrumenter new
+		instrumentation: self;
+		yourself.
+		
+	instrumented := WeakValueDictionary new
 ]
 
 { #category : 'services' }
 ScpMethodInstrumentation >> installOn: aMethod [
 
-	| modifiedMethod |
+	"Apply the instrumentation on a given method and install that instrumentation on the method class."
 
-	modifiedMethod := self applyOn: aMethod.
+	| instrumentedMethod |
 
-	instrumented at: aMethod name put: modifiedMethod.
+	instrumentedMethod := self applyOn: aMethod.
+
+	instrumented at: aMethod name put: instrumentedMethod.
 
 	aMethod methodClass ifNotNil: [ :class |
 		class
 			addAndClassifySelector: aMethod selector
-			withMethod: (ScpMethodInstrumented new
-					 indirection: methodIndirection;
-					 method: modifiedMethod;
-					 yourself)
+			withMethod: instrumentedMethod
 			inProtocol: aMethod protocol 
 	].
 
-	^ modifiedMethod
-]
-
-{ #category : 'private' }
-ScpMethodInstrumentation >> registerAssignmentIndirection: anIndirection [
-
-	modifier addAssignmentIndirection: anIndirection
-]
-
-{ #category : 'private' }
-ScpMethodInstrumentation >> registerMessageIndirection: anIndirection [
-
-	modifier addMessageIndirection: anIndirection
-]
-
-{ #category : 'private' }
-ScpMethodInstrumentation >> registerMethodIndirection: anIndirection [
-
-	methodIndirection := anIndirection generate
+	^ instrumentedMethod
 ]
 
 { #category : 'services' }

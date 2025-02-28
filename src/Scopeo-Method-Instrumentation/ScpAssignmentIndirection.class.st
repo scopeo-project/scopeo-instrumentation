@@ -1,6 +1,6 @@
 Class {
 	#name : 'ScpAssignmentIndirection',
-	#superclass : 'ScpNodeIndirection',
+	#superclass : 'ScpIndirection',
 	#category : 'Scopeo-Method-Instrumentation',
 	#package : 'Scopeo-Method-Instrumentation'
 }
@@ -36,7 +36,7 @@ ScpAssignmentIndirection >> generateFor: anAssignmentNode usingModifier: aModifi
 ]
 
 { #category : 'private - services' }
-ScpAssignmentIndirection >> register: anInstrumentation [
+ScpAssignmentIndirection >> register: anInstrumenter [
 
-	anInstrumentation registerAssignmentIndirection: self
+	anInstrumenter addAssignmentIndirection: self
 ]
