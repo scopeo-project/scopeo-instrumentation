@@ -1,45 +1,72 @@
 Class {
 	#name : 'ScpMessageIndirection',
-	#superclass : 'ScpIndirection',
+	#superclass : 'ScpMethodCallIndirection',
+	#instVars : [
+		'sender',
+		'receiver'
+	],
 	#category : 'Scopeo-Method-Instrumentation',
 	#package : 'Scopeo-Method-Instrumentation'
 }
 
-{ #category : 'private - services' }
-ScpMessageIndirection >> generateFor: aMessageNode usingModifier: aModifier argument: anArgument [
+{ #category : 'accessing' }
+ScpMessageIndirection >> performDefaultOperation [
 
-	anArgument = #node ifTrue: [ 
-		^ RBLiteralValueNode value: aMessageNode
-	].
-	anArgument = #operation ifTrue: [ 
-		^  RBBlockNode body: (RBSequenceNode statements: { 
-				RBMessageNode
-					receiver: (aModifier visitNode: aMessageNode receiver) 
-					selector: aMessageNode selector 
-					arguments: (aMessageNode arguments collect: [ :a | 
-						aModifier visitNode: a.
-					]) 
-			})
-	].
-	anArgument = #selector ifTrue: [ 
-		^ RBLiteralValueNode value: aMessageNode selector 
-	].
-	anArgument = #sender ifTrue: [
-		^ RBVariableNode selfNode 
-	].
-	anArgument = #receiver ifTrue: [ 
-		^ aModifier visitNode: aMessageNode receiver 
-	].
-	anArgument = #arguments ifTrue: [ 
-		^ RBArrayNode statements: (aMessageNode arguments collect: [ :each |
-			aModifier visitNode: each 
-		]) 
-	].
-	self error: 'Unrecognized argument for a message indirection: ', anArgument asString
+	^ object 
+		perform: self selector
+		withArguments: arguments 
+		inSuperclass: (
+			node isSuperSend 
+				ifTrue: [ object class superclass ]
+				ifFalse: [ object class ]
+		)
+]
+
+{ #category : 'accessing' }
+ScpMessageIndirection >> receiver [
+
+	^ receiver
+]
+
+{ #category : 'accessing' }
+ScpMessageIndirection >> receiver: anObject [
+
+	receiver := anObject
 ]
 
 { #category : 'private - services' }
-ScpMessageIndirection >> register: anInstrumenter [
+ScpMessageIndirection >> registerInInstrumenter [
 
-	anInstrumenter addMessageIndirection: self
+	instrumenter addMessageIndirection: self
+]
+
+{ #category : 'as yet unclassified' }
+ScpMessageIndirection >> reifyReceiver [
+
+	indirectionArguments add: (ScpIndirectionArgument new
+		indirection: self;
+		selector: #receiver:;
+		argument: [ :astnode :inst |
+			inst visitNode: astnode receiver 
+		];
+		yourself
+	).
+]
+
+{ #category : 'as yet unclassified' }
+ScpMessageIndirection >> reifySender [
+
+	self reifyObject
+]
+
+{ #category : 'accessing' }
+ScpMessageIndirection >> selector [
+
+	^ node selector
+]
+
+{ #category : 'accessing' }
+ScpMessageIndirection >> sender [
+
+	^ object
 ]

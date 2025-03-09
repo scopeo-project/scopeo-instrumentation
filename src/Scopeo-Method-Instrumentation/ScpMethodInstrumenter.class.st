@@ -95,7 +95,7 @@ ScpMethodInstrumenter >> visitAssignmentNode: anAssignmentNode [
 
 	assignmentIndirection
 		detect: [ :in | in isApplicableFor: anAssignmentNode ]
-		ifFound: [ :in | ^ in generateFor: anAssignmentNode usingModifier: self ].
+		ifFound: [ :in | ^ in generateForNode: anAssignmentNode ].
 
 	^ RBAssignmentNode
 		variable: (self visitNode: anAssignmentNode variable) 
@@ -169,7 +169,7 @@ ScpMethodInstrumenter >> visitMessageNode: aMessageNode [
 	
 	messageIndirection
 		detect: [ :in | in isApplicableFor: aMessageNode ]
-		ifFound: [ :in | ^ in generateFor: aMessageNode usingModifier: self ].
+		ifFound: [ :in | ^ in generateForNode: aMessageNode ].
 
 	^ RBMessageNode 
 		receiver: (self visitNode: aMessageNode receiver) 
@@ -198,7 +198,7 @@ ScpMethodInstrumenter >> visitMethodNode: aMethodNode [
 	indirection := methodIndirection.
 	methodIndirection := nil.
 	
-	methodNode := indirection generateFor: aMethodNode usingModifier: self.
+	methodNode := indirection generateForNode: aMethodNode.
 	
 	methodIndirection := indirection.
 	
