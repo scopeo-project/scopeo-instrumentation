@@ -1,6 +1,6 @@
 Class {
 	#name : 'ScpMethodIndirection',
-	#superclass : 'ScpIndirection',
+	#superclass : 'ScpMethodCallIndirection',
 	#category : 'Scopeo-Method-Instrumentation',
 	#package : 'Scopeo-Method-Instrumentation'
 }
@@ -11,64 +11,76 @@ ScpMethodIndirection class >> run: aMethod on: aReceiver arguments: aArguments [
 	^ aReceiver withArgs: aArguments executeMethod: aMethod 
 ]
 
-{ #category : 'private - services' }
-ScpMethodIndirection >> generateFor: aMethodNode usingModifier: aModifier [
+{ #category : 'initialization' }
+ScpMethodIndirection >> initialize [
 
-	| message |
+	super initialize.
 	
-	message := super generateFor: aMethodNode usingModifier: aModifier.
+	indirectionArguments add: (ScpIndirectionArgument new
+		indirection: self;
+		selector: #receiver:;
+		argument: [ RBVariableNode selfNode ];
+		yourself
+	).
+]
+
+{ #category : 'accessing' }
+ScpMethodIndirection >> object [
+
+	^ object
+]
+
+{ #category : 'accessing' }
+ScpMethodIndirection >> performDefaultOperation [
 	
-	^ (RBMethodNode
-			selector: aMethodNode selector 
-			arguments: aMethodNode arguments
-			body: (RBSequenceNode statements: { RBReturnNode value: message }))
-			methodClass: aMethodNode methodClass;
-			yourself
+	<debuggerCompleteToSender>
+
+	^ object withArgs: arguments executeMethod: method
 ]
 
 { #category : 'private - services' }
-ScpMethodIndirection >> generateFor: aMethodNode usingModifier: aModifier argument: anArgument [
+ScpMethodIndirection >> registerInInstrumenter [
 
-	| method |
-	
-	method := aModifier hasIndirectionForBody 
-		ifTrue: [ aModifier instrument: aMethodNode compiledMethod ]
-		ifFalse: [ aMethodNode compiledMethod ].
-
-	anArgument = #method ifTrue: [ 
-		^ RBLiteralValueNode value: method
-	].
-
-	anArgument = #operation ifTrue: [ 
-		^ RBBlockNode body: (RBSequenceNode statements: { (RBMessageNode
-			    receiver: RBVariableNode selfNode
-			    selector: #withArgs:executeMethod:
-			    arguments: {
-						RBArrayNode statements: aMethodNode arguments.
-						RBLiteralValueNode value: method
-				 }) 
-		  })
-	].
-
-	anArgument = #sender ifTrue: [ 
-		^ RBMessageNode
-			receiver: (RBMessageNode
-				receiver: (RBVariableNode named: #thisContext)
-			 	selector: #sender)
-			selector: #receiver
-	].
-
-	anArgument = #receiver ifTrue: [ 
-		^ RBVariableNode selfNode
-	].
-
-	anArgument = #arguments ifTrue: [ 
-		^ RBArrayNode statements: aMethodNode arguments
-	]
+	instrumenter addMethodIndirection: self
 ]
 
-{ #category : 'private - services' }
-ScpMethodIndirection >> register: anInstrumenter [
+{ #category : 'parameters' }
+ScpMethodIndirection >> reifyDefaultOperationData [
 
-	anInstrumenter addMethodIndirection: self
+	self reifyObject.
+	self reifyMethod.
+	self reifyArguments
+]
+
+{ #category : 'as yet unclassified' }
+ScpMethodIndirection >> reifyReceiver [
+
+	indirectionArguments add: (ScpIndirectionArgument new
+		indirection: self;
+		selector: #receiver:;
+		argument: [ RBVariableNode selfNode ];
+		yourself
+	).
+]
+
+{ #category : 'as yet unclassified' }
+ScpMethodIndirection >> reifySender [
+
+	self reifyContext
+]
+
+{ #category : 'accessing' }
+ScpMethodIndirection >> selector [
+
+	^ method selector
+]
+
+{ #category : 'as yet unclassified' }
+ScpMethodIndirection >> sender [
+
+	context ifNil: [ 
+		self error: 'Please set up the indirection using #reifySender to collect the method sender.'.
+	].
+
+	^ context sender receiver
 ]

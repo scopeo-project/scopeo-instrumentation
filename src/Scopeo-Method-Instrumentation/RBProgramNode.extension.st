@@ -1,6 +1,18 @@
 Extension { #name : 'RBProgramNode' }
 
 { #category : '*Scopeo-Method-Instrumentation' }
+RBProgramNode >> indirection [
+
+	^ self propertyAt: #indirection
+]
+
+{ #category : '*Scopeo-Method-Instrumentation' }
+RBProgramNode >> indirection: anIndirection [
+
+	self propertyAt: #indirection put: anIndirection
+]
+
+{ #category : '*Scopeo-Method-Instrumentation' }
 RBProgramNode >> indirectionSourceNode [
 
 	^ self propertyAt: #indirectionSourceNode ifAbsent: [ ^ self ]

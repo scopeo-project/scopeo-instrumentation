@@ -3,80 +3,186 @@ Class {
 	#superclass : 'Object',
 	#instVars : [
 		'handler',
-		'selector',
-		'arguments',
 		'condition',
-		'handlerASTNode'
+		'context',
+		'instrumenter',
+		'indirectionArguments',
+		'node',
+		'object',
+		'handlerSelector',
+		'method'
 	],
 	#category : 'Scopeo-Method-Instrumentation',
 	#package : 'Scopeo-Method-Instrumentation'
 }
 
-{ #category : 'parameters' }
-ScpIndirection >> arguments: aCollection [
-
-	arguments := aCollection
-]
-
-{ #category : 'parameters' }
+{ #category : 'private - parameters' }
 ScpIndirection >> condition: aConditionBlock [
 
 	condition := aConditionBlock
 ]
 
-{ #category : 'private - services' }
-ScpIndirection >> generateFor: aNode usingModifier: aModifier [
+{ #category : 'accessing' }
+ScpIndirection >> context [
 
-	| node |
-
-	node := RBMessageNode new.
-	node receiver: handlerASTNode.
-	node selector: selector.
-	node arguments: (arguments collect: [ :argument |
-		 self
-			 generateFor: aNode
-			 usingModifier: aModifier
-			 argument: argument 
-	]).
-
-	node indirectionSourceNode: aNode.
-
-	^ node
+	^ context
 ]
 
-{ #category : 'private - services' }
-ScpIndirection >> generateFor: aNode usingModifier: aModifier argument: anArgument [
+{ #category : 'private - parameters' }
+ScpIndirection >> context: anObject [
 
-	self subclassResponsibility
+	context := anObject	 
+]
+
+{ #category : 'private - instrumenter' }
+ScpIndirection >> generateForNode: anASTProgramNode [
+
+	| newNode messages |
+
+	messages := OrderedCollection new.
+	messages addAll: (indirectionArguments collect: [ :a | 
+		a generateForNode: anASTProgramNode 
+	]).
+	messages add: (RBMessageNode 
+		receiver: (RBLiteralValueNode value: self)
+		selector: #perform
+	).
+	
+	newNode := RBCascadeNode messages: messages.
+	
+	newNode indirectionSourceNode: anASTProgramNode.
+	newNode indirection: self.
+	
+	^ newNode
+    
 ]
 
 { #category : 'parameters' }
 ScpIndirection >> handler: anObject [
 
-	handler := anObject.
-	handlerASTNode := RBLiteralValueNode value: handler
+	handler := anObject
+]
+
+{ #category : 'parameters' }
+ScpIndirection >> handlerSelector: aSelector [
+
+	handlerSelector := aSelector
 ]
 
 { #category : 'initialization' }
 ScpIndirection >> initialize [
 
-	arguments := OrderedCollection new
+	indirectionArguments := OrderedCollection new
 ]
 
-{ #category : 'private - services' }
+{ #category : 'accessing' }
+ScpIndirection >> instrumenter [
+
+	^ instrumenter
+]
+
+{ #category : 'private - instrumenter' }
+ScpIndirection >> instrumenter: anInstrumenter [
+
+	instrumenter := anInstrumenter.
+	self registerInInstrumenter
+]
+
+{ #category : 'private - instrumenter' }
 ScpIndirection >> isApplicableFor: aNode [
 
 	^ condition ifNil: [ true ] ifNotNil: [ :c | c value: aNode ]
 ]
 
-{ #category : 'private - services' }
-ScpIndirection >> register: anInstrumenter [
+{ #category : 'accessing' }
+ScpIndirection >> node [
+
+	^ node
+]
+
+{ #category : 'private - parameters' }
+ScpIndirection >> node: anASTProgramNode [
+
+	node := anASTProgramNode
+]
+
+{ #category : 'private - parameters' }
+ScpIndirection >> object: anObject [
+
+	object := anObject	 
+]
+
+{ #category : 'private - actions' }
+ScpIndirection >> perform [
+
+	^ handler perform: handlerSelector withArguments: { self } 
+]
+
+{ #category : 'private - actions' }
+ScpIndirection >> performDefaultOperation [
+
+	self subclassResponsibility
+]
+
+{ #category : 'private - instrumenter' }
+ScpIndirection >> registerInInstrumenter [
 
 	self subclassResponsibility
 ]
 
 { #category : 'parameters' }
-ScpIndirection >> selector: aSelector [
+ScpIndirection >> reifyContext [
 
-	selector := aSelector
+	indirectionArguments addFirst: (ScpIndirectionArgument new 
+		indirection: self;
+		selector: #context:;
+		argument: [ RBVariableNode thisContextNode ] ; 
+		yourself
+	)
+]
+
+{ #category : 'parameters' }
+ScpIndirection >> reifyDefaultOperationData [
+
+	self subclassResponsibility
+]
+
+{ #category : 'as yet unclassified' }
+ScpIndirection >> reifyMethod [
+
+	indirectionArguments add: (ScpIndirectionArgument new
+		indirection: self;
+		selector: #method:;
+		argument: [ :astnode :inst | 
+			RBLiteralValueNode value: (
+				inst hasIndirectionForBody 
+					ifTrue: [ inst instrument: astnode compiledMethod ]
+					ifFalse: [ astnode compiledMethod ]
+			)
+		];
+		yourself
+	)
+]
+
+{ #category : 'parameters' }
+ScpIndirection >> reifyNode [
+
+	indirectionArguments add: (ScpIndirectionArgument new
+		indirection: self;
+		selector: #node:;
+		argument: [ :astnode | RBLiteralValueNode value: astnode ];
+		yourself		
+	)
+]
+
+{ #category : 'parameters' }
+ScpIndirection >> reifyObject [
+	
+	indirectionArguments add: (ScpIndirectionArgument new
+		indirection: self;
+		selector: #object:;
+		argument: [ :astnode | RBVariableNode selfNode ];
+		yourself
+	).
+	
 ]

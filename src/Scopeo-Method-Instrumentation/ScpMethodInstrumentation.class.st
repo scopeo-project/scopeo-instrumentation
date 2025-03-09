@@ -27,7 +27,7 @@ ScpMethodInstrumentation >> addIndirection: anIndirection [
 		self error: 'Instrumenter not initialized.' 
 	].
 
-	anIndirection register: instrumenter
+	anIndirection instrumenter: instrumenter
 ]
 
 { #category : 'services' }
