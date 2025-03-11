@@ -10,16 +10,6 @@ Class {
 	#package : 'Scopeo-Method-Instrumentation'
 }
 
-{ #category : 'private - instrumenter' }
-ScpAssignmentIndirection >> generateForNode: aNode [
-
-	aNode variable isTempVariable 
-		ifTrue: [ self reifyContext	]
-		ifFalse: [ self reifyObject ].
-
-	^ super generateForNode: aNode 
-]
-
 { #category : 'accessing' }
 ScpAssignmentIndirection >> newValue [
 
@@ -30,12 +20,6 @@ ScpAssignmentIndirection >> newValue [
 ScpAssignmentIndirection >> newValue: anObject [
 
 	newValue := anObject
-]
-
-{ #category : 'accessing' }
-ScpAssignmentIndirection >> object [
-
-	^ object
 ]
 
 { #category : 'accessing' }
@@ -50,14 +34,6 @@ ScpAssignmentIndirection >> oldValue: anObject [
 	oldValue := anObject
 ]
 
-{ #category : 'private - actions' }
-ScpAssignmentIndirection >> performDefaultOperation [
-
-	^ node variable isTempVariable 
-		ifTrue: [	 variable write: newValue inContext: context ]
-		ifFalse: [ variable write: newValue to: object ]
-]
-
 { #category : 'private - instrumenter' }
 ScpAssignmentIndirection >> registerInInstrumenter [
 
@@ -65,11 +41,23 @@ ScpAssignmentIndirection >> registerInInstrumenter [
 ]
 
 { #category : 'parameters' }
-ScpAssignmentIndirection >> reifyDefaultOperationData [
+ScpAssignmentIndirection >> reifyDefaultOperation [
 
-	self reifyVariable.
-	self reifyNewValue
+	indirectionArguments add: (ScpIndirectionArgument new
+		indirection: self;
+		selector: #operation:;
+		argument: [ :astnode :inst | 
+			RBBlockNode
+				body: (RBSequenceNode statements: { 
+					RBAssignmentNode
+						variable: astnode variable
+						value: (inst visitNode: astnode) 
+				})
+		];
+		yourself
+	)
 
+	
 ]
 
 { #category : 'parameters' }
@@ -93,28 +81,4 @@ ScpAssignmentIndirection >> reifyOldValue [
 		yourself
 	).
 	
-]
-
-{ #category : 'parameters' }
-ScpAssignmentIndirection >> reifyVariable [
-
-	indirectionArguments add: (ScpIndirectionArgument new
-		indirection: self;
-		selector: #variable:;
-		argument: [ :astnode | RBLiteralValueNode value: astnode variable ];
-		yourself
-	).
-	
-]
-
-{ #category : 'accessing' }
-ScpAssignmentIndirection >> variable [
-
-	^ variable
-]
-
-{ #category : 'private - parameters' }
-ScpAssignmentIndirection >> variable: aVariable [
-
-	variable := aVariable
 ]
