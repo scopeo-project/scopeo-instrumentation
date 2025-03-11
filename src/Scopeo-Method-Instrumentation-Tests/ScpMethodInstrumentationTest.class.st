@@ -114,9 +114,10 @@ ScpMethodInstrumentationTest >> testAssignment [
 	"Arrange"
 	ScpMethodInstrumentation new
 		addIndirection: (ScpAssignmentIndirection new
+			reifyObject; reifyNode; reifyOldValue; reifyNewValue;
 			handler: [ :ind | 
 				object	 := ind object.
-				variable := ind variable.
+				variable := ind node variable.
 				oldValue := ind oldValue.
 				newValue := ind newValue
 			];
@@ -144,9 +145,10 @@ ScpMethodInstrumentationTest >> testAssignmentObservable [
 	"Arrange"
 	ScpMethodInstrumentation new
 		addIndirection: (ScpAssignmentIndirection new
+			reifyObject; reifyNode; reifyOldValue; reifyNewValue;
 			handler: [ :ind | 
 				object	 := ind object.
-				variable := ind variable.
+				variable := ind node variable.
 				oldValue := ind oldValue.
 				newValue := ind newValue
 			];
@@ -174,9 +176,10 @@ ScpMethodInstrumentationTest >> testAssignmentWithMessage [
 	instrumentation := ScpMethodInstrumentation new.
 	
 	instrumentation addIndirection: (ScpAssignmentIndirection new
+			reifyObject; reifyNode; reifyOldValue; reifyNewValue;
 			handler: [ :ind | 
 				object	 := ind object.
-				variable := ind variable.
+				variable := ind node variable.
 				oldValue := ind oldValue.
 				newValue := ind newValue
 			];
@@ -185,10 +188,10 @@ ScpMethodInstrumentationTest >> testAssignmentWithMessage [
 		).
 	
 	instrumentation addIndirection: (ScpMessageIndirection new
-			reifySender;
+			reifySender; reifyNode; reifyReceiver; reifyArguments;
 			handler: [ :ind | 
 				sender	 := ind sender.
-				selector := ind selector.
+				selector := ind node selector.
 				receiver := ind receiver.
 				arguments := ind arguments.
 				84
@@ -224,11 +227,11 @@ ScpMethodInstrumentationTest >> testCascadeMessage [
 	
 	ScpMethodInstrumentation new
 		addIndirection: (ScpMessageIndirection new
-			reifySender;
+			reifySender; reifyNode; reifyReceiver; reifyArguments;
 			handler: [ :ind | 				
 				operations add: { 
 					#sender -> ind sender.  
-					#selector -> ind selector.  
+					#selector -> ind node selector.  
 					#receiver -> ind receiver.  
 					#arguments -> ind arguments
 				} asDictionary
@@ -263,14 +266,14 @@ ScpMethodInstrumentationTest >> testMessage [
 	"Arrange"
 	ScpMethodInstrumentation new
 		addIndirection: (ScpMessageIndirection new
-			handler: [ :snd :sct :rcv :args | 
-				sender	 := snd.
-				selector := sct.
-				receiver := rcv.
-				arguments := args.
+			reifySender; reifyNode; reifyReceiver; reifyArguments;
+			handler: [ :inst | 
+				sender	 := inst sender.
+				selector := inst node selector.
+				receiver := inst receiver.
+				arguments := inst arguments.
 			];
-			selector: #value:value:value:value:;
-			arguments: #( sender selector receiver arguments );
+			handlerSelector: #value:;
 			yourself
 		);
 		installOn: (self class >> #methodWithMessage).
@@ -293,15 +296,15 @@ ScpMethodInstrumentationTest >> testMessageInBlock [
 	"Arrange"
 	ScpMethodInstrumentation new
 		addIndirection: (ScpMessageIndirection new
-			handler: [ :snd :sct :rcv :args | 
-				sender	 := snd.
-				selector := sct.
-				receiver := rcv.
-				arguments := args.
+			reifySender; reifyNode; reifyReceiver; reifyArguments;
+			handler: [ :inst | 
+				sender	 := inst sender.
+				selector := inst node selector.
+				receiver := inst receiver.
+				arguments := inst arguments.
 			];
+			handlerSelector: #value:;
 			condition: [ :n | n receiver isBlock not ];
-			selector: #value:value:value:value:;
-			arguments: #( sender selector receiver arguments );
 			yourself
 		);
 		installOn: (self class >> #methodWithMessageInBlock).
@@ -324,15 +327,15 @@ ScpMethodInstrumentationTest >> testMessageInBlockInBlock [
 	"Arrange"
 	ScpMethodInstrumentation new
 		addIndirection: (ScpMessageIndirection new
-			handler: [ :snd :sct :rcv :args | 
-				sender	 := snd.
-				selector := sct.
-				receiver := rcv.
-				arguments := args.
+			reifySender; reifyNode; reifyReceiver; reifyArguments;
+			handler: [ :inst | 
+				sender	 := inst sender.
+				selector := inst node selector.
+				receiver := inst receiver.
+				arguments := inst arguments.
 			];
+			handlerSelector: #value:;
 			condition: [ :n | n receiver isBlock not ];
-			selector: #value:value:value:value:;
-			arguments: #( sender selector receiver arguments );
 			yourself
 		);
 		installOn: (self class >> #methodWithMessageInBlockInBlock).
@@ -357,12 +360,12 @@ ScpMethodInstrumentationTest >> testMessageReceiver [
 	
 	ScpMethodInstrumentation new
 		addIndirection: (ScpMessageIndirection new
-			handler: [ :op :sct | 
-				selectors add: sct.
-				op value
+			reifyDefaultOperation; reifyNode;
+			handler: [ :inst | 
+				selectors add: inst node selector.
+				inst performDefaultOperation
 			];
-			selector: #value:value:;
-			arguments: #( operation selector );
+			handlerSelector: #value:;
 			yourself
 		);
 		installOn: (self class >> #methodWithMessageReceiver).
@@ -384,14 +387,14 @@ ScpMethodInstrumentationTest >> testMessageToBlock [
 	"Arrange"
 	ScpMethodInstrumentation new
 		addIndirection: (ScpMessageIndirection new
-			handler: [ :snd :sct :rcv :args | 
-				sender	 := snd.
-				selector := sct.
-				receiver := rcv.
-				arguments := args.
+			reifySender; reifyNode; reifyReceiver; reifyArguments;
+			handler: [ :inst | 
+				sender	 := inst sender.
+				selector := inst node selector.
+				receiver := inst receiver.
+				arguments := inst arguments.
 			];
-			selector: #value:value:value:value:;
-			arguments: #( sender selector receiver arguments );
+			handlerSelector: #value:;
 			yourself
 		);
 		installOn: (self class >> #methodWithMessageToBlock).
@@ -414,14 +417,14 @@ ScpMethodInstrumentationTest >> testMessageWithArgument [
 	"Arrange"
 	ScpMethodInstrumentation new
 		addIndirection: (ScpMessageIndirection new
-			handler: [ :snd :sct :rcv :args | 
-				sender	 := snd.
-				selector := sct.
-				receiver := rcv.
-				arguments := args.
+			reifySender; reifyNode; reifyReceiver; reifyArguments;
+			handler: [ :inst | 
+				sender	 := inst sender.
+				selector := inst node selector.
+				receiver := inst receiver.
+				arguments := inst arguments.
 			];
-			selector: #value:value:value:value:;
-			arguments: #( sender selector receiver arguments );
+			handlerSelector: #value:;
 			yourself
 		);
 		installOn: (self class >> #methodWithMessageWithArgument).
@@ -444,9 +447,9 @@ ScpMethodInstrumentationTest >> testReturn [
 	"Arrange"
 	ScpMethodInstrumentation new
 		addIndirection: (ScpMethodIndirection new
-			handler: [ :op | operation := op ];
-			selector: #value:;
-			arguments: #( operation );
+			reifyDefaultOperation;
+			handler: [ :ind | operation := ind operation ];
+			handlerSelector: #value:;
 			yourself
 		);
 		installOn: (self class >> #methodWithReturn).
@@ -468,23 +471,21 @@ ScpMethodInstrumentationTest >> testReturnWithMessage [
 	instrumentation := ScpMethodInstrumentation new.
 	
 	instrumentation addIndirection: (ScpMessageIndirection new
-			handler: [ :op :sct :rcv :args | 
-				selector := sct.
-				receiver := rcv.
-				arguments := args.
-				op value
+			reifyDefaultOperation; reifyNode; reifyReceiver; reifyArguments;
+			handler: [ :ind | 
+				selector := ind node selector.
+				receiver := ind receiver.
+				arguments := ind arguments.
+				ind performDefaultOperation
 			];
-			selector: #value:value:value:value:;
-			arguments: #( operation selector receiver arguments );
+			handlerSelector: #value:;
 			yourself
 		).
 
 	instrumentation addIndirection: (ScpMethodIndirection new
-			handler: [ :op | 
-				result	 := op value.
-			];
-			selector: #value:;
-			arguments: #( operation );
+			reifyDefaultOperation;
+			handler: [ :ind | result := ind performDefaultOperation ];
+			handlerSelector: #value:;
 			yourself
 		).
 

@@ -1,6 +1,6 @@
 Class {
 	#name : 'ScpMessageIndirection',
-	#superclass : 'ScpMethodCallIndirection',
+	#superclass : 'ScpInvocationIndirection',
 	#instVars : [
 		'sender',
 		'receiver'
@@ -10,37 +10,46 @@ Class {
 }
 
 { #category : 'accessing' }
-ScpMessageIndirection >> performDefaultOperation [
-
-	^ object 
-		perform: self selector
-		withArguments: arguments 
-		inSuperclass: (
-			node isSuperSend 
-				ifTrue: [ object class superclass ]
-				ifFalse: [ object class ]
-		)
-]
-
-{ #category : 'accessing' }
 ScpMessageIndirection >> receiver [
 
 	^ receiver
 ]
 
-{ #category : 'accessing' }
+{ #category : 'private - parameters' }
 ScpMessageIndirection >> receiver: anObject [
 
 	receiver := anObject
 ]
 
-{ #category : 'private - services' }
+{ #category : 'private - instrumenter' }
 ScpMessageIndirection >> registerInInstrumenter [
 
 	instrumenter addMessageIndirection: self
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'parameters' }
+ScpMessageIndirection >> reifyDefaultOperation [
+
+	indirectionArguments add: (ScpIndirectionArgument new
+		indirection: self;
+		selector: #operation:;
+		argument: [ :astnode :inst | 
+			RBBlockNode body: (RBSequenceNode statements: { 
+				RBMessageNode
+					receiver: (inst visitNode: astnode receiver) 
+					selector: astnode selector 
+					arguments: (astnode arguments collect: [ :a | 
+						inst visitNode: a.
+					]) 
+			})
+		];
+		yourself
+	)
+
+
+]
+
+{ #category : 'parameters' }
 ScpMessageIndirection >> reifyReceiver [
 
 	indirectionArguments add: (ScpIndirectionArgument new
@@ -50,19 +59,13 @@ ScpMessageIndirection >> reifyReceiver [
 			inst visitNode: astnode receiver 
 		];
 		yourself
-	).
+	)
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'parameters' }
 ScpMessageIndirection >> reifySender [
 
 	self reifyObject
-]
-
-{ #category : 'accessing' }
-ScpMessageIndirection >> selector [
-
-	^ node selector
 ]
 
 { #category : 'accessing' }

@@ -2,15 +2,16 @@ Class {
 	#name : 'ScpIndirection',
 	#superclass : 'Object',
 	#instVars : [
-		'handler',
-		'condition',
-		'context',
 		'instrumenter',
 		'indirectionArguments',
-		'node',
-		'object',
+		'handler',
 		'handlerSelector',
-		'method'
+		'condition',
+		'node',
+		'context',
+		'object',
+		'method',
+		'operation'
 	],
 	#category : 'Scopeo-Method-Instrumentation',
 	#package : 'Scopeo-Method-Instrumentation'
@@ -107,9 +108,27 @@ ScpIndirection >> node: anASTProgramNode [
 ]
 
 { #category : 'private - parameters' }
+ScpIndirection >> object [
+
+	^ object
+]
+
+{ #category : 'private - parameters' }
 ScpIndirection >> object: anObject [
 
 	object := anObject	 
+]
+
+{ #category : 'private - parameters' }
+ScpIndirection >> operation [
+
+	^ operation
+]
+
+{ #category : 'private - parameters' }
+ScpIndirection >> operation: anObject [
+
+	operation := anObject
 ]
 
 { #category : 'private - actions' }
@@ -118,10 +137,12 @@ ScpIndirection >> perform [
 	^ handler perform: handlerSelector withArguments: { self } 
 ]
 
-{ #category : 'private - actions' }
+{ #category : 'actions' }
 ScpIndirection >> performDefaultOperation [
 
-	self subclassResponsibility
+	<debuggerCompleteToSender>
+	
+	^ operation value
 ]
 
 { #category : 'private - instrumenter' }
@@ -142,12 +163,12 @@ ScpIndirection >> reifyContext [
 ]
 
 { #category : 'parameters' }
-ScpIndirection >> reifyDefaultOperationData [
+ScpIndirection >> reifyDefaultOperation [
 
 	self subclassResponsibility
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'parameters' }
 ScpIndirection >> reifyMethod [
 
 	indirectionArguments add: (ScpIndirectionArgument new

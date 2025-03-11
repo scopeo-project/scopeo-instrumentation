@@ -55,6 +55,10 @@ ScpMethodInstrumenter >> instrument: aMethod [
 
 	| ast instrumented |
 	
+	aMethod isInstrumented ifTrue: [ 
+		self error: aMethod name , ' is already instrumented.'
+	].
+	
 	ast := self visitNode: aMethod ast.
 	
 	ast doSemanticAnalysis.
