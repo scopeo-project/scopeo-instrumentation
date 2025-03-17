@@ -26,7 +26,7 @@ ScpAssignmentIndirection >> registerInInstrumenter [
 
 { #category : 'parameters' }
 ScpAssignmentIndirection >> reifyDefaultOperation [
-
+	
 	indirectionArguments add: (ScpIndirectionArgument new
 		indirection: self;
 		selector: #operation:;
@@ -35,7 +35,7 @@ ScpAssignmentIndirection >> reifyDefaultOperation [
 				body: (RBSequenceNode statements: { 
 					RBAssignmentNode
 						variable: astnode variable
-						value: (inst visitNode: astnode) 
+						value: (inst visitNode: astnode value) 
 				})
 		];
 		yourself

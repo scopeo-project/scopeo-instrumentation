@@ -26,7 +26,10 @@ ScpIndirection >> generateForNode: anASTProgramNode [
 
 	messages := OrderedCollection new.
 	messages addAll: (indirectionArguments collect: [ :a | 
-		a generateForNode: anASTProgramNode 
+		(a generateForNode: anASTProgramNode)
+			indirectionSourceNode: anASTProgramNode;
+			indirection:	 self;
+			yourself	
 	]).
 	
 	newNode := RBMessageNode 
@@ -89,6 +92,12 @@ ScpIndirection >> instrumenter: anInstrumenter [
 ScpIndirection >> isApplicableFor: aNode [
 
 	^ condition ifNil: [ true ] ifNotNil: [ :c | c value: aNode ]
+]
+
+{ #category : 'testing' }
+ScpIndirection >> isPartOfInstrumentation [
+
+	^ true
 ]
 
 { #category : 'private - instrumenter' }

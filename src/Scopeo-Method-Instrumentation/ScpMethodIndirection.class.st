@@ -14,7 +14,7 @@ ScpMethodIndirection class >> run: aMethod on: aReceiver arguments: aArguments [
 
 { #category : 'private - instrumenter' }
 ScpMethodIndirection >> generateForNode: anASTProgramNode [
-
+	
 	^ (RBMethodNode
 			selector: anASTProgramNode selector 
 			arguments: anASTProgramNode arguments
@@ -53,7 +53,7 @@ ScpMethodIndirection >> reifyDefaultOperation [
 						RBArrayNode statements: astnode arguments.
 						RBLiteralValueNode value: (inst hasIndirectionForBody 
 							ifTrue: [ inst instrument: astnode compiledMethod ]
-							ifFalse: [astnode compiledMethod ])
+							ifFalse: [ astnode compiledMethod ])
 				 }) 
 		  })
 		];

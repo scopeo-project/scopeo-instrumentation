@@ -50,6 +50,12 @@ ScpMethodInstrumented >> isInstrumented [
 	^ true
 ]
 
+{ #category : 'testing' }
+ScpMethodInstrumented >> isPartOfInstrumentation [
+
+	^ true
+]
+
 { #category : 'accessing' }
 ScpMethodInstrumented >> original [
 
