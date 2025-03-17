@@ -7,8 +7,9 @@ Class {
 		'methodIndirection',
 		'instrumentation'
 	],
-	#category : 'Scopeo-Method-Instrumentation',
-	#package : 'Scopeo-Method-Instrumentation'
+	#category : 'Scopeo-Method-Instrumentation-Instrumentation',
+	#package : 'Scopeo-Method-Instrumentation',
+	#tag : 'Instrumentation'
 }
 
 { #category : 'parameters' }

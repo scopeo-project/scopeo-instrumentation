@@ -1,35 +1,15 @@
 Class {
 	#name : 'ScpInvocationIndirection',
 	#superclass : 'ScpIndirection',
-	#instVars : [
-		'arguments'
-	],
-	#category : 'Scopeo-Method-Instrumentation',
-	#package : 'Scopeo-Method-Instrumentation'
+	#category : 'Scopeo-Method-Instrumentation-Indirections',
+	#package : 'Scopeo-Method-Instrumentation',
+	#tag : 'Indirections'
 }
 
 { #category : 'testing' }
 ScpInvocationIndirection class >> isAbstract [
 
 	^ self == ScpInvocationIndirection
-]
-
-{ #category : 'accessing' }
-ScpInvocationIndirection >> arguments [
-
-	^ arguments
-]
-
-{ #category : 'private - parameters' }
-ScpInvocationIndirection >> arguments: anObject [
-
-	arguments := anObject
-]
-
-{ #category : 'accessing' }
-ScpInvocationIndirection >> receiver [
-
-	self subclassResponsibility
 ]
 
 { #category : 'parameters' }
@@ -55,12 +35,6 @@ ScpInvocationIndirection >> reifyReceiver [
 
 { #category : 'parameters' }
 ScpInvocationIndirection >> reifySender [
-
-	self subclassResponsibility
-]
-
-{ #category : 'accessing' }
-ScpInvocationIndirection >> sender [
 
 	self subclassResponsibility
 ]

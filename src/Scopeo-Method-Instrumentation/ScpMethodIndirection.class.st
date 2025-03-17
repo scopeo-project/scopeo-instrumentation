@@ -1,8 +1,9 @@
 Class {
 	#name : 'ScpMethodIndirection',
 	#superclass : 'ScpInvocationIndirection',
-	#category : 'Scopeo-Method-Instrumentation',
-	#package : 'Scopeo-Method-Instrumentation'
+	#category : 'Scopeo-Method-Instrumentation-Indirections',
+	#package : 'Scopeo-Method-Instrumentation',
+	#tag : 'Indirections'
 }
 
 { #category : 'private' }
@@ -24,10 +25,12 @@ ScpMethodIndirection >> generateForNode: anASTProgramNode [
 			yourself
 ]
 
-{ #category : 'accessing' }
-ScpMethodIndirection >> receiver [
+{ #category : 'private - instrumenter' }
+ScpMethodIndirection >> generateOperationForNode: anASTProgramNode [
 
-	^ self object
+	^ RBMessageNode
+		receiver: (RBVariableNode named: ScpMethodOperation name) 
+		selector: #new 
 ]
 
 { #category : 'private - instrumenter' }
@@ -72,20 +75,4 @@ ScpMethodIndirection >> reifyReceiver [
 ScpMethodIndirection >> reifySender [
 
 	self reifyContext
-]
-
-{ #category : 'accessing' }
-ScpMethodIndirection >> selector [
-
-	^ method selector
-]
-
-{ #category : 'accessing' }
-ScpMethodIndirection >> sender [
-
-	context ifNil: [ 
-		self error: 'Please set up the indirection using #reifySender to collect the method sender.'.
-	].
-
-	^ context sender receiver
 ]

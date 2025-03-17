@@ -3,35 +3,19 @@ Class {
 	#superclass : 'ScpIndirection',
 	#instVars : [
 		'oldValue',
-		'newValue',
-		'variable'
+		'newValue'
 	],
-	#category : 'Scopeo-Method-Instrumentation',
-	#package : 'Scopeo-Method-Instrumentation'
+	#category : 'Scopeo-Method-Instrumentation-Indirections',
+	#package : 'Scopeo-Method-Instrumentation',
+	#tag : 'Indirections'
 }
 
-{ #category : 'accessing' }
-ScpAssignmentIndirection >> newValue [
+{ #category : 'private - instrumenter' }
+ScpAssignmentIndirection >> generateOperationForNode: anASTProgramNode [
 
-	^ newValue
-]
-
-{ #category : 'private - parameters' }
-ScpAssignmentIndirection >> newValue: anObject [
-
-	newValue := anObject
-]
-
-{ #category : 'accessing' }
-ScpAssignmentIndirection >> oldValue [
-
-	^ oldValue
-]
-
-{ #category : 'private - parameters' }
-ScpAssignmentIndirection >> oldValue: anObject [
-
-	oldValue := anObject
+	^ RBMessageNode
+		receiver: (RBVariableNode named: ScpAssignmentOperation name) 
+		selector: #new 
 ]
 
 { #category : 'private - instrumenter' }

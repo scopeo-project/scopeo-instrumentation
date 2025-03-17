@@ -6,33 +6,17 @@ Class {
 		'indirectionArguments',
 		'handler',
 		'handlerSelector',
-		'condition',
-		'node',
-		'context',
-		'object',
-		'method',
-		'operation'
+		'condition'
 	],
-	#category : 'Scopeo-Method-Instrumentation',
-	#package : 'Scopeo-Method-Instrumentation'
+	#category : 'Scopeo-Method-Instrumentation-Indirections',
+	#package : 'Scopeo-Method-Instrumentation',
+	#tag : 'Indirections'
 }
 
 { #category : 'private - parameters' }
 ScpIndirection >> condition: aConditionBlock [
 
 	condition := aConditionBlock
-]
-
-{ #category : 'accessing' }
-ScpIndirection >> context [
-
-	^ context
-]
-
-{ #category : 'private - parameters' }
-ScpIndirection >> context: anObject [
-
-	context := anObject	 
 ]
 
 { #category : 'private - instrumenter' }
@@ -44,18 +28,30 @@ ScpIndirection >> generateForNode: anASTProgramNode [
 	messages addAll: (indirectionArguments collect: [ :a | 
 		a generateForNode: anASTProgramNode 
 	]).
-	messages add: (RBMessageNode 
+	
+	newNode := RBMessageNode 
 		receiver: (RBLiteralValueNode value: self)
-		selector: #perform
-	).
-	
-	newNode := RBCascadeNode messages: messages.
-	
+		selector: #handle:
+		arguments: { RBCascadeNode messages: messages }.
+  
 	newNode indirectionSourceNode: anASTProgramNode.
 	newNode indirection: self.
 	
 	^ newNode
-    
+]
+
+{ #category : 'private - instrumenter' }
+ScpIndirection >> generateOperationForNode: anASTProgramNode [
+
+	self subclassResponsibility
+]
+
+{ #category : 'private - actions' }
+ScpIndirection >> handle: anScpOperation [
+
+	<debuggerCompleteToSender>
+
+	^ handler perform: handlerSelector withArguments: { anScpOperation } 
 ]
 
 { #category : 'parameters' }
@@ -93,56 +89,6 @@ ScpIndirection >> instrumenter: anInstrumenter [
 ScpIndirection >> isApplicableFor: aNode [
 
 	^ condition ifNil: [ true ] ifNotNil: [ :c | c value: aNode ]
-]
-
-{ #category : 'accessing' }
-ScpIndirection >> node [
-
-	^ node
-]
-
-{ #category : 'private - parameters' }
-ScpIndirection >> node: anASTProgramNode [
-
-	node := anASTProgramNode
-]
-
-{ #category : 'private - parameters' }
-ScpIndirection >> object [
-
-	^ object
-]
-
-{ #category : 'private - parameters' }
-ScpIndirection >> object: anObject [
-
-	object := anObject	 
-]
-
-{ #category : 'private - parameters' }
-ScpIndirection >> operation [
-
-	^ operation
-]
-
-{ #category : 'private - parameters' }
-ScpIndirection >> operation: anObject [
-
-	operation := anObject
-]
-
-{ #category : 'private - actions' }
-ScpIndirection >> perform [
-
-	^ handler perform: handlerSelector withArguments: { self } 
-]
-
-{ #category : 'actions' }
-ScpIndirection >> performDefaultOperation [
-
-	<debuggerCompleteToSender>
-	
-	^ operation value
 ]
 
 { #category : 'private - instrumenter' }

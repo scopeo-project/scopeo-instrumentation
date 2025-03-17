@@ -17,6 +17,12 @@ ScpMethodInstrumentationTest >> initialize [
 ]
 
 { #category : 'helpers' }
+ScpMethodInstrumentationTest >> methodWithArgumentUsedForMessage: anObject [
+
+	anObject asString
+]
+
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithAssignment [
 
 	instVar := 42
@@ -437,6 +443,36 @@ ScpMethodInstrumentationTest >> testMessageWithArgument [
 	self assert: (receiver isKindOf: Collection).
 	self assert: selector equals: #at:.
 	self assert: arguments first equals: 4
+]
+
+{ #category : 'tests' }
+ScpMethodInstrumentationTest >> testMethodWithArgumentUsedForMessage [
+
+	| sender selector receiver arguments |
+	
+	"Arrange"
+	ScpMethodInstrumentation new
+		addIndirection: (ScpMessageIndirection new
+			reifySender; reifyNode; reifyReceiver; reifyArguments;
+			handler: [ :inst | 
+				sender	 := inst sender.
+				selector := inst node selector.
+				receiver := inst receiver.
+				arguments := inst arguments.
+			];
+			handlerSelector: #value:;
+			yourself
+		);
+		installOn: (self class >> #methodWithArgumentUsedForMessage:).
+		
+	"Act"
+	self methodWithArgumentUsedForMessage: 42.
+	
+	"Assert"
+	self assert: sender equals: self.
+	self assert: receiver equals: 42.
+	self assert: selector equals: #asString.
+	self assert: arguments isEmpty
 ]
 
 { #category : 'tests' }

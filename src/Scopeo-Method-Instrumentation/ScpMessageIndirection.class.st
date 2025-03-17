@@ -1,24 +1,17 @@
 Class {
 	#name : 'ScpMessageIndirection',
 	#superclass : 'ScpInvocationIndirection',
-	#instVars : [
-		'sender',
-		'receiver'
-	],
-	#category : 'Scopeo-Method-Instrumentation',
-	#package : 'Scopeo-Method-Instrumentation'
+	#category : 'Scopeo-Method-Instrumentation-Indirections',
+	#package : 'Scopeo-Method-Instrumentation',
+	#tag : 'Indirections'
 }
 
-{ #category : 'accessing' }
-ScpMessageIndirection >> receiver [
+{ #category : 'private - instrumenter' }
+ScpMessageIndirection >> generateOperationForNode: anASTProgramNode [
 
-	^ receiver
-]
-
-{ #category : 'private - parameters' }
-ScpMessageIndirection >> receiver: anObject [
-
-	receiver := anObject
+	^ RBMessageNode
+		receiver: (RBVariableNode named: ScpMessageOperation name) 
+		selector: #new 
 ]
 
 { #category : 'private - instrumenter' }
@@ -66,10 +59,4 @@ ScpMessageIndirection >> reifyReceiver [
 ScpMessageIndirection >> reifySender [
 
 	self reifyObject
-]
-
-{ #category : 'accessing' }
-ScpMessageIndirection >> sender [
-
-	^ object
 ]

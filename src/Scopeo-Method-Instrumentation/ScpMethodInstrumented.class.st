@@ -2,8 +2,9 @@ Class {
 	#name : 'ScpMethodInstrumented',
 	#superclass : 'CompiledMethod',
 	#type : 'compiledMethod',
-	#category : 'Scopeo-Method-Instrumentation',
-	#package : 'Scopeo-Method-Instrumentation'
+	#category : 'Scopeo-Method-Instrumentation-Instrumentation',
+	#package : 'Scopeo-Method-Instrumentation',
+	#tag : 'Instrumentation'
 }
 
 { #category : 'instance creation' }

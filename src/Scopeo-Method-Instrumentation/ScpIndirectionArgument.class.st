@@ -7,8 +7,9 @@ Class {
 		'arguments',
 		'argument'
 	],
-	#category : 'Scopeo-Method-Instrumentation',
-	#package : 'Scopeo-Method-Instrumentation'
+	#category : 'Scopeo-Method-Instrumentation-Indirections',
+	#package : 'Scopeo-Method-Instrumentation',
+	#tag : 'Indirections'
 }
 
 { #category : 'accessing' }
@@ -23,7 +24,7 @@ ScpIndirectionArgument >> argument: aBlockGeneratingArgumentAST [
 ScpIndirectionArgument >> generateForNode: anASTProgramNode [
 
 	^ RBMessageNode
-		receiver: (RBLiteralValueNode value: indirection)
+		receiver: (indirection generateOperationForNode: anASTProgramNode)
   		selector: selector
     	arguments: { argument cull: anASTProgramNode cull: indirection instrumenter } 
 ]
