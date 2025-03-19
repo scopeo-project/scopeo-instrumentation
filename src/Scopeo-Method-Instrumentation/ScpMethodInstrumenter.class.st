@@ -90,9 +90,10 @@ ScpMethodInstrumenter >> visitArgumentNodes: anArgumentCollection [
 { #category : 'visiting' }
 ScpMethodInstrumenter >> visitArrayNode: anArrayNode [
 
-	^ RBArrayNode 
-		statements: (anArrayNode statements collect: [ :each | self visitNode: each ]);
-		yourself
+	^ RBArrayNode statements: (anArrayNode statements collect: [ :each | 
+		self visitNode: each 
+	])
+
 ]
 
 { #category : 'visiting' }
@@ -160,7 +161,7 @@ ScpMethodInstrumenter >> visitCascadeNode: aCascadeNode [
 { #category : 'visiting' }
 ScpMethodInstrumenter >> visitLiteralArrayNode: aRBLiteralArrayNode [
 
-	^ aRBLiteralArrayNode 
+	^ aRBLiteralArrayNode copy
 ]
 
 { #category : 'visiting' }

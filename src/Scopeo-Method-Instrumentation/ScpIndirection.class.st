@@ -53,13 +53,6 @@ ScpIndirection >> handlerSelector: aSelector [
 	handlerSelector := aSelector
 ]
 
-{ #category : 'private - instrumenter' }
-ScpIndirection >> indirection: anInstrumenter [
-
-	instrumenter := anInstrumenter.
-	self registerInInstrumenter
-]
-
 { #category : 'initialization' }
 ScpIndirection >> initialize [
 
@@ -72,6 +65,13 @@ ScpIndirection >> initialize [
 ScpIndirection >> instrumenter [
 
 	^ instrumenter
+]
+
+{ #category : 'private - instrumenter' }
+ScpIndirection >> instrumenter: anInstrumenter [
+
+	instrumenter := anInstrumenter.
+	self registerInInstrumenter
 ]
 
 { #category : 'private - instrumenter' }
@@ -109,7 +109,7 @@ ScpIndirection >> reifyDefault [
 { #category : 'parameters' }
 ScpIndirection >> reifyMethod [
 
-	reifications add: (ScpMethodIndirection new
+	reifications add: (ScpMethodReification new
        indirection: self;
        yourself)
 ]
