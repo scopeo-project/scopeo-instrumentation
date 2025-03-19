@@ -12,7 +12,9 @@ BaselineOfScopeoInstrumentation >> baseline: spec [
 	spec for: #common do: [
 		spec postLoadDoIt: #postload.
 		spec package: 'Scopeo-Method-Instrumentation'.
-		spec package: 'Scopeo-Method-Instrumentation-Tests'
+		spec package: 'Scopeo-Method-Instrumentation-Tests' with: [ 
+			spec requires: #( 'Scopeo-Method-Instrumentation' ) 
+		]
 	]
 ]
 
