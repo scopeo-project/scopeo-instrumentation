@@ -26,53 +26,39 @@ ScpMethodIndirection >> generateForNode: anASTProgramNode [
 ]
 
 { #category : 'private - instrumenter' }
-ScpMethodIndirection >> generateOperationForNode: anASTProgramNode [
-
-	^ RBMessageNode
-		receiver: (RBVariableNode named: ScpMethodOperation name) 
-		selector: #new 
-]
-
-{ #category : 'private - instrumenter' }
 ScpMethodIndirection >> registerInInstrumenter [
 
 	instrumenter addMethodIndirection: self
 ]
 
 { #category : 'parameters' }
-ScpMethodIndirection >> reifyDefaultOperation [
+ScpMethodIndirection >> reifyDefault [
 
-	indirectionArguments add: (ScpIndirectionArgument new
-		indirection: self;
-		selector: #operation:;
-		argument: [ :astnode :inst |
-			RBBlockNode body: (RBSequenceNode statements: { (RBMessageNode
-			    receiver: RBVariableNode selfNode
-			    selector: #withArgs:executeMethod:
-			    arguments: {
-						RBArrayNode statements: astnode arguments.
-						RBLiteralValueNode value: (inst hasIndirectionForBody 
-							ifTrue: [ inst instrument: astnode compiledMethod ]
-							ifFalse: [ astnode compiledMethod ])
-				 }) 
-		  })
-		];
-		yourself
-	)
+	reifications add: (ScpDefaultMethodReification new
+       indirection: self;
+       yourself)
+]
 
+{ #category : 'parameters' }
+ScpMethodIndirection >> reifyOperation [
 
-
-
+	reifications add: (ScpMethodOperationReification new
+       indirection: self;
+       yourself)
 ]
 
 { #category : 'parameters' }
 ScpMethodIndirection >> reifyReceiver [
 
-	self reifyObject
+	reifications add: (ScpObjectReification new
+       indirection: self;
+       yourself)
 ]
 
 { #category : 'parameters' }
 ScpMethodIndirection >> reifySender [
 
-	self reifyContext
+	reifications add: (ScpMethodSenderReification new
+       indirection: self;
+       yourself)
 ]

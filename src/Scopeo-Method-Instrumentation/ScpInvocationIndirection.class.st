@@ -15,16 +15,9 @@ ScpInvocationIndirection class >> isAbstract [
 { #category : 'parameters' }
 ScpInvocationIndirection >> reifyArguments [
 
-	indirectionArguments add: (ScpIndirectionArgument new
-		indirection: self;
-		selector: #arguments:;
-		argument: [ :astnode :inst | 
-			RBArrayNode statements: (astnode arguments collect: [ :a | 
-				inst visitNode: a 
-			]) 
-		];
-		yourself
-	).
+	reifications add: (ScpArgumentsReification new
+       indirection: self;
+       yourself)
 ]
 
 { #category : 'parameters' }

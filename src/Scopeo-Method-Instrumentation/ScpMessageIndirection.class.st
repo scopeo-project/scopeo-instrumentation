@@ -7,52 +7,35 @@ Class {
 }
 
 { #category : 'private - instrumenter' }
-ScpMessageIndirection >> generateOperationForNode: anASTProgramNode [
-
-	^ RBMessageNode
-		receiver: (RBVariableNode named: ScpMessageOperation name) 
-		selector: #new 
-]
-
-{ #category : 'private - instrumenter' }
 ScpMessageIndirection >> registerInInstrumenter [
 
 	instrumenter addMessageIndirection: self
 ]
 
 { #category : 'parameters' }
-ScpMessageIndirection >> reifyDefaultOperation [
+ScpMessageIndirection >> reifyDefault [
 
-	indirectionArguments add: (ScpIndirectionArgument new
-		indirection: self;
-		selector: #operation:;
-		argument: [ :astnode :inst | 
-			RBBlockNode body: (RBSequenceNode statements: { 
-				RBMessageNode
-					receiver: (inst visitNode: astnode receiver) 
-					selector: astnode selector 
-					arguments: (astnode arguments collect: [ :a | 
-						inst visitNode: a.
-					]) 
-			})
-		];
-		yourself
-	)
+	reifications add: (ScpDefaultMessageReification new
+       indirection: self;
+       yourself)
 
 
 ]
 
 { #category : 'parameters' }
+ScpMessageIndirection >> reifyOperation [
+
+	reifications add: (ScpMessageOperationReification new
+       indirection: self;
+       yourself)
+]
+
+{ #category : 'parameters' }
 ScpMessageIndirection >> reifyReceiver [
 
-	indirectionArguments add: (ScpIndirectionArgument new
-		indirection: self;
-		selector: #receiver:;
-		argument: [ :astnode :inst |
-			inst visitNode: astnode receiver 
-		];
-		yourself
-	)
+	reifications add: (ScpMessageReceiverReification new
+       indirection: self;
+       yourself)
 ]
 
 { #category : 'parameters' }
