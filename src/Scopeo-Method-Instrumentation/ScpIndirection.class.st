@@ -6,7 +6,6 @@ Class {
 		'handler',
 		'handlerSelector',
 		'condition',
-		'beOptimized',
 		'reifications'
 	],
 	#category : 'Scopeo-Method-Instrumentation-Indirections',
@@ -56,8 +55,7 @@ ScpIndirection >> handlerSelector: aSelector [
 { #category : 'initialization' }
 ScpIndirection >> initialize [
 
-	beOptimized := false.
-	reifications := OrderedCollection new.
+	reifications := OrderedCollection new
 	
 ]
 

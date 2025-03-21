@@ -144,10 +144,15 @@ ScpMethodInstrumenter >> visitCascadeNode: aCascadeNode [
 	statements add: (RBAssignmentNode variable: receiverNodeVariable value: receiverNode).
 	statements addAll: (aCascadeNode messages collect: [ :m | 
 		"Create new messages and apply modifications if needed."
-		self visitNode: (RBMessageNode
+		self flag: 'Check the indirection node thing, this will allow to pass the real message in the ScpNodeReification but may be a weird design.'.
+		self visitNode: ((RBMessageNode
 			receiver: receiverNodeVariable 
-			selector: m selector 
+			selector: m selector
 			arguments: m arguments)
+			"Since we already rewrote the message we need to put the correct indirection node"
+			indirectionSourceNode: m; 
+			indirection: self;
+			yourself)
 	]).
 
 	^ RBMessageNode
