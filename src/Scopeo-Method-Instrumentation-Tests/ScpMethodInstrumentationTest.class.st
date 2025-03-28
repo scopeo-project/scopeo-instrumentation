@@ -48,6 +48,23 @@ ScpMethodInstrumentationTest >> methodWithCascadeMessage [
 		yourself
 ]
 
+{ #category : 'as yet unclassified' }
+ScpMethodInstrumentationTest >> methodWithIfNilBranch [
+
+	nil ifNil: [ 42 asString  ]
+]
+
+{ #category : 'as yet unclassified' }
+ScpMethodInstrumentationTest >> methodWithIfNilBranchAndMessage [
+
+	"This type of methods can contains inlinings which can break the instrumentation"
+	nil 
+		ifNil: [ 42 asString  ] 
+		ifNotNil: [ "Never happens" ].
+		
+	^ 52 asString
+]
+
 { #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithMessage [
 
@@ -473,6 +490,100 @@ ScpMethodInstrumentationTest >> testMethodWithArgumentUsedForMessage [
 	self assert: receiver equals: 42.
 	self assert: selector equals: #asString.
 	self assert: arguments isEmpty
+]
+
+{ #category : 'as yet unclassified' }
+ScpMethodInstrumentationTest >> testMethodWithIfNilBranch [
+
+	| operations |
+	
+	"Arrange"	
+	operations := OrderedCollection new.
+	
+	ScpMethodInstrumentation new
+		addIndirection: (ScpMessageIndirection new
+			reifySender; reifyNode; reifyReceiver; reifyArguments;
+			handler: [ :snd :node :rcv :args | 				
+				operations add: { 
+					#sender -> snd.  
+					#selector -> node selector.  
+					#receiver -> rcv.  
+					#arguments -> args
+				} asDictionary.
+				rcv perform: node selector withArguments: args
+			];
+			handlerSelector: #value:value:value:value:;
+			yourself
+		);
+		installOn: (self class >> #methodWithIfNilBranch).
+	
+	
+	"Act"
+	self methodWithIfNilBranch.
+	
+	"Assert"
+	self assert: operations isNotEmpty.
+	self assert: operations size equals: 2. 
+
+	self assert: (operations first at: #receiver) equals: nil.
+	self assert: (operations first at: #selector) equals: #ifNil:.
+	self assert: (operations first at: #arguments) isNotEmpty.
+	self assert: (operations first at: #arguments) size equals: 1.
+	self assert: (operations first at: #arguments) first isBlock.
+	
+	self assert: (operations second at: #receiver) equals: 42.
+	self assert: (operations second at: #selector) equals: #asString.
+	self assert: (operations second at: #arguments) isEmpty
+]
+
+{ #category : 'as yet unclassified' }
+ScpMethodInstrumentationTest >> testMethodWithIfNilBranchAndMessage [
+
+	| operations |
+	
+	"Arrange"	
+	operations := OrderedCollection new.
+	
+	ScpMethodInstrumentation new
+		addIndirection: (ScpMessageIndirection new
+			reifySender; reifyNode; reifyReceiver; reifyArguments;
+			handler: [ :snd :node :rcv :args | 				
+				operations add: { 
+					#sender -> snd.  
+					#selector -> node selector.  
+					#receiver -> rcv.  
+					#arguments -> args
+				} asDictionary.
+				rcv perform: node selector withArguments: args
+			];
+			handlerSelector: #value:value:value:value:;
+			yourself
+		);
+		installOn: (self class >> #methodWithIfNilBranchAndMessage).
+	
+	"Act"
+	self methodWithIfNilBranchAndMessage.
+		
+	"Assert"
+	self assert: operations isNotEmpty.
+	self assert: operations size equals: 3. 
+
+	self assert: (operations first at: #receiver) equals: nil.
+	self assert: (operations first at: #selector) equals: #ifNil:ifNotNil:.
+	self assert: (operations first at: #arguments) isNotEmpty.
+	self assert: (operations first at: #arguments) size equals: 2.
+	self assert: (operations first at: #arguments) first isBlock.
+	self assert: (operations first at: #arguments) second isBlock.
+
+	self assert: (operations second at: #receiver) equals: 42.
+	self assert: (operations second at: #selector) equals: #asString.
+	self assert: (operations second at: #arguments) isEmpty.
+	
+	self assert: (operations third at: #receiver) equals: 52.
+	self assert: (operations third at: #selector) equals: #asString.
+	self assert: (operations third at: #arguments) isEmpty.
+	
+	
 ]
 
 { #category : 'tests' }
