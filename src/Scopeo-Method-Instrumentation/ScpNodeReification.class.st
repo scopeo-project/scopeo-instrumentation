@@ -9,7 +9,17 @@ Class {
 { #category : 'private - reification' }
 ScpNodeReification >> generateForNode: anASTProgramNode [
 
-	^ RBLiteralValueNode value: (anASTProgramNode isIndirectionNode 
-		ifTrue: [ anASTProgramNode indirectionSourceNode ]
-		ifFalse: [ anASTProgramNode ])
+	| node |
+
+	node:= anASTProgramNode.
+	
+	anASTProgramNode isIndirectionNode ifTrue: [ 
+		node := anASTProgramNode indirectionSourceNode 
+	].
+	
+	anASTProgramNode isTransformedFromCascade ifTrue: [ 
+		node := anASTProgramNode cascadeSourceNode 
+	].
+
+	^ RBLiteralValueNode value: node
 ]

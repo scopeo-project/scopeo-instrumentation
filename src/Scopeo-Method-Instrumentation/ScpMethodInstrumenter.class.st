@@ -54,7 +54,7 @@ ScpMethodInstrumenter >> initialize [
 { #category : 'services' }
 ScpMethodInstrumenter >> instrument: aMethod [
 
-	| ast instrumented |
+	| ast instrumented compiler options |
 	
 	aMethod isInstrumented ifTrue: [ 
 		self error: aMethod name , ' is already instrumented.'
@@ -65,7 +65,12 @@ ScpMethodInstrumenter >> instrument: aMethod [
 	ast doSemanticAnalysis.
 	ast source: ast formattedCode.
 	
-	instrumented := ast generateMethod.
+	compiler := aMethod methodClass compiler.
+	options := compiler compilationContext options.
+	
+	compiler compilationContext setOptions: Set empty.
+	instrumented := compiler ast: ast; compile.
+	compiler compilationContext setOptions: options.
 	
 	ScpMethodInstrumented adoptInstance: instrumented.
 	instrumented instrumentation: instrumentation.
@@ -138,21 +143,27 @@ ScpMethodInstrumenter >> visitCascadeNode: aCascadeNode [
 	"Extract the cascade receiver into a new node (visit the receiver to modify it if it is a message)."
 	receiverNode := self visitNode: aCascadeNode receiver.
 	receiverNodeVariable := RBVariableNode named: 'receiver_' , aCascadeNode hash asString.
+	receiverNodeVariable indirectionSourceNode: aCascadeNode receiver. 
+	receiverNodeVariable indirection: self.
 
 	"Transform cascading messages into a list of statment messages."
 	statements := OrderedCollection new.
 	statements add: (RBAssignmentNode variable: receiverNodeVariable value: receiverNode).
 	statements addAll: (aCascadeNode messages collect: [ :m | 
 		"Create new messages and apply modifications if needed."
-		self flag: 'Check the indirection node thing, this will allow to pass the real message in the ScpNodeReification but may be a weird design.'.
-		self visitNode: ((RBMessageNode
-			receiver: receiverNodeVariable 
+		self flag: 'Check the #transformedFromCascade: thing, this might be a weird design.'.
+		(self visitNode: ((RBMessageNode
+			receiver: receiverNodeVariable
 			selector: m selector
-			arguments: m arguments)
-			"Since we already rewrote the message we need to put the correct indirection node"
+			arguments: (m arguments collect: [:a | 
+				(self visitNode: a)
+					indirectionSourceNode: a;
+					indirection: self;
+					yourself
+			])) transformedFromCascade: m; yourself))
 			indirectionSourceNode: m; 
 			indirection: self;
-			yourself)
+			yourself		
 	]).
 
 	^ RBMessageNode

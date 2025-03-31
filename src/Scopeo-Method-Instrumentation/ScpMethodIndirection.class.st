@@ -32,6 +32,14 @@ ScpMethodIndirection >> registerInInstrumenter [
 ]
 
 { #category : 'parameters' }
+ScpMethodIndirection >> reifyContinue [
+
+	reifications add: (ScpMethodContinueReification new
+		indirection: self;
+		yourself)
+]
+
+{ #category : 'parameters' }
 ScpMethodIndirection >> reifyDefault [
 
 	reifications add: (ScpDefaultMethodReification new

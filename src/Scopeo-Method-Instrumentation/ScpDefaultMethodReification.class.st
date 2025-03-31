@@ -14,10 +14,8 @@ ScpDefaultMethodReification >> generateForNode: anASTProgramNode [
 			receiver: RBVariableNode selfNode
 			selector: #withArgs:executeMethod:
 			arguments: {
-				RBArrayNode statements: anASTProgramNode arguments.
-				RBLiteralValueNode value: (self instrumenter hasIndirectionForBody 
-					ifTrue: [ self instrumenter instrument: anASTProgramNode compiledMethod ]
-					ifFalse: [ anASTProgramNode compiledMethod ])
+				RBArrayNode statements: (anASTProgramNode arguments collect: [ :a | a copy ]).
+				RBLiteralValueNode value: anASTProgramNode compiledMethod
 			}) 
 	})
 ]

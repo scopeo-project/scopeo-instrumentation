@@ -11,10 +11,8 @@ ScpDefaultMessageReification >> generateForNode: anASTProgramNode [
 
 	^ RBBlockNode body: (RBSequenceNode statements: { 
 		RBMessageNode
-			receiver: (self instrumenter visitNode: anASTProgramNode receiver) 
+			receiver: anASTProgramNode receiver copy
 			selector: anASTProgramNode selector 
-			arguments: (anASTProgramNode arguments collect: [ :a | 
-				self instrumenter visitNode: a.
-			]) 
+			arguments: (anASTProgramNode arguments collect: [ :a | a copy ]) 
 	})
 ]

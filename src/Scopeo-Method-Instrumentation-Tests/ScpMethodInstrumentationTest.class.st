@@ -3,7 +3,8 @@ Class {
 	#superclass : 'TestCase',
 	#instVars : [
 		'instVar',
-		'observableInstVar'
+		'observableInstVar',
+		'line'
 	],
 	#category : 'Scopeo-Method-Instrumentation-Tests',
 	#package : 'Scopeo-Method-Instrumentation-Tests'
@@ -14,6 +15,12 @@ ScpMethodInstrumentationTest >> initialize [
 
 	self class initializeSlots: self.
 	super initialize.
+]
+
+{ #category : 'as yet unclassified' }
+ScpMethodInstrumentationTest >> methodThatHasMultipleCoordinateCreation [
+	
+	line := GLine through: 1 , 2 and: 3 , 5
 ]
 
 { #category : 'helpers' }
@@ -383,10 +390,10 @@ ScpMethodInstrumentationTest >> testMessageReceiver [
 	
 	ScpMethodInstrumentation new
 		addIndirection: (ScpMessageIndirection new
-			reifyDefault; reifyNode;
-			handler: [ :default :node | 
+			reifyContinue ; reifyNode;
+			handler: [ :operation :node | 
 				selectors add: node selector.
-				default value
+				operation value
 			];
 			handlerSelector: #value:value:;
 			yourself
@@ -460,6 +467,46 @@ ScpMethodInstrumentationTest >> testMessageWithArgument [
 	self assert: (receiver isKindOf: Collection).
 	self assert: selector equals: #at:.
 	self assert: arguments first equals: 4
+]
+
+{ #category : 'as yet unclassified' }
+ScpMethodInstrumentationTest >> testMethodThatHasMultipleCoordinateCreation [
+	
+	| operations |
+	
+	"Arrange"
+	
+	operations := OrderedCollection new.
+	
+	ScpMethodInstrumentation new
+		addIndirection: (ScpAssignmentIndirection new
+			reifyContinue; reifyNewValue;
+			handler: [ :continue :newValue |
+				continue value: newValue
+			];
+			handlerSelector: #value:value:;
+			yourself);
+		addIndirection: (ScpMessageIndirection new
+			reifyNode; reifyReceiver; reifyArguments; reifyDefault;
+			handler: [ :node :rcv :args :continue | 
+				operations add: { 
+					#selector -> node selector.  
+					#receiver -> rcv.  
+					#arguments -> args
+				} asDictionary.
+				continue value
+			];
+			handlerSelector: #value:value:value:value:;
+			yourself
+		);
+		installOn: (self class >> #methodThatHasMultipleCoordinateCreation).
+	
+	"Act"
+	self methodThatHasMultipleCoordinateCreation.
+	
+	"Assert"
+	self assert: operations isNotEmpty.
+	self assert: operations size equals: 3.
 ]
 
 { #category : 'tests' }
@@ -618,20 +665,20 @@ ScpMethodInstrumentationTest >> testReturnWithMessage [
 	instrumentation := ScpMethodInstrumentation new.
 	
 	instrumentation addIndirection: (ScpMessageIndirection new
-			reifyDefault; reifyNode; reifyReceiver; reifyArguments;
-			handler: [ :default :node :rcv :args | 
+			reifyContinue; reifyNode; reifyReceiver; reifyArguments;
+			handler: [ :continue :node :rcv :args | 
 				selector := node selector.
 				receiver := rcv.
 				arguments := args.
-				default value
+				continue value
 			];
 			handlerSelector: #value:value:value:value:;
 			yourself
 		).
 
 	instrumentation addIndirection: (ScpMethodIndirection new
-			reifyDefault;
-			handler: [ :default | result := default value ];
+			reifyContinue;
+			handler: [ :continue | result := continue value ];
 			handlerSelector: #value:;
 			yourself
 		).

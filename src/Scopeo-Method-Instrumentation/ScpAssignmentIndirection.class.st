@@ -17,6 +17,14 @@ ScpAssignmentIndirection >> registerInInstrumenter [
 ]
 
 { #category : 'parameters' }
+ScpAssignmentIndirection >> reifyContinue [
+
+	reifications add: (ScpAssignmentContinueReification new
+		indirection: self;
+		yourself)
+]
+
+{ #category : 'parameters' }
 ScpAssignmentIndirection >> reifyDefault [
 	
 	reifications add: (ScpDefaultAssignmentReification new

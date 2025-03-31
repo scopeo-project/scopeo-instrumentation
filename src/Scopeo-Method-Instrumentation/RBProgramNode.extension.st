@@ -1,6 +1,12 @@
 Extension { #name : 'RBProgramNode' }
 
 { #category : '*Scopeo-Method-Instrumentation' }
+RBProgramNode >> cascadeSourceNode [
+
+	^ self propertyAt: #fromCascade
+]
+
+{ #category : '*Scopeo-Method-Instrumentation' }
 RBProgramNode >> indirection [
 
 	^ self propertyAt: #indirection
@@ -28,4 +34,16 @@ RBProgramNode >> indirectionSourceNode: aNode [
 RBProgramNode >> isIndirectionNode [
 
 	^ self indirectionSourceNode ~~ self
+]
+
+{ #category : '*Scopeo-Method-Instrumentation' }
+RBProgramNode >> isTransformedFromCascade [
+
+	^ self hasProperty: #fromCascade
+]
+
+{ #category : '*Scopeo-Method-Instrumentation' }
+RBProgramNode >> transformedFromCascade: aMessage [
+
+	self propertyAt: #fromCascade put: aMessage 
 ]

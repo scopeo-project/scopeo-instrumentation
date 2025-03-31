@@ -32,7 +32,7 @@ ScpIndirection >> generateForNode: anASTProgramNode [
 	^ RBMessageNode new
 		receiver: (RBLiteralValueNode value: handler);
 		selector: handlerSelector;
-		arguments: (reifications collect: [ :r | 
+		arguments: (reifications collect: [ :r |
 			r generateForNode: anASTProgramNode
 		]);
 		indirectionSourceNode: anASTProgramNode;
@@ -75,7 +75,9 @@ ScpIndirection >> instrumenter: anInstrumenter [
 { #category : 'private - instrumenter' }
 ScpIndirection >> isApplicableFor: aNode [
 
-	^ condition ifNil: [ true ] ifNotNil: [ :c | c value: aNode ]
+	^ aNode isIndirectionNode not and: [ 
+		condition ifNil: [ true ] ifNotNil: [ :c | c value: aNode ] 
+	]
 ]
 
 { #category : 'testing' }
@@ -96,6 +98,12 @@ ScpIndirection >> reifyContext [
 	reifications add: (ScpContextReification new
        indirection: self;
        yourself)
+]
+
+{ #category : 'parameters' }
+ScpIndirection >> reifyContinue [
+
+	self subclassResponsibility
 ]
 
 { #category : 'parameters' }

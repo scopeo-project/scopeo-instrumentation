@@ -13,6 +13,14 @@ ScpMessageIndirection >> registerInInstrumenter [
 ]
 
 { #category : 'parameters' }
+ScpMessageIndirection >> reifyContinue [
+
+	reifications add: (ScpMessageContinueReification new
+		indirection: self;
+		yourself)
+]
+
+{ #category : 'parameters' }
 ScpMessageIndirection >> reifyDefault [
 
 	reifications add: (ScpDefaultMessageReification new
