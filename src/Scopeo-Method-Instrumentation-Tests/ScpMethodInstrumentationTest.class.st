@@ -17,12 +17,6 @@ ScpMethodInstrumentationTest >> initialize [
 	super initialize.
 ]
 
-{ #category : 'as yet unclassified' }
-ScpMethodInstrumentationTest >> methodThatHasMultipleCoordinateCreation [
-	
-	line := GLine through: 1 , 2 and: 3 , 5
-]
-
 { #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithArgumentUsedForMessage: anObject [
 
@@ -39,6 +33,12 @@ ScpMethodInstrumentationTest >> methodWithAssignment [
 ScpMethodInstrumentationTest >> methodWithAssignmentObservable [
 
 	observableInstVar := 42
+]
+
+{ #category : 'as yet unclassified' }
+ScpMethodInstrumentationTest >> methodWithAssignmentOfMessageResult [
+	
+	line := GLine through: 1 , 2 and: 3 , 5
 ]
 
 { #category : 'helpers' }
@@ -469,46 +469,6 @@ ScpMethodInstrumentationTest >> testMessageWithArgument [
 	self assert: arguments first equals: 4
 ]
 
-{ #category : 'as yet unclassified' }
-ScpMethodInstrumentationTest >> testMethodThatHasMultipleCoordinateCreation [
-	
-	| operations |
-	
-	"Arrange"
-	
-	operations := OrderedCollection new.
-	
-	ScpMethodInstrumentation new
-		addIndirection: (ScpAssignmentIndirection new
-			reifyContinue; reifyNewValue;
-			handler: [ :continue :newValue |
-				continue value: newValue
-			];
-			handlerSelector: #value:value:;
-			yourself);
-		addIndirection: (ScpMessageIndirection new
-			reifyNode; reifyReceiver; reifyArguments; reifyDefault;
-			handler: [ :node :rcv :args :continue | 
-				operations add: { 
-					#selector -> node selector.  
-					#receiver -> rcv.  
-					#arguments -> args
-				} asDictionary.
-				continue value
-			];
-			handlerSelector: #value:value:value:value:;
-			yourself
-		);
-		installOn: (self class >> #methodThatHasMultipleCoordinateCreation).
-	
-	"Act"
-	self methodThatHasMultipleCoordinateCreation.
-	
-	"Assert"
-	self assert: operations isNotEmpty.
-	self assert: operations size equals: 3.
-]
-
 { #category : 'tests' }
 ScpMethodInstrumentationTest >> testMethodWithArgumentUsedForMessage [
 
@@ -537,6 +497,46 @@ ScpMethodInstrumentationTest >> testMethodWithArgumentUsedForMessage [
 	self assert: receiver equals: 42.
 	self assert: selector equals: #asString.
 	self assert: arguments isEmpty
+]
+
+{ #category : 'as yet unclassified' }
+ScpMethodInstrumentationTest >> testMethodWithAssignmentOfMessageResult [
+	
+	| operations |
+	
+	"Arrange"
+	
+	operations := OrderedCollection new.
+	
+	ScpMethodInstrumentation new
+		addIndirection: (ScpAssignmentIndirection new
+			reifyContinue; reifyNewValue;
+			handler: [ :continue :newValue |
+				continue value: newValue
+			];
+			handlerSelector: #value:value:;
+			yourself);
+		addIndirection: (ScpMessageIndirection new
+			reifyNode; reifyReceiver; reifyArguments; reifyDefault;
+			handler: [ :node :rcv :args :continue | 
+				operations add: { 
+					#selector -> node selector.  
+					#receiver -> rcv.  
+					#arguments -> args
+				} asDictionary.
+				continue value
+			];
+			handlerSelector: #value:value:value:value:;
+			yourself
+		);
+		installOn: (self class >> #methodWithAssignmentOfMessageResult).
+	
+	"Act"
+	self methodWithAssignmentOfMessageResult.
+	
+	"Assert"
+	self assert: operations isNotEmpty.
+	self assert: operations size equals: 3.
 ]
 
 { #category : 'as yet unclassified' }
