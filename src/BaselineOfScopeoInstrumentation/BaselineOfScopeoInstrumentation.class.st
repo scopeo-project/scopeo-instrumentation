@@ -11,7 +11,7 @@ BaselineOfScopeoInstrumentation >> baseline: spec [
 	<baseline>
 	spec for: #common do: [
 		spec postLoadDoIt: #postload.
-		spec packages: spec
+		self packages: spec
 	]
 ]
 
