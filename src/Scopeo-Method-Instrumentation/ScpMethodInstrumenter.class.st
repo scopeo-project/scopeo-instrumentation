@@ -89,7 +89,7 @@ ScpMethodInstrumenter >> instrumentation: anInstrumentation [
 { #category : 'visiting' }
 ScpMethodInstrumenter >> visitArgumentNodes: anArgumentCollection [
 
-	^ anArgumentCollection collect: [ :each | self visitVariableNode: each ]
+	^ anArgumentCollection collect: [ :each | self visitNode: each ]
 ]
 
 { #category : 'visiting' }
@@ -116,10 +116,15 @@ ScpMethodInstrumenter >> visitAssignmentNode: anAssignmentNode [
 { #category : 'visiting' }
 ScpMethodInstrumenter >> visitBlockNode: aBlockNode [
 
-	^ RBBlockNode 
-		arguments: (self visitArgumentNodes: aBlockNode arguments)
-		body: (self visitNode: aBlockNode body)
-
+	^ RBMessageNode
+		receiver: (RBLiteralValueNode value: aBlockNode methodNode compiledMethod)
+   		selector: #attachNode:toBlock: 
+  		arguments: {
+			RBLiteralValueNode value: aBlockNode.	 
+			RBBlockNode 
+				arguments: (self visitArgumentNodes: aBlockNode arguments)
+				body: (self visitNode: aBlockNode body) 
+		}
 ]
 
 { #category : 'visiting' }
