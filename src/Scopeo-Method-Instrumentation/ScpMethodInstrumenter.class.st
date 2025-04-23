@@ -5,7 +5,8 @@ Class {
 		'assignmentIndirection',
 		'messageIndirection',
 		'methodIndirection',
-		'instrumentation'
+		'instrumentation',
+		'originalMethod'
 	],
 	#category : 'Scopeo-Method-Instrumentation-Instrumentation',
 	#package : 'Scopeo-Method-Instrumentation',
@@ -60,6 +61,8 @@ ScpMethodInstrumenter >> instrument: aMethod [
 		self error: aMethod name , ' is already instrumented.'
 	].
 	
+	originalMethod := aMethod.
+		
 	ast := self visitNode: aMethod ast.
 	
 	ast doSemanticAnalysis.
@@ -117,7 +120,7 @@ ScpMethodInstrumenter >> visitAssignmentNode: anAssignmentNode [
 ScpMethodInstrumenter >> visitBlockNode: aBlockNode [
 
 	^ RBMessageNode
-		receiver: (RBLiteralValueNode value: aBlockNode methodNode compiledMethod)
+		receiver: (RBLiteralValueNode value: originalMethod)
    		selector: #attachNode:toBlock: 
   		arguments: {
 			RBLiteralValueNode value: aBlockNode.	 
