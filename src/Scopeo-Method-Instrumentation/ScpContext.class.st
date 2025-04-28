@@ -186,9 +186,17 @@ ScpContext >> ensure: aBlock [
 ScpContext >> evaluate [
 
 	| result |
+	
+	caller := parent ifNil: [ 
+		self resolveOuterContext
+	].
 
 	result := self visitNode: ast.
-	result isBlock ifTrue: [ result caller: nil ].
+	
+	result isBlock ifTrue: [ 
+		result caller: nil 
+	].
+
 	^ result
 ]
 
@@ -199,7 +207,8 @@ ScpContext >> evaluateInstanceAssignment: aVariableName old: anOldValue new: aNe
 { #category : 'as yet unclassified' }
 ScpContext >> evaluateMessage: aMessageNode on: aReceiver [
 
-	^ self evaluateMessage: aMessageNode on: aReceiver withArgs: (aMessageNode arguments collect: [ :a | |arg|
+	^ self evaluateMessage: aMessageNode on: aReceiver withArgs: (aMessageNode arguments collect: [ :a |
+		|arg|
 		arg := self visitNode: a.
 		return ifNotEmpty: [ :r | ^ r ].
 		arg
@@ -253,6 +262,12 @@ ScpContext >> evaluateMethodNode: aMethodNode on: aReceiver withArgs: aArguments
 		receiver: aReceiver;
 		evaluate
 	
+]
+
+{ #category : 'testing' }
+ScpContext >> hasReturned [
+
+	^ return isNotEmpty or: [ caller class == self class and: [ caller hasReturned ] ]
 ]
 
 { #category : 'exceptions' }
@@ -318,10 +333,25 @@ ScpContext >> receiver: anObject [
 	receiver := anObject
 ]
 
-{ #category : 'accessing' }
+{ #category : 'as yet unclassified' }
+ScpContext >> resolveOuterContext [
+	
+	| outer|
+	outer := thisContext.
+	
+	[ outer receiver class == self class ] whileTrue: [ 
+		outer := outer sender.
+	].
+	
+	^ outer 
+]
+
+{ #category : 'testing' }
 ScpContext >> return [
 
-	^ return
+	^ return 
+		ifEmpty: [ caller return ]
+		ifNotEmpty: [ :r | r top ]
 ]
 
 { #category : 'accessing' }
@@ -364,8 +394,6 @@ ScpContext >> value [
 
 { #category : 'evaluating' }
 ScpContext >> value: firstArg [
-
-	caller ifNil: [ caller := thisContext sender ].
 		
    self arguments: { firstArg }.
 
@@ -374,8 +402,6 @@ ScpContext >> value: firstArg [
 
 { #category : 'evaluating' }
 ScpContext >> value: firstArg value: secondArg [
-
-	caller ifNil: [ caller := thisContext sender ].
 
    self arguments: {
 		firstArg.
@@ -388,8 +414,6 @@ ScpContext >> value: firstArg value: secondArg [
 { #category : 'evaluating' }
 ScpContext >> value: firstArg value: secondArg value: thirdArg [
 
-	caller ifNil: [ caller := thisContext sender ].
-
    self arguments: {
 		firstArg.
 		secondArg.
@@ -401,8 +425,6 @@ ScpContext >> value: firstArg value: secondArg value: thirdArg [
 
 { #category : 'evaluating' }
 ScpContext >> value: firstArg value: secondArg value: thirdArg value: fourthArg [
-
-	caller ifNil: [ caller := thisContext sender ].
 
    self arguments: {
 		firstArg.
@@ -417,8 +439,6 @@ ScpContext >> value: firstArg value: secondArg value: thirdArg value: fourthArg 
 { #category : 'evaluating' }
 ScpContext >> valueNoContextSwitch [
 	
-	caller ifNil: [ caller := thisContext sender ].
-
 	^ self value
 ]
 
@@ -443,7 +463,7 @@ ScpContext >> visitAssignmentNode: anAssignmentNode [
 	| value |
 
 	value := self visitNode: anAssignmentNode value.
-	return ifNotEmpty: [ :r | ^ r top ].
+	self hasReturned ifTrue: [ ^ self return ].
 	
 	anAssignmentNode variable isLiteralVariable ifTrue: [ 
 		anAssignmentNode variable variable write: value
@@ -468,7 +488,6 @@ ScpContext >> visitBlockNode: aBlockNode [
 
 	^ (self visitMethodOrBlockNode: aBlockNode)
 		bindings: bindings;
-		caller: self;
 		beBlock;
 		yourself
 ]
@@ -523,7 +542,7 @@ ScpContext >> visitMessageNode: aMessageNode [
 	| messageReceiver |
 	
 	messageReceiver := self visitNode: aMessageNode receiver.
-	return ifNotEmpty: [ :r | ^ r top ].
+	self hasReturned ifTrue: [ ^ self return ].
 	
 	^ self 
 		evaluateMessage: aMessageNode 
@@ -541,6 +560,7 @@ ScpContext >> visitMethodOrBlockNode: aMethodOrBlockNode [
 
 	^ self class new
 		parent: self;
+		caller: caller;
 		receiver: receiver;
 		ast: aMethodOrBlockNode body;
 		parameters: (self visitArgumentNodes: aMethodOrBlockNode arguments);
@@ -549,11 +569,8 @@ ScpContext >> visitMethodOrBlockNode: aMethodOrBlockNode [
 
 { #category : 'visiting' }
 ScpContext >> visitReturnNode: aReturnNode [
-
-
-	return push: (self visitNode: aReturnNode value).
 	
-	^ return top
+	^ self return: (self visitNode: aReturnNode value)
 ]
 
 { #category : 'visiting' }
@@ -569,7 +586,7 @@ ScpContext >> visitSequenceNode: aSequenceNode [
 
 	aSequenceNode statements do: [ :statement | 
 		result := self visitNode: statement.
-		return ifNotEmpty: [ :r | ^ r top ]
+		self hasReturned ifTrue: [ ^ self return ].
 	].
 
 	aSequenceNode methodOrBlockNode isBlock ifTrue: [ 
@@ -602,9 +619,9 @@ ScpContext >> whileFalse [
 	"Ordinarily compiled in-line, and therefore not overridable.
 	This is in case the message is sent to other than a literal block.
 	Evaluate the receiver, as long as its value is false."
-	caller ifNil: [ caller := thisContext sender ].
-
-	self value ifFalse: [ return ifEmpty: [self whileFalse ]]
+	(self hasReturned not and: [ self value not ]) ifTrue: [
+		self whileFalse
+	]
 ]
 
 { #category : 'controlling' }
@@ -612,27 +629,22 @@ ScpContext >> whileFalse: aBlock [
 	"Ordinarily compiled in-line, and therefore not overridable.
 	This is in case the message is sent to other than a literal block.
 	Evaluate the argument, aBlock, as long as the value of the receiver is false."
-	caller ifNil: [ caller := thisContext sender ].
-	
-	self value ifFalse: [ aBlock value. return ifEmpty: [ self whileFalse: aBlock ] ].
+	(self hasReturned not and: [ self value not ]) ifTrue: [
+		aBlock value.
+		self whileFalse: aBlock
+	].
 	^ nil
 ]
 
 { #category : 'controlling' }
 ScpContext >> whileNil: aBlock [
 	"Unlike #whileTrue/False: this is not compiled inline."
-	
-	caller ifNil: [ caller := thisContext sender ].
-		
 	^ [self value isNil] whileTrue: [aBlock value]
 ]
 
 { #category : 'controlling' }
 ScpContext >> whileNotNil: aBlock [
 	"Unlike #whileTrue/False: this is not compiled inline."
-
-	caller ifNil: [ caller := thisContext sender ].
-
 	^ [self value isNotNil] whileTrue: [aBlock value]
 ]
 
@@ -641,13 +653,8 @@ ScpContext >> whileTrue [
 	"Ordinarily compiled in-line, and therefore not overridable.
 	This is in case the message is sent to other than a literal block.
 	Evaluate the receiver, as long as its value is true."
-
-	caller ifNil: [ caller := thisContext sender ].
-
-	self value ifTrue: [ 	
-		return ifEmpty: [ 
-			self whileTrue 
-		]  
+	(self hasReturned not and: [ self value ]) ifTrue: [
+		self whileTrue
 	]
 ]
 
@@ -656,11 +663,10 @@ ScpContext >> whileTrue: aBlock [
 	"Ordinarily compiled in-line, and therefore not overridable.
 	This is in case the message is sent to other than a literal block.
 	Evaluate the argument, aBlock, as long as the value of the receiver is true."
-	self value ifTrue: [ 
+	
+	(self hasReturned not and: [ self value ]) ifTrue: [
 		aBlock value. 
-		return ifEmpty: [
-			self whileTrue: aBlock 
-		] 
+		self whileTrue: aBlock 
 	].
 	^ nil
 ]

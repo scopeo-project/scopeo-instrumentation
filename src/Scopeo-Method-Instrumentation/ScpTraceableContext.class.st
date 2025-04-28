@@ -1,5 +1,5 @@
 Class {
-	#name : 'ScpRecordedContext',
+	#name : 'ScpTraceableContext',
 	#superclass : 'ScpContext',
 	#instVars : [
 		'execution'
@@ -10,7 +10,7 @@ Class {
 }
 
 { #category : 'as yet unclassified' }
-ScpRecordedContext >> evaluateInstanceAssignment: aVariableNode old: anOldValue new: aNewValue [
+ScpTraceableContext >> evaluateInstanceAssignment: aVariableNode old: anOldValue new: aNewValue [
 
 	execution assignment: (ScpAssignmentTrace new
 		node: aVariableNode;
@@ -21,7 +21,7 @@ ScpRecordedContext >> evaluateInstanceAssignment: aVariableNode old: anOldValue 
 ]
 
 { #category : 'visiting' }
-ScpRecordedContext >> evaluateMessage: aMessageNode on: aReceiver withArgs: aArguments [
+ScpTraceableContext >> evaluateMessage: aMessageNode on: aReceiver withArgs: aArguments [
 
 	execution message: (ScpMessageTrace new
 		node: aMessageNode;
@@ -35,7 +35,7 @@ ScpRecordedContext >> evaluateMessage: aMessageNode on: aReceiver withArgs: aArg
 ]
 
 { #category : 'visiting' }
-ScpRecordedContext >> evaluateMethod: aCompiledMethod on: aReceiver withArgs: aArguments [
+ScpTraceableContext >> evaluateMethod: aCompiledMethod on: aReceiver withArgs: aArguments [
 	
 	| result |
 
@@ -53,7 +53,7 @@ ScpRecordedContext >> evaluateMethod: aCompiledMethod on: aReceiver withArgs: aA
 ]
 
 { #category : 'visiting' }
-ScpRecordedContext >> evaluateMethodNode: aMethodNode on: aReceiver withArgs: aArguments [
+ScpTraceableContext >> evaluateMethodNode: aMethodNode on: aReceiver withArgs: aArguments [
 	
 	| result |
 
@@ -71,18 +71,18 @@ ScpRecordedContext >> evaluateMethodNode: aMethodNode on: aReceiver withArgs: aA
 ]
 
 { #category : 'accessing' }
-ScpRecordedContext >> execution [
+ScpTraceableContext >> execution [
 
 	^ execution
 ]
 
 { #category : 'accessing' }
-ScpRecordedContext >> execution: aScpExecutionRecord [ 
+ScpTraceableContext >> execution: aScpExecutionRecord [ 
 	execution := aScpExecutionRecord
 ]
 
 { #category : 'initialization' }
-ScpRecordedContext >> initialize [
+ScpTraceableContext >> initialize [
 
 	super initialize.
 
@@ -90,7 +90,7 @@ ScpRecordedContext >> initialize [
 ]
 
 { #category : 'visiting' }
-ScpRecordedContext >> visitMethodOrBlockNode: aMethodOrBlockNode [
+ScpTraceableContext >> visitMethodOrBlockNode: aMethodOrBlockNode [
 
 	^ (super visitMethodOrBlockNode: aMethodOrBlockNode)
 		execution: execution;
