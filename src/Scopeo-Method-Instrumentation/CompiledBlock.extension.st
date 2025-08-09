@@ -13,6 +13,6 @@ CompiledBlock >> sourceNodeInOuter [
 		^ self outerCode sourceNodeForPC: self pcInOuter	
 	].
 
-	^ self outerCode original sourceNodeForBlock: self
+	^ self outerCode method original sourceNodeForBlock: self
 	
 ]

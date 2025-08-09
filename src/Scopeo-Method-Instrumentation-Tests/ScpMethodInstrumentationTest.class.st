@@ -35,10 +35,16 @@ ScpMethodInstrumentationTest >> methodWithAssignmentObservable [
 	observableInstVar := 42
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithAssignmentOfMessageResult [
 	
 	line := GLine through: 1 , 2 and: 3 , 5
+]
+
+{ #category : 'helpers' }
+ScpMethodInstrumentationTest >> methodWithAssignmentOfMessageSingleton [
+
+	line := line ifNil: [ line := 42 ].
 ]
 
 { #category : 'helpers' }
@@ -55,13 +61,13 @@ ScpMethodInstrumentationTest >> methodWithCascadeMessage [
 		yourself
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithIfNilBranch [
 
 	nil ifNil: [ 42 asString  ]
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithIfNilBranchAndMessage [
 
 	"This type of methods can contains inlinings which can break the instrumentation"
@@ -109,6 +115,12 @@ ScpMethodInstrumentationTest >> methodWithMessageWithArgument [
 ]
 
 { #category : 'helpers' }
+ScpMethodInstrumentationTest >> methodWithMessageWithBlockAsArgument [
+
+	[ OrderedCollection new add: [ 42 ] ] value
+]
+
+{ #category : 'helpers' }
 ScpMethodInstrumentationTest >> methodWithReturn [
 
 	^ 42
@@ -123,6 +135,7 @@ ScpMethodInstrumentationTest >> methodWithReturnWithMessage [
 { #category : 'running' }
 ScpMethodInstrumentationTest >> tearDown [
 
+	line := nil.
 	instVar := nil.
 	observableInstVar := nil.
 
@@ -470,6 +483,31 @@ ScpMethodInstrumentationTest >> testMessageWithArgument [
 ]
 
 { #category : 'tests' }
+ScpMethodInstrumentationTest >> testMessageWithBlockAsArgument [
+
+	| argument |
+	
+	"Arrange"
+	ScpMethodInstrumentation new
+		addIndirection: (ScpMessageIndirection new
+			reifyArguments;
+			handler: [ :args |
+				argument := args first.
+			];
+			handlerSelector: #value:;
+			condition: [ :n | n selector = #add: ];
+			yourself
+		);
+		installOn: (self class >> #methodWithMessageWithBlockAsArgument).
+		
+	"Act"
+	self methodWithMessageWithBlockAsArgument.
+	
+	"Assert"
+	self assert: argument asString equals: '[ 42 ]'
+]
+
+{ #category : 'tests' }
 ScpMethodInstrumentationTest >> testMethodWithArgumentUsedForMessage [
 
 	| sender selector receiver arguments |
@@ -499,7 +537,7 @@ ScpMethodInstrumentationTest >> testMethodWithArgumentUsedForMessage [
 	self assert: arguments isEmpty
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'tests' }
 ScpMethodInstrumentationTest >> testMethodWithAssignmentOfMessageResult [
 	
 	| operations |
@@ -539,7 +577,35 @@ ScpMethodInstrumentationTest >> testMethodWithAssignmentOfMessageResult [
 	self assert: operations size equals: 3.
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'tests' }
+ScpMethodInstrumentationTest >> testMethodWithAssignmentOfMessageSingleton [
+	
+	| operations value |
+	
+	"Arrange"
+	
+	operations := OrderedCollection new.
+	
+	ScpMethodInstrumentation new
+		addIndirection: (ScpAssignmentIndirection new
+			reifyContinue; reifyNewValue;
+			handler: [ :continue :newValue |
+				value := newValue.
+				continue value: newValue
+			];
+			handlerSelector: #value:value:;
+			yourself);
+		installOn: (self class >> #methodWithAssignmentOfMessageSingleton).
+	
+	"Act"
+	self methodWithAssignmentOfMessageSingleton.
+	
+	
+	"Assert"
+	self assert: value equals: 42
+]
+
+{ #category : 'tests' }
 ScpMethodInstrumentationTest >> testMethodWithIfNilBranch [
 
 	| operations |
@@ -583,7 +649,7 @@ ScpMethodInstrumentationTest >> testMethodWithIfNilBranch [
 	self assert: (operations second at: #arguments) isEmpty
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'tests' }
 ScpMethodInstrumentationTest >> testMethodWithIfNilBranchAndMessage [
 
 	| operations |
