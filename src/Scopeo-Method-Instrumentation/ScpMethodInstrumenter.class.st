@@ -6,7 +6,8 @@ Class {
 		'messageIndirection',
 		'methodIndirection',
 		'instrumentation',
-		'originalMethod'
+		'originalMethod',
+		'compiler'
 	],
 	#category : 'Scopeo-Method-Instrumentation-Instrumentation',
 	#package : 'Scopeo-Method-Instrumentation',
@@ -32,6 +33,12 @@ ScpMethodInstrumenter >> addMethodIndirection: aMethodIndirection [
 	methodIndirection := aMethodIndirection
 ]
 
+{ #category : 'accessing' }
+ScpMethodInstrumenter >> compiler: aCompiler [
+
+	compiler := aCompiler
+]
+
 { #category : 'testing' }
 ScpMethodInstrumenter >> hasIndirectionForBody [
 
@@ -55,25 +62,21 @@ ScpMethodInstrumenter >> initialize [
 { #category : 'services' }
 ScpMethodInstrumenter >> instrument: aMethod [
 
-	| ast instrumented compiler options |
+	| ast instrumented |
 	
 	aMethod isInstrumented ifTrue: [ 
 		self error: aMethod name , ' is already instrumented.'
 	].
 	
 	originalMethod := aMethod.
-		
+	
 	ast := self visitNode: aMethod ast.
-	
-	ast doSemanticAnalysis.
 	ast source: ast formattedCode.
+	ast doSemanticAnalysis.
 	
-	compiler := aMethod methodClass compiler.
-	options := compiler compilationContext options.
-	
-	compiler compilationContext setOptions: Set empty.
-	instrumented := compiler ast: ast; compile.
-	compiler compilationContext setOptions: options.
+	instrumented := (compiler ifNil: [ aMethod methodClass compiler])
+		ast: ast;
+		compile.
 	
 	ScpMethodInstrumented adoptInstance: instrumented.
 	instrumented instrumentation: instrumentation.
@@ -215,7 +218,7 @@ ScpMethodInstrumenter >> visitMethodNode: aMethodNode [
 	| methodNode indirection |
 
 	self hasIndirectionForMethod ifFalse: [
-		^ (RBMethodNode
+		^ (RBMethodNode 
 				selector: aMethodNode selector 
 				arguments: (self visitArgumentNodes: aMethodNode arguments)
 				body: (self visitNode: aMethodNode body))
@@ -275,6 +278,10 @@ ScpMethodInstrumenter >> visitTemporaryNodes: anTemporaryCollection [
 
 { #category : 'visiting' }
 ScpMethodInstrumenter >> visitVariableNode: aVariableNode [
-	
+
+	(originalMethod isDoIt and: [ aVariableNode variable class = DoItVariable or: [ aVariableNode variable class = WorkspaceVariable ] ]) ifTrue: [ 
+		^ RBLiteralValueNode value: (compiler semanticScope lookupVar: aVariableNode name) read
+	].
+
 	^ aVariableNode copy
 ]

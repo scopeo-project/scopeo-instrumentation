@@ -39,6 +39,12 @@ ScpMethodInstrumentation >> applyOn: aMethod [
 	^ instrumenter instrument: aMethod
 ]
 
+{ #category : 'accessing' }
+ScpMethodInstrumentation >> compiler: aCompiler [
+
+	instrumenter compiler: aCompiler
+]
+
 { #category : 'initialization' }
 ScpMethodInstrumentation >> initialize [
 
